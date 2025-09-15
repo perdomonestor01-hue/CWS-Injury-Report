@@ -1,0 +1,502 @@
+{
+  "meta": {
+    "instanceId": "jufipai-enterprise-safety-system"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "intervalSize": 15,
+        "intervalUnit": "minutes"
+      },
+      "id": "safety-monitor-trigger",
+      "name": "Safety Data Monitor",
+      "type": "n8n-nodes-base.interval",
+      "typeVersion": 1,
+      "position": [100, 200]
+    },
+    {
+      "parameters": {
+        "requestMethod": "GET",
+        "url": "={{ $env.SAFETY_API_ENDPOINT }}/injuries/recent"
+      },
+      "id": "fetch-injury-data",
+      "name": "Fetch Recent Injury Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [300, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "critical-injury-check",
+              "leftValue": "={{ $json.severity }}",
+              "rightValue": "Major",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        }
+      },
+      "id": "critical-injury-filter",
+      "name": "Critical Injury Detection",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [500, 200]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "parent": {
+          "page_id": "{{ $env.NOTION_SAFETY_DATABASE_ID }}"
+        },
+        "properties": {
+          "title": [
+            {
+              "text": {
+                "content": "🚨 CRITICAL SAFETY ALERT: {{ $json.injury_type }} - {{ $json.employee_id }}"
+              }
+            }
+          ]
+        }
+      },
+      "id": "create-notion-alert",
+      "name": "Log Critical Alert to Notion",
+      "type": "mcp__MCP_DOCKER__API-post-page",
+      "typeVersion": 1,
+      "position": [700, 100]
+    },
+    {
+      "parameters": {
+        "to": "{{ $env.CEO_EMAIL }}",
+        "subject": "🚨 URGENT: Critical Workplace Injury Alert",
+        "message": "IMMEDIATE ATTENTION REQUIRED\n\nA critical workplace injury has been reported:\n\n📍 Location: {{ $json.location }}\n👤 Employee: {{ $json.employee_id }}\n🩹 Injury Type: {{ $json.injury_type }}\n📅 Date: {{ $json.date }}\n💰 Estimated Cost: ${{ $json.cost }}\n⚠️ Severity: {{ $json.severity }}\n\nAction Items:\n1. Ensure employee receives immediate medical attention\n2. Secure the incident area\n3. Begin safety investigation\n4. Contact workers' compensation provider\n\nView Full Dashboard: {{ $env.DASHBOARD_URL }}\n\n---\nPowered by Jufipai.com Enterprise Safety Analytics\nFabien Perdomo © All Rights Reserved"
+      },
+      "id": "ceo-alert-email",
+      "name": "CEO Critical Alert Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [700, 200]
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "chatId": "{{ $env.SLACK_SAFETY_CHANNEL }}",
+        "text": "🚨 **CRITICAL SAFETY ALERT** 🚨\n\n**{{ $json.injury_type }}** reported at **{{ $json.location }}**\n\n**Details:**\n• Employee: {{ $json.employee_id }}\n• Date: {{ $json.date }}\n• Body Part: {{ $json.body_part }}\n• Cause: {{ $json.cause }}\n• Cost: ${{ $json.cost }}\n• Days Lost: {{ $json.days_lost }}\n\n**IMMEDIATE ACTION REQUIRED**\n@safety-team @management\n\nView Dashboard: {{ $env.DASHBOARD_URL }}"
+      },
+      "id": "slack-alert",
+      "name": "Slack Safety Team Alert",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [700, 300]
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "aggregate": {
+          "aggregations": [
+            {
+              "column": "cost",
+              "operation": "sum"
+            },
+            {
+              "column": "days_lost",
+              "operation": "sum"
+            },
+            {
+              "column": "severity",
+              "operation": "count"
+            }
+          ]
+        }
+      },
+      "id": "calculate-weekly-metrics",
+      "name": "Weekly Safety Metrics",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [300, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "threshold-check",
+              "leftValue": "={{ $json.cost_sum }}",
+              "rightValue": 50000,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "or"
+        }
+      },
+      "id": "threshold-monitor",
+      "name": "Cost Threshold Monitor",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [500, 400]
+    },
+    {
+      "parameters": {
+        "to": "{{ $env.CFO_EMAIL }},{{ $env.CEO_EMAIL }}",
+        "subject": "📊 Weekly Safety Cost Alert - Threshold Exceeded",
+        "message": "Weekly Safety Cost Report - ATTENTION REQUIRED\n\n📈 **COST THRESHOLD EXCEEDED**\n\nWeekly Totals:\n💰 Total Cost: ${{ $json.cost_sum }}\n📊 Total Incidents: {{ $json.severity_count }}\n⏰ Total Days Lost: {{ $json.days_lost_sum }}\n📅 Week Ending: {{ $now.format('YYYY-MM-DD') }}\n\n🎯 **Performance vs Targets:**\n• Weekly Budget: $50,000\n• Current: ${{ $json.cost_sum }}\n• Variance: ${{ $json.cost_sum - 50000 }}\n\n📋 **Recommended Actions:**\n1. Review high-cost incidents\n2. Implement additional safety measures\n3. Schedule emergency safety meeting\n4. Assess training needs\n\n🔗 **Quick Links:**\n• Executive Dashboard: {{ $env.DASHBOARD_URL }}\n• Detailed Reports: {{ $env.DASHBOARD_URL }}/reports\n• Safety Analytics: {{ $env.DASHBOARD_URL }}/analytics\n\n---\n💼 Jufipai.com Enterprise Safety Analytics\n👨‍💼 Fabien Perdomo © All Rights Reserved\n🏢 Fortune 500 Safety Management Solutions"
+      },
+      "id": "executive-cost-alert",
+      "name": "Executive Cost Alert",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [700, 400]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "query": "safety training workplace injury prevention",
+        "maxResults": 3
+      },
+      "id": "youtube-training-search",
+      "name": "Find Safety Training Videos",
+      "type": "mcp__MCP_DOCKER__get_video_info",
+      "typeVersion": 1,
+      "position": [300, 600]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "parent": {
+          "page_id": "{{ $env.NOTION_TRAINING_DATABASE_ID }}"
+        },
+        "properties": {
+          "title": [
+            {
+              "text": {
+                "content": "📺 Weekly Safety Training Resources - {{ $now.format('YYYY-MM-DD') }}"
+              }
+            }
+          ]
+        },
+        "children": [
+          {
+            "type": "paragraph",
+            "paragraph": {
+              "rich_text": [
+                {
+                  "type": "text",
+                  "text": {
+                    "content": "🎯 **Recommended Training Based on Recent Incidents:**\n\n"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "id": "create-training-page",
+      "name": "Create Training Resource Page",
+      "type": "mcp__MCP_DOCKER__API-post-page",
+      "typeVersion": 1,
+      "position": [500, 600]
+    },
+    {
+      "parameters": {
+        "intervalSize": 1,
+        "intervalUnit": "hours"
+      },
+      "id": "ai-analysis-trigger",
+      "name": "AI Analytics Trigger",
+      "type": "n8n-nodes-base.interval",
+      "typeVersion": 1,
+      "position": [100, 800]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Analyze the following workplace injury data and provide insights:\n\n{{ $json }}\n\nProvide:\n1. Risk pattern analysis\n2. Preventive recommendations\n3. Cost optimization strategies\n4. Department-specific action items\n\nFormat as executive summary for C-level stakeholders.",
+        "options": {}
+      },
+      "id": "ai-safety-analysis",
+      "name": "AI Safety Analytics",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [300, 800]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "parent": {
+          "page_id": "{{ $env.NOTION_ANALYTICS_DATABASE_ID }}"
+        },
+        "properties": {
+          "title": [
+            {
+              "text": {
+                "content": "🤖 AI Safety Analytics Report - {{ $now.format('YYYY-MM-DD HH:mm') }}"
+              }
+            }
+          ]
+        },
+        "children": [
+          {
+            "type": "paragraph",
+            "paragraph": {
+              "rich_text": [
+                {
+                  "type": "text",
+                  "text": {
+                    "content": "{{ $json.choices[0].message.content }}"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "id": "log-ai-insights",
+      "name": "Log AI Insights to Notion",
+      "type": "mcp__MCP_DOCKER__API-post-page",
+      "typeVersion": 1,
+      "position": [500, 800]
+    },
+    {
+      "parameters": {
+        "intervalSize": 6,
+        "intervalUnit": "hours"
+      },
+      "id": "dashboard-health-check",
+      "name": "Dashboard Health Monitor",
+      "type": "n8n-nodes-base.interval",
+      "typeVersion": 1,
+      "position": [100, 1000]
+    },
+    {
+      "parameters": {
+        "requestMethod": "GET",
+        "url": "{{ $env.DASHBOARD_URL }}/health"
+      },
+      "id": "check-dashboard-status",
+      "name": "Check Dashboard Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [300, 1000]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "status-check",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "healthy",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "or"
+        }
+      },
+      "id": "dashboard-health-filter",
+      "name": "Dashboard Health Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [500, 1000]
+    },
+    {
+      "parameters": {
+        "to": "{{ $env.IT_TEAM_EMAIL }}",
+        "subject": "🚨 URGENT: Safety Dashboard System Alert",
+        "message": "SYSTEM ALERT - IMMEDIATE ATTENTION REQUIRED\n\n🔴 **Dashboard Status: {{ $json.status }}**\n\nThe Executive Safety Dashboard is experiencing issues:\n\n⚠️ **Issue Details:**\n• Status: {{ $json.status }}\n• Response Time: {{ $json.response_time }}ms\n• Last Check: {{ $now.format('YYYY-MM-DD HH:mm:ss') }}\n• Error: {{ $json.error || 'Unknown' }}\n\n🎯 **Impact:**\n• Real-time safety monitoring compromised\n• Executive reporting affected\n• Critical alerts may be delayed\n\n🔧 **Action Required:**\n1. Investigate dashboard infrastructure\n2. Check API endpoints\n3. Verify database connections\n4. Restore service ASAP\n5. Report status to safety team\n\n📊 Dashboard URL: {{ $env.DASHBOARD_URL }}\n\n---\n⚡ Jufipai.com Enterprise Infrastructure\nFabien Perdomo © All Rights Reserved"
+      },
+      "id": "dashboard-alert-email",
+      "name": "IT Dashboard Alert",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [700, 1000]
+    }
+  ],
+  "connections": {
+    "Safety Data Monitor": {
+      "main": [
+        [
+          {
+            "node": "Fetch Recent Injury Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Recent Injury Data": {
+      "main": [
+        [
+          {
+            "node": "Critical Injury Detection",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Weekly Safety Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Critical Injury Detection": {
+      "main": [
+        [
+          {
+            "node": "Log Critical Alert to Notion",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "CEO Critical Alert Email",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Slack Safety Team Alert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Weekly Safety Metrics": {
+      "main": [
+        [
+          {
+            "node": "Cost Threshold Monitor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cost Threshold Monitor": {
+      "main": [
+        [
+          {
+            "node": "Executive Cost Alert",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Find Safety Training Videos",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Find Safety Training Videos": {
+      "main": [
+        [
+          {
+            "node": "Create Training Resource Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Analytics Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Safety Analytics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Safety Analytics": {
+      "main": [
+        [
+          {
+            "node": "Log AI Insights to Notion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dashboard Health Monitor": {
+      "main": [
+        [
+          {
+            "node": "Check Dashboard Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Dashboard Status": {
+      "main": [
+        [
+          {
+            "node": "Dashboard Health Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dashboard Health Check": {
+      "main": [
+        [
+          {
+            "node": "IT Dashboard Alert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "createdAt": "2024-12-15T10:00:00.000Z",
+      "updatedAt": "2024-12-15T10:00:00.000Z",
+      "id": "safety-enterprise",
+      "name": "Enterprise Safety Monitoring"
+    }
+  ],
+  "triggerCount": 4,
+  "updatedAt": "2024-12-15T10:00:00.000Z",
+  "versionId": "enterprise-safety-v1.0"
+}

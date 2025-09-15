@@ -1,0 +1,629 @@
+{
+  "meta": {
+    "instanceId": "jufipai-data-analyst-monitoring"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "intervalSize": 5,
+        "intervalUnit": "minutes"
+      },
+      "id": "data-quality-monitor",
+      "name": "Data Quality Monitor",
+      "type": "n8n-nodes-base.interval",
+      "typeVersion": 1,
+      "position": [100, 200]
+    },
+    {
+      "parameters": {
+        "requestMethod": "GET",
+        "url": "={{ $env.SAFETY_API_ENDPOINT }}/data/quality-check"
+      },
+      "id": "check-data-quality",
+      "name": "Check Data Quality",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [300, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "data-quality-threshold",
+              "leftValue": "={{ $json.quality_score }}",
+              "rightValue": 0.95,
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            }
+          ],
+          "combinator": "or"
+        }
+      },
+      "id": "data-quality-alert",
+      "name": "Data Quality Alert Filter",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [500, 200]
+    },
+    {
+      "parameters": {
+        "to": "{{ $env.DATA_ANALYST_EMAIL }}",
+        "cc": "{{ $env.IT_TEAM_EMAIL }}",
+        "subject": "⚠️ Data Quality Alert - Action Required",
+        "message": "DATA QUALITY MONITORING ALERT\n\n📊 **Quality Score Below Threshold**\n\nCurrent Data Quality Metrics:\n• Overall Quality Score: {{ $json.quality_score * 100 }}%\n• Target Threshold: 95%\n• Status: {{ $json.quality_score >= 0.95 ? 'HEALTHY' : 'REQUIRES ATTENTION' }}\n\n🔍 **Detailed Analysis:**\n• Missing Data Points: {{ $json.missing_data_count }}\n• Data Inconsistencies: {{ $json.inconsistency_count }}\n• Duplicate Records: {{ $json.duplicate_count }}\n• Validation Errors: {{ $json.validation_errors }}\n• Last Update: {{ $json.last_update }}\n\n📈 **Impact Assessment:**\n• Dashboard Accuracy: {{ $json.dashboard_accuracy }}%\n• Report Reliability: {{ $json.report_reliability }}%\n• Executive Confidence: {{ $json.executive_confidence }}%\n\n🔧 **Recommended Actions:**\n1. Investigate data source connections\n2. Validate recent data imports\n3. Check API endpoint responses\n4. Review data transformation logic\n5. Update executive stakeholders\n\n📊 **Monitoring Dashboard:**\n{{ $env.DASHBOARD_URL }}/data-quality\n\n---\n📈 Jufipai.com Data Analytics Excellence\n👨‍💼 Fabien Perdomo © All Rights Reserved\n🎯 Enterprise Data Quality Assurance"
+      },
+      "id": "data-quality-alert-email",
+      "name": "Data Quality Alert Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [700, 200]
+    },
+    {
+      "parameters": {
+        "intervalSize": 1,
+        "intervalUnit": "hours"
+      },
+      "id": "analytics-performance-monitor",
+      "name": "Analytics Performance Monitor",
+      "type": "n8n-nodes-base.interval",
+      "typeVersion": 1,
+      "position": [100, 400]
+    },
+    {
+      "parameters": {
+        "requestMethod": "GET",
+        "url": "={{ $env.SAFETY_API_ENDPOINT }}/analytics/performance-metrics"
+      },
+      "id": "fetch-performance-metrics",
+      "name": "Fetch Analytics Performance",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [300, 400]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Analyze the following data analytics performance metrics and provide insights:\n\n{{ JSON.stringify($json, null, 2) }}\n\nProvide:\n1. Performance trend analysis\n2. Data anomaly detection\n3. Optimization recommendations\n4. Predictive insights for next period\n5. Risk assessment for data reliability\n\nFormat as technical analysis for data science team with specific action items and priority rankings.",
+        "options": {
+          "maxTokens": 800,
+          "temperature": 0.3
+        }
+      },
+      "id": "ai-performance-analysis",
+      "name": "AI Performance Analysis",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [500, 400]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "parent": {
+          "page_id": "{{ $env.NOTION_ANALYTICS_DATABASE_ID }}"
+        },
+        "properties": {
+          "title": [
+            {
+              "text": {
+                "content": "📊 Analytics Performance Report - {{ $now.format('YYYY-MM-DD HH:mm') }}"
+              }
+            }
+          ]
+        },
+        "children": [
+          {
+            "type": "heading_2",
+            "heading_2": {
+              "rich_text": [
+                {
+                  "type": "text",
+                  "text": {
+                    "content": "🔬 Technical Performance Analysis"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "type": "paragraph",
+            "paragraph": {
+              "rich_text": [
+                {
+                  "type": "text",
+                  "text": {
+                    "content": "📈 **Performance Metrics:**\n• Query Response Time: {{ $json.avg_query_time }}ms\n• Data Processing Speed: {{ $json.processing_speed }} records/sec\n• Cache Hit Rate: {{ $json.cache_hit_rate }}%\n• API Uptime: {{ $json.api_uptime }}%\n• Error Rate: {{ $json.error_rate }}%\n\n🤖 **AI Analysis:**\n{{ $json.ai_analysis }}"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "type": "divider",
+            "divider": {}
+          },
+          {
+            "type": "paragraph",
+            "paragraph": {
+              "rich_text": [
+                {
+                  "type": "text",
+                  "text": {
+                    "content": "🔗 Live Dashboard: "
+                  }
+                },
+                {
+                  "type": "text",
+                  "text": {
+                    "content": "{{ $env.DASHBOARD_URL }}/analytics",
+                    "link": {
+                      "url": "{{ $env.DASHBOARD_URL }}/analytics"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "type": "paragraph",
+            "paragraph": {
+              "rich_text": [
+                {
+                  "type": "text",
+                  "text": {
+                    "content": "---\n📊 Jufipai.com Analytics Excellence\n👨‍💼 Fabien Perdomo © All Rights Reserved"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "id": "log-performance-analysis",
+      "name": "Log Performance Analysis",
+      "type": "mcp__MCP_DOCKER__API-post-page",
+      "typeVersion": 1,
+      "position": [700, 400]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 6 * * *"
+            }
+          ]
+        }
+      },
+      "id": "daily-analytics-report",
+      "name": "Daily Analytics Report",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [100, 600]
+    },
+    {
+      "parameters": {
+        "requestMethod": "GET",
+        "url": "={{ $env.SAFETY_API_ENDPOINT }}/reports/daily-analytics"
+      },
+      "id": "fetch-daily-analytics",
+      "name": "Fetch Daily Analytics",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [300, 600]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Create a comprehensive daily analytics report based on this data:\n\n{{ JSON.stringify($json, null, 2) }}\n\nInclude:\n1. Daily KPI summary\n2. Data quality assessment\n3. Trend analysis and anomalies\n4. Actionable insights for data team\n5. Recommendations for dashboard improvements\n6. Data validation status\n\nFormat as professional analytics briefing with clear metrics and specific technical recommendations.",
+        "options": {
+          "maxTokens": 1000,
+          "temperature": 0.3
+        }
+      },
+      "id": "ai-daily-analytics",
+      "name": "AI Daily Analytics Report",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [500, 600]
+    },
+    {
+      "parameters": {
+        "to": "{{ $env.DATA_ANALYST_EMAIL }}",
+        "cc": "{{ $env.DATA_SCIENCE_TEAM_EMAIL }}",
+        "subject": "📊 Daily Analytics Performance Report - {{ $now.format('MMM DD, YYYY') }}",
+        "message": "Good Morning Analytics Team,\n\nYour daily performance report is ready for review.\n\n📈 **DAILY ANALYTICS SUMMARY**\n\n{{ $json.choices[0].message.content }}\n\n📊 **QUICK ACCESS LINKS:**\n• Analytics Dashboard: {{ $env.DASHBOARD_URL }}/analytics\n• Data Quality Monitor: {{ $env.DASHBOARD_URL }}/data-quality\n• Performance Metrics: {{ $env.DASHBOARD_URL }}/performance\n• Error Logs: {{ $env.DASHBOARD_URL }}/logs\n\n🔧 **TECHNICAL RESOURCES:**\n• API Documentation: {{ $env.DASHBOARD_URL }}/api-docs\n• Data Schema: {{ $env.DASHBOARD_URL }}/schema\n• Query Performance: {{ $env.DASHBOARD_URL }}/queries\n• System Health: {{ $env.DASHBOARD_URL }}/health\n\n🎯 **TODAY'S PRIORITIES:**\n1. Review overnight processing results\n2. Validate data quality metrics\n3. Optimize slow-performing queries\n4. Update executive dashboard data\n5. Monitor real-time analytics feed\n\nLet me know if you need any additional analysis or have questions about the data.\n\nBest regards,\nJufipai.com Analytics Team\n\n---\n📊 Enterprise Analytics Excellence\n👨‍💼 Fabien Perdomo © All Rights Reserved\n🎯 Fortune 500 Data Science Solutions"
+      },
+      "id": "daily-analytics-email",
+      "name": "Daily Analytics Team Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [700, 600]
+    },
+    {
+      "parameters": {
+        "intervalSize": 30,
+        "intervalUnit": "minutes"
+      },
+      "id": "real-time-data-sync",
+      "name": "Real-time Data Sync Monitor",
+      "type": "n8n-nodes-base.interval",
+      "typeVersion": 1,
+      "position": [100, 800]
+    },
+    {
+      "parameters": {
+        "requestMethod": "GET",
+        "url": "={{ $env.SAFETY_API_ENDPOINT }}/sync/status"
+      },
+      "id": "check-data-sync",
+      "name": "Check Data Sync Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [300, 800]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "sync-lag-check",
+              "leftValue": "={{ $json.sync_lag_minutes }}",
+              "rightValue": 10,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "or"
+        }
+      },
+      "id": "sync-lag-alert",
+      "name": "Sync Lag Alert Filter",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [500, 800]
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "chatId": "{{ $env.SLACK_DATA_TEAM_CHANNEL }}",
+        "text": "🚨 **DATA SYNC ALERT** 🚨\n\n**Sync Lag Detected**\n\n📊 **Current Status:**\n• Sync Lag: {{ $json.sync_lag_minutes }} minutes\n• Target: < 10 minutes\n• Last Successful Sync: {{ $json.last_sync_time }}\n• Records Pending: {{ $json.pending_records }}\n\n🔍 **System Status:**\n• API Response Time: {{ $json.api_response_time }}ms\n• Database Connection: {{ $json.db_status }}\n• Queue Status: {{ $json.queue_status }}\n\n⚡ **IMMEDIATE ACTION REQUIRED**\n@data-team @devops\n\n🔗 Monitor: {{ $env.DASHBOARD_URL }}/sync-status"
+      },
+      "id": "slack-sync-alert",
+      "name": "Slack Data Sync Alert",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [700, 800]
+    },
+    {
+      "parameters": {
+        "intervalSize": 2,
+        "intervalUnit": "hours"
+      },
+      "id": "predictive-analytics-engine",
+      "name": "Predictive Analytics Engine",
+      "type": "n8n-nodes-base.interval",
+      "typeVersion": 1,
+      "position": [100, 1000]
+    },
+    {
+      "parameters": {
+        "requestMethod": "GET",
+        "url": "={{ $env.SAFETY_API_ENDPOINT }}/analytics/predictive-data"
+      },
+      "id": "fetch-predictive-data",
+      "name": "Fetch Predictive Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [300, 1000]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Perform advanced predictive analytics on this safety data:\n\n{{ JSON.stringify($json, null, 2) }}\n\nAnalyze and predict:\n1. Future injury patterns and frequencies\n2. Cost projection models\n3. Risk escalation probabilities\n4. Department-specific trends\n5. Seasonal and temporal patterns\n6. Preventive measure effectiveness\n\nProvide statistical confidence intervals, trend correlations, and actionable predictive insights for executive decision-making.",
+        "options": {
+          "maxTokens": 1200,
+          "temperature": 0.2
+        }
+      },
+      "id": "ai-predictive-analytics",
+      "name": "AI Predictive Analytics",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [500, 1000]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "parent": {
+          "page_id": "{{ $env.NOTION_PREDICTIVE_DATABASE_ID }}"
+        },
+        "properties": {
+          "title": [
+            {
+              "text": {
+                "content": "🔮 Predictive Analytics Report - {{ $now.format('YYYY-MM-DD HH:mm') }}"
+              }
+            }
+          ]
+        },
+        "children": [
+          {
+            "type": "heading_1",
+            "heading_1": {
+              "rich_text": [
+                {
+                  "type": "text",
+                  "text": {
+                    "content": "🔮 Advanced Predictive Analytics"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "type": "paragraph",
+            "paragraph": {
+              "rich_text": [
+                {
+                  "type": "text",
+                  "text": {
+                    "content": "🤖 **AI-Generated Predictions:**\n\n{{ $json.choices[0].message.content }}"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "type": "heading_3",
+            "heading_3": {
+              "rich_text": [
+                {
+                  "type": "text",
+                  "text": {
+                    "content": "📊 Statistical Models & Confidence"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "type": "paragraph",
+            "paragraph": {
+              "rich_text": [
+                {
+                  "type": "text",
+                  "text": {
+                    "content": "• Model Accuracy: {{ $json.model_accuracy }}%\n• Confidence Interval: {{ $json.confidence_interval }}%\n• Data Points Analyzed: {{ $json.data_points }}\n• Prediction Horizon: {{ $json.prediction_horizon }} days"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "type": "divider",
+            "divider": {}
+          },
+          {
+            "type": "paragraph",
+            "paragraph": {
+              "rich_text": [
+                {
+                  "type": "text",
+                  "text": {
+                    "content": "🔬 Advanced Analytics by Jufipai.com\n👨‍💼 Fabien Perdomo © All Rights Reserved\n🎯 Fortune 500 Predictive Intelligence"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "id": "log-predictive-insights",
+      "name": "Log Predictive Insights",
+      "type": "mcp__MCP_DOCKER__API-post-page",
+      "typeVersion": 1,
+      "position": [700, 1000]
+    }
+  ],
+  "connections": {
+    "Data Quality Monitor": {
+      "main": [
+        [
+          {
+            "node": "Check Data Quality",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Data Quality": {
+      "main": [
+        [
+          {
+            "node": "Data Quality Alert Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Quality Alert Filter": {
+      "main": [
+        [
+          {
+            "node": "Data Quality Alert Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Analytics Performance Monitor": {
+      "main": [
+        [
+          {
+            "node": "Fetch Analytics Performance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Analytics Performance": {
+      "main": [
+        [
+          {
+            "node": "AI Performance Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Performance Analysis": {
+      "main": [
+        [
+          {
+            "node": "Log Performance Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Daily Analytics Report": {
+      "main": [
+        [
+          {
+            "node": "Fetch Daily Analytics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Daily Analytics": {
+      "main": [
+        [
+          {
+            "node": "AI Daily Analytics Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Daily Analytics Report": {
+      "main": [
+        [
+          {
+            "node": "Daily Analytics Team Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Real-time Data Sync Monitor": {
+      "main": [
+        [
+          {
+            "node": "Check Data Sync Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Data Sync Status": {
+      "main": [
+        [
+          {
+            "node": "Sync Lag Alert Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sync Lag Alert Filter": {
+      "main": [
+        [
+          {
+            "node": "Slack Data Sync Alert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Predictive Analytics Engine": {
+      "main": [
+        [
+          {
+            "node": "Fetch Predictive Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Predictive Data": {
+      "main": [
+        [
+          {
+            "node": "AI Predictive Analytics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Predictive Analytics": {
+      "main": [
+        [
+          {
+            "node": "Log Predictive Insights",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "createdAt": "2024-12-15T10:00:00.000Z",
+      "updatedAt": "2024-12-15T10:00:00.000Z",
+      "id": "data-analyst-monitoring",
+      "name": "Data Analyst Monitoring"
+    }
+  ],
+  "triggerCount": 5,
+  "updatedAt": "2024-12-15T10:00:00.000Z",
+  "versionId": "data-analyst-monitoring-v1.0"
+}
