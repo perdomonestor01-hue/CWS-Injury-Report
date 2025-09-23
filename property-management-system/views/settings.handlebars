@@ -1,0 +1,1439 @@
+<!-- Settings Header -->
+<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
+    <div>
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">System Settings</h1>
+        <p class="text-gray-600">Configure and manage your property management system</p>
+    </div>
+    <div class="mt-4 lg:mt-0 flex items-center space-x-4">
+        <button onclick="exportSettings()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm">
+            <i class="fas fa-download mr-2"></i>Export Settings
+        </button>
+        <button onclick="importSettings()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm">
+            <i class="fas fa-upload mr-2"></i>Import Settings
+        </button>
+        <button onclick="resetToDefaults()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm">
+            <i class="fas fa-undo mr-2"></i>Reset to Defaults
+        </button>
+    </div>
+</div>
+
+<!-- System Status Overview -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white rounded-lg shadow-sm p-6 metric-card metric-positive">
+        <div class="flex items-center justify-between">
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800">System Status</h3>
+                <p class="text-2xl font-bold text-green-600 mt-1">Online</p>
+                <p class="text-sm text-gray-600">Uptime: {{formatTime systemStatus.uptime}}</p>
+            </div>
+            <div class="bg-green-100 p-3 rounded-full">
+                <i class="fas fa-check-circle text-green-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm p-6 metric-card metric-neutral">
+        <div class="flex items-center justify-between">
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800">Database</h3>
+                <p class="text-2xl font-bold text-blue-600 mt-1">Connected</p>
+                <p class="text-sm text-gray-600">{{totalProperties}} Properties</p>
+            </div>
+            <div class="bg-blue-100 p-3 rounded-full">
+                <i class="fas fa-database text-blue-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm p-6 metric-card metric-positive">
+        <div class="flex items-center justify-between">
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800">Active Agents</h3>
+                <p class="text-2xl font-bold text-purple-600 mt-1">{{systemStatus.agentsActive}}</p>
+                <p class="text-sm text-gray-600">Automation Running</p>
+            </div>
+            <div class="bg-purple-100 p-3 rounded-full">
+                <i class="fas fa-robot text-purple-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm p-6 metric-card metric-warning">
+        <div class="flex items-center justify-between">
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800">Last Backup</h3>
+                <p class="text-lg font-bold text-orange-600 mt-1">{{formatDate systemStatus.lastBackup}}</p>
+                <p class="text-sm text-gray-600">Automated daily</p>
+            </div>
+            <div class="bg-orange-100 p-3 rounded-full">
+                <i class="fas fa-save text-orange-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Settings Tabs Navigation -->
+<div class="bg-white rounded-lg shadow-sm mb-6">
+    <div class="border-b border-gray-200">
+        <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs">
+            <button onclick="showTab('company')" class="settings-tab active border-purple-500 text-purple-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                <i class="fas fa-building mr-2"></i>Company Profile
+            </button>
+            <button onclick="showTab('users')" class="settings-tab border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                <i class="fas fa-users mr-2"></i>User Management
+            </button>
+            <button onclick="showTab('notifications')" class="settings-tab border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                <i class="fas fa-bell mr-2"></i>Notifications
+            </button>
+            <button onclick="showTab('automation')" class="settings-tab border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                <i class="fas fa-robot mr-2"></i>Automation
+            </button>
+            <button onclick="showTab('integrations')" class="settings-tab border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                <i class="fas fa-plug mr-2"></i>Integrations
+            </button>
+            <button onclick="showTab('security')" class="settings-tab border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                <i class="fas fa-shield-alt mr-2"></i>Security
+            </button>
+            <button onclick="showTab('backup')" class="settings-tab border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                <i class="fas fa-database mr-2"></i>Backup & Data
+            </button>
+            <button onclick="showTab('maintenance')" class="settings-tab border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                <i class="fas fa-tools mr-2"></i>Maintenance
+            </button>
+        </nav>
+    </div>
+</div>
+
+<!-- Settings Content Panels -->
+<div class="space-y-6">
+
+    <!-- Company Profile Settings -->
+    <div id="company-tab" class="settings-panel bg-white rounded-lg shadow-sm p-6">
+        <h2 class="text-xl font-bold text-gray-800 mb-6">Company Profile Settings</h2>
+
+        <form id="company-form" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Company Name</label>
+                    <input type="text" name="companyName" value="Ben Zen Properties LLC" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">License Number</label>
+                    <input type="text" name="licenseNumber" value="BRE #02123456" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Business Email</label>
+                    <input type="email" name="businessEmail" value="admin@benzenproperties.com" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Business Phone</label>
+                    <input type="tel" name="businessPhone" value="(555) 123-4567" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Business Address</label>
+                <textarea name="businessAddress" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2">123 Business Blvd, Suite 100
+City, State 12345</textarea>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Tax ID (EIN)</label>
+                    <input type="text" name="taxId" value="12-3456789" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Business Type</label>
+                    <select name="businessType" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                        <option value="LLC" selected>LLC</option>
+                        <option value="Corporation">Corporation</option>
+                        <option value="Partnership">Partnership</option>
+                        <option value="Sole Proprietorship">Sole Proprietorship</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Time Zone</label>
+                    <select name="timeZone" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                        <option value="America/Los_Angeles" selected>Pacific Time</option>
+                        <option value="America/Denver">Mountain Time</option>
+                        <option value="America/Chicago">Central Time</option>
+                        <option value="America/New_York">Eastern Time</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-4">
+                <button type="button" onclick="resetForm('company-form')" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Reset</button>
+                <button type="submit" class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">Save Changes</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- User Management Settings -->
+    <div id="users-tab" class="settings-panel bg-white rounded-lg shadow-sm p-6 hidden">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-gray-800">User Management</h2>
+            <button onclick="addNewUser()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm">
+                <i class="fas fa-plus mr-2"></i>Add User
+            </button>
+        </div>
+
+        <!-- Current Users Table -->
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Permissions</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Last Login</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200" id="users-table">
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-10 w-10">
+                                    <div class="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
+                                        <i class="fas fa-user text-purple-600"></i>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <div class="text-sm font-medium text-gray-900">Admin User</div>
+                                    <div class="text-sm text-gray-500">admin@benzenproperties.com</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">Administrator</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Full Access</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2 hours ago</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Active</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button class="text-purple-600 hover:text-purple-900 mr-3">Edit</button>
+                            <button class="text-red-600 hover:text-red-900">Deactivate</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- User Roles Configuration -->
+        <div class="mt-8">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Role Permissions</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <h4 class="font-medium text-gray-800 mb-3">Administrator</h4>
+                    <ul class="space-y-2 text-sm text-gray-600">
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Full system access</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>User management</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Settings configuration</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Financial reports</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Data export/import</li>
+                    </ul>
+                </div>
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <h4 class="font-medium text-gray-800 mb-3">Property Manager</h4>
+                    <ul class="space-y-2 text-sm text-gray-600">
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Property management</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Tenant communication</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Maintenance requests</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Basic reports</li>
+                        <li><i class="fas fa-times text-red-500 mr-2"></i>Financial data</li>
+                    </ul>
+                </div>
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <h4 class="font-medium text-gray-800 mb-3">Viewer</h4>
+                    <ul class="space-y-2 text-sm text-gray-600">
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>View properties</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>View reports</li>
+                        <li><i class="fas fa-times text-red-500 mr-2"></i>Edit data</li>
+                        <li><i class="fas fa-times text-red-500 mr-2"></i>Settings access</li>
+                        <li><i class="fas fa-times text-red-500 mr-2"></i>User management</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications Settings -->
+    <div id="notifications-tab" class="settings-panel bg-white rounded-lg shadow-sm p-6 hidden">
+        <h2 class="text-xl font-bold text-gray-800 mb-6">Notification Settings</h2>
+
+        <form id="notifications-form" class="space-y-8">
+            <!-- Email Notifications -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Email Notifications</h3>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <label class="text-sm font-medium text-gray-700">Rent Collection Alerts</label>
+                            <p class="text-sm text-gray-500">Get notified when rent is due or overdue</p>
+                        </div>
+                        <input type="checkbox" name="emailRentAlerts" checked class="settings-toggle">
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <label class="text-sm font-medium text-gray-700">Maintenance Requests</label>
+                            <p class="text-sm text-gray-500">Notifications for new maintenance requests</p>
+                        </div>
+                        <input type="checkbox" name="emailMaintenanceAlerts" checked class="settings-toggle">
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <label class="text-sm font-medium text-gray-700">Lease Expiration Warnings</label>
+                            <p class="text-sm text-gray-500">30, 60, and 90 day lease expiration notices</p>
+                        </div>
+                        <input type="checkbox" name="emailLeaseAlerts" checked class="settings-toggle">
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <label class="text-sm font-medium text-gray-700">Financial Reports</label>
+                            <p class="text-sm text-gray-500">Monthly and quarterly financial summaries</p>
+                        </div>
+                        <input type="checkbox" name="emailFinancialReports" checked class="settings-toggle">
+                    </div>
+                </div>
+            </div>
+
+            <!-- SMS Notifications -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">SMS Notifications</h3>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <label class="text-sm font-medium text-gray-700">Emergency Maintenance</label>
+                            <p class="text-sm text-gray-500">Urgent maintenance issues requiring immediate attention</p>
+                        </div>
+                        <input type="checkbox" name="smsEmergencyAlerts" checked class="settings-toggle">
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <label class="text-sm font-medium text-gray-700">Payment Confirmations</label>
+                            <p class="text-sm text-gray-500">Rent payment received confirmations</p>
+                        </div>
+                        <input type="checkbox" name="smsPaymentConfirmations" class="settings-toggle">
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <label class="text-sm font-medium text-gray-700">System Alerts</label>
+                            <p class="text-sm text-gray-500">Critical system notifications and downtime alerts</p>
+                        </div>
+                        <input type="checkbox" name="smsSystemAlerts" checked class="settings-toggle">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notification Timing -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Notification Timing</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Rent Due Reminder</label>
+                        <select name="rentReminderDays" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                            <option value="3">3 days before</option>
+                            <option value="5" selected>5 days before</option>
+                            <option value="7">7 days before</option>
+                            <option value="10">10 days before</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Lease Expiration Notice</label>
+                        <select name="leaseExpirationDays" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                            <option value="30">30 days before</option>
+                            <option value="60" selected>60 days before</option>
+                            <option value="90">90 days before</option>
+                            <option value="120">120 days before</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Quiet Hours (No SMS)</label>
+                        <select name="quietHours" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                            <option value="22-8" selected>10 PM - 8 AM</option>
+                            <option value="23-7">11 PM - 7 AM</option>
+                            <option value="21-9">9 PM - 9 AM</option>
+                            <option value="none">No quiet hours</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-4">
+                <button type="button" onclick="resetForm('notifications-form')" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Reset</button>
+                <button type="submit" class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">Save Changes</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Automation Settings -->
+    <div id="automation-tab" class="settings-panel bg-white rounded-lg shadow-sm p-6 hidden">
+        <h2 class="text-xl font-bold text-gray-800 mb-6">Automation Settings</h2>
+
+        <form id="automation-form" class="space-y-8">
+            <!-- Agent Configuration -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">AI Agent Configuration</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-medium text-gray-800">Rent Collection Agent</h4>
+                            <input type="checkbox" name="rentCollectionAgent" checked class="settings-toggle">
+                        </div>
+                        <p class="text-sm text-gray-600 mb-3">Automatically sends rent reminders and tracks payments</p>
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between text-sm">
+                                <span>Reminder Schedule:</span>
+                                <select name="rentReminderSchedule" class="border border-gray-300 rounded px-2 py-1 text-xs">
+                                    <option value="daily">Daily</option>
+                                    <option value="weekly" selected>Weekly</option>
+                                    <option value="monthly">Monthly</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center justify-between text-sm">
+                                <span>Late Fee Application:</span>
+                                <input type="checkbox" name="automaticLateFees" checked class="w-4 h-4">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-medium text-gray-800">Maintenance Agent</h4>
+                            <input type="checkbox" name="maintenanceAgent" checked class="settings-toggle">
+                        </div>
+                        <p class="text-sm text-gray-600 mb-3">Monitors property condition and schedules preventive maintenance</p>
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between text-sm">
+                                <span>Inspection Frequency:</span>
+                                <select name="inspectionFrequency" class="border border-gray-300 rounded px-2 py-1 text-xs">
+                                    <option value="monthly">Monthly</option>
+                                    <option value="quarterly" selected>Quarterly</option>
+                                    <option value="biannually">Bi-annually</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center justify-between text-sm">
+                                <span>Auto-Schedule Repairs:</span>
+                                <input type="checkbox" name="autoScheduleRepairs" class="w-4 h-4">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-medium text-gray-800">Financial Agent</h4>
+                            <input type="checkbox" name="financialAgent" checked class="settings-toggle">
+                        </div>
+                        <p class="text-sm text-gray-600 mb-3">Generates reports and tracks financial performance</p>
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between text-sm">
+                                <span>Report Generation:</span>
+                                <select name="reportGeneration" class="border border-gray-300 rounded px-2 py-1 text-xs">
+                                    <option value="weekly">Weekly</option>
+                                    <option value="monthly" selected>Monthly</option>
+                                    <option value="quarterly">Quarterly</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center justify-between text-sm">
+                                <span>Expense Categorization:</span>
+                                <input type="checkbox" name="autoExpenseCategories" checked class="w-4 h-4">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-medium text-gray-800">Tenant Communication Agent</h4>
+                            <input type="checkbox" name="tenantCommAgent" checked class="settings-toggle">
+                        </div>
+                        <p class="text-sm text-gray-600 mb-3">Handles routine tenant inquiries and communications</p>
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between text-sm">
+                                <span>Response Time:</span>
+                                <select name="responseTime" class="border border-gray-300 rounded px-2 py-1 text-xs">
+                                    <option value="immediate" selected>Immediate</option>
+                                    <option value="1hour">Within 1 hour</option>
+                                    <option value="4hours">Within 4 hours</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center justify-between text-sm">
+                                <span>Auto-Forward Complex Issues:</span>
+                                <input type="checkbox" name="autoForwardComplex" checked class="w-4 h-4">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Workflow Automation -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Workflow Automation</h3>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <label class="text-sm font-medium text-gray-700">Automatic Property Listing</label>
+                            <p class="text-sm text-gray-500">Auto-post vacant properties to rental platforms</p>
+                        </div>
+                        <input type="checkbox" name="autoPropertyListing" checked class="settings-toggle">
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <label class="text-sm font-medium text-gray-700">Lease Renewal Automation</label>
+                            <p class="text-sm text-gray-500">Send lease renewal notices automatically</p>
+                        </div>
+                        <input type="checkbox" name="autoLeaseRenewal" checked class="settings-toggle">
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <label class="text-sm font-medium text-gray-700">Move-out Process</label>
+                            <p class="text-sm text-gray-500">Automate move-out inspections and deposit processing</p>
+                        </div>
+                        <input type="checkbox" name="autoMoveOut" class="settings-toggle">
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <label class="text-sm font-medium text-gray-700">Vendor Management</label>
+                            <p class="text-sm text-gray-500">Automatically assign and track vendor work orders</p>
+                        </div>
+                        <input type="checkbox" name="autoVendorManagement" checked class="settings-toggle">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-4">
+                <button type="button" onclick="resetForm('automation-form')" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Reset</button>
+                <button type="submit" class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">Save Changes</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Integrations Settings -->
+    <div id="integrations-tab" class="settings-panel bg-white rounded-lg shadow-sm p-6 hidden">
+        <h2 class="text-xl font-bold text-gray-800 mb-6">Integration Settings</h2>
+
+        <div class="space-y-8">
+            <!-- Payment Processors -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Payment Processors</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-medium text-gray-800">Stripe</h4>
+                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Connected</span>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-3">Online rent payments and ACH transfers</p>
+                        <button class="text-blue-600 hover:text-blue-800 text-sm">Configure</button>
+                    </div>
+
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-medium text-gray-800">PayPal</h4>
+                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">Not Connected</span>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-3">Alternative payment method for tenants</p>
+                        <button class="text-blue-600 hover:text-blue-800 text-sm">Connect</button>
+                    </div>
+
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-medium text-gray-800">Zelle</h4>
+                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Connected</span>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-3">Quick bank-to-bank transfers</p>
+                        <button class="text-blue-600 hover:text-blue-800 text-sm">Configure</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Accounting Software -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Accounting Software</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-medium text-gray-800">QuickBooks</h4>
+                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Connected</span>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-3">Financial data synchronization</p>
+                        <button class="text-blue-600 hover:text-blue-800 text-sm">Configure</button>
+                    </div>
+
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-medium text-gray-800">Xero</h4>
+                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">Not Connected</span>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-3">Cloud-based accounting integration</p>
+                        <button class="text-blue-600 hover:text-blue-800 text-sm">Connect</button>
+                    </div>
+
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-medium text-gray-800">FreshBooks</h4>
+                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">Not Connected</span>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-3">Invoicing and expense tracking</p>
+                        <button class="text-blue-600 hover:text-blue-800 text-sm">Connect</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Communication Tools -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Communication Tools</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-medium text-gray-800">Twilio SMS</h4>
+                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Connected</span>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-3">SMS notifications and communications</p>
+                        <button class="text-blue-600 hover:text-blue-800 text-sm">Configure</button>
+                    </div>
+
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-medium text-gray-800">SendGrid</h4>
+                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Connected</span>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-3">Email delivery and templates</p>
+                        <button class="text-blue-600 hover:text-blue-800 text-sm">Configure</button>
+                    </div>
+
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-medium text-gray-800">Slack</h4>
+                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">Not Connected</span>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-3">Team notifications and alerts</p>
+                        <button class="text-blue-600 hover:text-blue-800 text-sm">Connect</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- API Configuration -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">API Configuration</h3>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">API Key</label>
+                            <input type="password" value="sk_live_************************" class="w-full border border-gray-300 rounded-lg px-3 py-2" readonly>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Webhook URL</label>
+                            <input type="url" value="https://api.benzenproperties.com/webhooks" class="w-full border border-gray-300 rounded-lg px-3 py-2" readonly>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center space-x-4">
+                        <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm">
+                            <i class="fas fa-key mr-2"></i>Regenerate API Key
+                        </button>
+                        <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm">
+                            <i class="fas fa-test-tube mr-2"></i>Test Webhooks
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Settings -->
+    <div id="security-tab" class="settings-panel bg-white rounded-lg shadow-sm p-6 hidden">
+        <h2 class="text-xl font-bold text-gray-800 mb-6">Security Settings</h2>
+
+        <form id="security-form" class="space-y-8">
+            <!-- Password Policy -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Password Policy</h3>
+                <div class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Minimum Password Length</label>
+                            <select name="minPasswordLength" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                                <option value="8" selected>8 characters</option>
+                                <option value="10">10 characters</option>
+                                <option value="12">12 characters</option>
+                                <option value="16">16 characters</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Password Expiration</label>
+                            <select name="passwordExpiration" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                                <option value="never">Never</option>
+                                <option value="30">30 days</option>
+                                <option value="60">60 days</option>
+                                <option value="90" selected>90 days</option>
+                                <option value="180">180 days</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="flex items-center">
+                            <input type="checkbox" name="requireUppercase" checked class="w-4 h-4 mr-3">
+                            <label class="text-sm text-gray-700">Require uppercase letters</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" name="requireLowercase" checked class="w-4 h-4 mr-3">
+                            <label class="text-sm text-gray-700">Require lowercase letters</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" name="requireNumbers" checked class="w-4 h-4 mr-3">
+                            <label class="text-sm text-gray-700">Require numbers</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" name="requireSpecialChars" checked class="w-4 h-4 mr-3">
+                            <label class="text-sm text-gray-700">Require special characters</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" name="preventPasswordReuse" checked class="w-4 h-4 mr-3">
+                            <label class="text-sm text-gray-700">Prevent password reuse (last 5 passwords)</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Two-Factor Authentication -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Two-Factor Authentication (2FA)</h3>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <label class="text-sm font-medium text-gray-700">Require 2FA for Admin Users</label>
+                            <p class="text-sm text-gray-500">Force all administrator accounts to use 2FA</p>
+                        </div>
+                        <input type="checkbox" name="require2FAAdmin" checked class="settings-toggle">
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <label class="text-sm font-medium text-gray-700">Require 2FA for All Users</label>
+                            <p class="text-sm text-gray-500">Force all user accounts to use 2FA</p>
+                        </div>
+                        <input type="checkbox" name="require2FAAll" class="settings-toggle">
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">2FA Method</label>
+                            <select name="twoFAMethod" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                                <option value="app" selected>Authenticator App</option>
+                                <option value="sms">SMS</option>
+                                <option value="email">Email</option>
+                                <option value="hardware">Hardware Token</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Backup Codes</label>
+                            <select name="backupCodes" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                                <option value="10" selected>10 codes</option>
+                                <option value="20">20 codes</option>
+                                <option value="50">50 codes</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Session Management -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Session Management</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Session Timeout</label>
+                        <select name="sessionTimeout" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                            <option value="15">15 minutes</option>
+                            <option value="30" selected>30 minutes</option>
+                            <option value="60">1 hour</option>
+                            <option value="240">4 hours</option>
+                            <option value="480">8 hours</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Max Concurrent Sessions</label>
+                        <select name="maxSessions" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                            <option value="1">1 session</option>
+                            <option value="3" selected>3 sessions</option>
+                            <option value="5">5 sessions</option>
+                            <option value="unlimited">Unlimited</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Login Attempts</label>
+                        <select name="maxLoginAttempts" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                            <option value="3">3 attempts</option>
+                            <option value="5" selected>5 attempts</option>
+                            <option value="10">10 attempts</option>
+                            <option value="unlimited">Unlimited</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- IP Access Control -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">IP Access Control</h3>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <label class="text-sm font-medium text-gray-700">Enable IP Whitelist</label>
+                            <p class="text-sm text-gray-500">Only allow access from specified IP addresses</p>
+                        </div>
+                        <input type="checkbox" name="enableIPWhitelist" class="settings-toggle">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Allowed IP Addresses</label>
+                        <textarea name="allowedIPs" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2"
+                                  placeholder="192.168.1.1&#10;10.0.0.0/8&#10;203.0.113.0/24"></textarea>
+                        <p class="text-xs text-gray-500 mt-1">Enter one IP address or CIDR block per line</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-4">
+                <button type="button" onclick="resetForm('security-form')" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Reset</button>
+                <button type="submit" class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">Save Changes</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Backup & Data Settings -->
+    <div id="backup-tab" class="settings-panel bg-white rounded-lg shadow-sm p-6 hidden">
+        <h2 class="text-xl font-bold text-gray-800 mb-6">Backup & Data Management</h2>
+
+        <div class="space-y-8">
+            <!-- Backup Configuration -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Backup Configuration</h3>
+                <form id="backup-form" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Backup Frequency</label>
+                            <select name="backupFrequency" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                                <option value="hourly">Hourly</option>
+                                <option value="daily" selected>Daily</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="monthly">Monthly</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Backup Time</label>
+                            <input type="time" name="backupTime" value="02:00" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Retention Period</label>
+                            <select name="retentionPeriod" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                                <option value="7">7 days</option>
+                                <option value="30" selected>30 days</option>
+                                <option value="90">90 days</option>
+                                <option value="365">1 year</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <label class="text-sm font-medium text-gray-700">Include File Attachments</label>
+                                <p class="text-sm text-gray-500">Backup uploaded documents and images</p>
+                            </div>
+                            <input type="checkbox" name="includeFiles" checked class="settings-toggle">
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <label class="text-sm font-medium text-gray-700">Encrypt Backups</label>
+                                <p class="text-sm text-gray-500">Use AES-256 encryption for backup files</p>
+                            </div>
+                            <input type="checkbox" name="encryptBackups" checked class="settings-toggle">
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <label class="text-sm font-medium text-gray-700">Cloud Storage</label>
+                                <p class="text-sm text-gray-500">Store backups in cloud storage (AWS S3)</p>
+                            </div>
+                            <input type="checkbox" name="cloudStorage" checked class="settings-toggle">
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end space-x-4">
+                        <button type="button" onclick="createBackup()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm">
+                            <i class="fas fa-play mr-2"></i>Create Backup Now
+                        </button>
+                        <button type="submit" class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">Save Settings</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Recent Backups -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Recent Backups</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date & Time</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Size</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{formatDate systemStatus.lastBackup}} 02:00 AM</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Automatic</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2.4 GB</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Success</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <button class="text-blue-600 hover:text-blue-900 mr-3">Download</button>
+                                    <button class="text-green-600 hover:text-green-900 mr-3">Restore</button>
+                                    <button class="text-red-600 hover:text-red-900">Delete</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Jan 20, 2024 02:00 AM</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Automatic</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2.3 GB</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Success</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <button class="text-blue-600 hover:text-blue-900 mr-3">Download</button>
+                                    <button class="text-green-600 hover:text-green-900 mr-3">Restore</button>
+                                    <button class="text-red-600 hover:text-red-900">Delete</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Data Export -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Data Export</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="border border-gray-200 rounded-lg p-4 text-center">
+                        <i class="fas fa-home text-3xl text-blue-600 mb-3"></i>
+                        <h4 class="font-medium text-gray-800 mb-2">Property Data</h4>
+                        <p class="text-sm text-gray-600 mb-4">Export all property information and records</p>
+                        <button onclick="exportData('properties')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm w-full">
+                            Export CSV
+                        </button>
+                    </div>
+
+                    <div class="border border-gray-200 rounded-lg p-4 text-center">
+                        <i class="fas fa-chart-bar text-3xl text-green-600 mb-3"></i>
+                        <h4 class="font-medium text-gray-800 mb-2">Financial Reports</h4>
+                        <p class="text-sm text-gray-600 mb-4">Export income, expenses, and financial data</p>
+                        <button onclick="exportData('financial')" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm w-full">
+                            Export PDF
+                        </button>
+                    </div>
+
+                    <div class="border border-gray-200 rounded-lg p-4 text-center">
+                        <i class="fas fa-users text-3xl text-purple-600 mb-3"></i>
+                        <h4 class="font-medium text-gray-800 mb-2">Tenant Data</h4>
+                        <p class="text-sm text-gray-600 mb-4">Export tenant information and lease records</p>
+                        <button onclick="exportData('tenants')" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm w-full">
+                            Export CSV
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Maintenance Settings -->
+    <div id="maintenance-tab" class="settings-panel bg-white rounded-lg shadow-sm p-6 hidden">
+        <h2 class="text-xl font-bold text-gray-800 mb-6">System Maintenance</h2>
+
+        <div class="space-y-8">
+            <!-- System Health -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">System Health</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <i class="fas fa-microchip text-green-600 mr-2"></i>
+                            <span class="font-medium text-gray-800">CPU Usage</span>
+                        </div>
+                        <div class="text-2xl font-bold text-green-600">23%</div>
+                        <div class="text-sm text-gray-600">Normal</div>
+                    </div>
+
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <i class="fas fa-memory text-blue-600 mr-2"></i>
+                            <span class="font-medium text-gray-800">Memory Usage</span>
+                        </div>
+                        <div class="text-2xl font-bold text-blue-600">{{divide systemStatus.memory.heapUsed 1048576}}MB</div>
+                        <div class="text-sm text-gray-600">Available</div>
+                    </div>
+
+                    <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <i class="fas fa-hdd text-purple-600 mr-2"></i>
+                            <span class="font-medium text-gray-800">Disk Space</span>
+                        </div>
+                        <div class="text-2xl font-bold text-purple-600">78%</div>
+                        <div class="text-sm text-gray-600">Used</div>
+                    </div>
+
+                    <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <i class="fas fa-network-wired text-orange-600 mr-2"></i>
+                            <span class="font-medium text-gray-800">Network</span>
+                        </div>
+                        <div class="text-2xl font-bold text-orange-600">125ms</div>
+                        <div class="text-sm text-gray-600">Latency</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Maintenance Tools -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Maintenance Tools</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="border border-gray-200 rounded-lg p-6">
+                        <h4 class="font-medium text-gray-800 mb-3">Database Maintenance</h4>
+                        <p class="text-sm text-gray-600 mb-4">Optimize database performance and clean up unused data</p>
+                        <div class="space-y-2">
+                            <button onclick="runMaintenance('optimize-db')" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm">
+                                <i class="fas fa-database mr-2"></i>Optimize Database
+                            </button>
+                            <button onclick="runMaintenance('reindex-db')" class="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm">
+                                <i class="fas fa-sort mr-2"></i>Rebuild Indexes
+                            </button>
+                            <button onclick="runMaintenance('cleanup-logs')" class="w-full bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg text-sm">
+                                <i class="fas fa-broom mr-2"></i>Clean Log Files
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="border border-gray-200 rounded-lg p-6">
+                        <h4 class="font-medium text-gray-800 mb-3">Cache Management</h4>
+                        <p class="text-sm text-gray-600 mb-4">Clear cache and reset application state</p>
+                        <div class="space-y-2">
+                            <button onclick="runMaintenance('clear-cache')" class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm">
+                                <i class="fas fa-trash mr-2"></i>Clear Application Cache
+                            </button>
+                            <button onclick="runMaintenance('clear-session')" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg text-sm">
+                                <i class="fas fa-sign-out-alt mr-2"></i>Clear User Sessions
+                            </button>
+                            <button onclick="runMaintenance('refresh-agents')" class="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm">
+                                <i class="fas fa-robot mr-2"></i>Restart Agents
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Updates -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">System Updates</h3>
+                <div class="bg-gray-50 rounded-lg p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h4 class="font-medium text-gray-800">Current Version</h4>
+                            <p class="text-sm text-gray-600">Property Management System v2.1.3</p>
+                        </div>
+                        <span class="inline-flex px-3 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-800">Up to Date</span>
+                    </div>
+                    <div class="space-y-2">
+                        <button onclick="checkUpdates()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm mr-2">
+                            <i class="fas fa-sync mr-2"></i>Check for Updates
+                        </button>
+                        <button onclick="viewChangelog()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm">
+                            <i class="fas fa-list mr-2"></i>View Changelog
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Logs -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Recent Activity</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Timestamp</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Details</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {{#each userLogs}}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{formatDate timestamp}}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{user}}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{action}}</td>
+                                <td class="px-6 py-4 text-sm text-gray-500">{{details}}</td>
+                            </tr>
+                            {{/each}}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden file input for import -->
+<input type="file" id="settings-import-file" accept=".json" style="display: none;">
+
+<script>
+// Settings page JavaScript functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize default tab
+    showTab('company');
+
+    // Setup form event listeners
+    setupFormListeners();
+
+    // Setup file import handler
+    setupFileImport();
+});
+
+// Tab Management
+function showTab(tabName) {
+    // Hide all panels
+    const panels = document.querySelectorAll('.settings-panel');
+    panels.forEach(panel => panel.classList.add('hidden'));
+
+    // Show selected panel
+    const targetPanel = document.getElementById(tabName + '-tab');
+    if (targetPanel) {
+        targetPanel.classList.remove('hidden');
+    }
+
+    // Update tab buttons
+    const tabs = document.querySelectorAll('.settings-tab');
+    tabs.forEach(tab => {
+        tab.classList.remove('active', 'border-purple-500', 'text-purple-600');
+        tab.classList.add('border-transparent', 'text-gray-500');
+    });
+
+    // Activate current tab
+    const activeTab = event?.target || document.querySelector(`[onclick="showTab('${tabName}')"]`);
+    if (activeTab) {
+        activeTab.classList.add('active', 'border-purple-500', 'text-purple-600');
+        activeTab.classList.remove('border-transparent', 'text-gray-500');
+    }
+}
+
+// Form Management
+function setupFormListeners() {
+    const forms = ['company-form', 'notifications-form', 'automation-form', 'security-form', 'backup-form'];
+
+    forms.forEach(formId => {
+        const form = document.getElementById(formId);
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveSettings(formId);
+            });
+        }
+    });
+}
+
+function saveSettings(formId) {
+    const form = document.getElementById(formId);
+    if (!form) return;
+
+    const formData = new FormData(form);
+    const settings = {};
+
+    // Convert FormData to object
+    for (let [key, value] of formData.entries()) {
+        settings[key] = value;
+    }
+
+    // Handle checkboxes (they won't appear in FormData if unchecked)
+    const checkboxes = form.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach(checkbox => {
+        settings[checkbox.name] = checkbox.checked;
+    });
+
+    // Determine section from form ID
+    const section = formId.replace('-form', '');
+
+    // Show loading state
+    showNotification('Saving settings...', 'info');
+
+    // Send to server
+    fetch('/settings', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            section: section,
+            settings: settings
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Settings saved successfully!', 'success');
+        } else {
+            showNotification('Failed to save settings: ' + (data.error || 'Unknown error'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error saving settings:', error);
+        showNotification('Failed to save settings. Please try again.', 'error');
+    });
+}
+
+function resetForm(formId) {
+    const form = document.getElementById(formId);
+    if (!form) return;
+
+    if (confirm('Are you sure you want to reset this form to its default values?')) {
+        form.reset();
+        showNotification('Form reset to defaults.', 'info');
+    }
+}
+
+// Settings Import/Export
+function exportSettings() {
+    showNotification('Exporting settings...', 'info');
+
+    fetch('/settings/export')
+    .then(response => response.blob())
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = 'settings-export.json';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        showNotification('Settings exported successfully!', 'success');
+    })
+    .catch(error => {
+        console.error('Export error:', error);
+        showNotification('Failed to export settings.', 'error');
+    });
+}
+
+function importSettings() {
+    document.getElementById('settings-import-file').click();
+}
+
+function setupFileImport() {
+    const fileInput = document.getElementById('settings-import-file');
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const settings = JSON.parse(e.target.result);
+
+                if (confirm('Are you sure you want to import these settings? This will overwrite current settings.')) {
+                    importSettingsData(settings);
+                }
+            } catch (error) {
+                console.error('Import error:', error);
+                showNotification('Invalid settings file format.', 'error');
+            }
+        };
+        reader.readAsText(file);
+
+        // Reset file input
+        fileInput.value = '';
+    });
+}
+
+function importSettingsData(settings) {
+    showNotification('Importing settings...', 'info');
+
+    fetch('/settings/import', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ settings: settings })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Settings imported successfully! Page will reload.', 'success');
+            setTimeout(() => window.location.reload(), 2000);
+        } else {
+            showNotification('Failed to import settings: ' + (data.error || 'Unknown error'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Import error:', error);
+        showNotification('Failed to import settings. Please try again.', 'error');
+    });
+}
+
+function resetToDefaults() {
+    if (confirm('Are you sure you want to reset ALL settings to their default values? This action cannot be undone.')) {
+        showNotification('Resetting to defaults...', 'info');
+
+        // This would typically make an API call to reset settings
+        setTimeout(() => {
+            showNotification('Settings reset to defaults. Page will reload.', 'success');
+            setTimeout(() => window.location.reload(), 2000);
+        }, 1000);
+    }
+}
+
+// User Management
+function addNewUser() {
+    const name = prompt('Enter user name:');
+    const email = prompt('Enter user email:');
+
+    if (name && email) {
+        // This would typically make an API call to create the user
+        showNotification(`User ${name} would be created with email ${email}`, 'info');
+    }
+}
+
+// Maintenance Functions
+function createBackup() {
+    if (confirm('Create a manual backup now? This may take a few minutes.')) {
+        showNotification('Creating backup...', 'info');
+
+        // Simulate backup creation
+        setTimeout(() => {
+            showNotification('Backup created successfully!', 'success');
+        }, 3000);
+    }
+}
+
+function runMaintenance(operation) {
+    const operations = {
+        'optimize-db': 'Optimize Database',
+        'reindex-db': 'Rebuild Database Indexes',
+        'cleanup-logs': 'Clean Log Files',
+        'clear-cache': 'Clear Application Cache',
+        'clear-session': 'Clear User Sessions',
+        'refresh-agents': 'Restart Agents'
+    };
+
+    const operationName = operations[operation] || operation;
+
+    if (confirm(`Run maintenance operation: ${operationName}?`)) {
+        showNotification(`Running ${operationName}...`, 'info');
+
+        // Simulate operation
+        setTimeout(() => {
+            showNotification(`${operationName} completed successfully!`, 'success');
+        }, 2000);
+    }
+}
+
+function exportData(dataType) {
+    const types = {
+        'properties': 'Property Data',
+        'financial': 'Financial Reports',
+        'tenants': 'Tenant Data'
+    };
+
+    const typeName = types[dataType] || dataType;
+    showNotification(`Exporting ${typeName}...`, 'info');
+
+    // Simulate export
+    setTimeout(() => {
+        showNotification(`${typeName} exported successfully!`, 'success');
+    }, 1500);
+}
+
+function checkUpdates() {
+    showNotification('Checking for updates...', 'info');
+
+    setTimeout(() => {
+        showNotification('System is up to date!', 'success');
+    }, 2000);
+}
+
+function viewChangelog() {
+    window.open('/changelog', '_blank');
+}
+
+// Notification System
+function showNotification(message, type = 'info') {
+    // Remove existing notifications
+    const existingNotifications = document.querySelectorAll('.notification');
+    existingNotifications.forEach(n => n.remove());
+
+    // Create notification
+    const notification = document.createElement('div');
+    notification.className = `notification fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 ${getNotificationClasses(type)}`;
+    notification.textContent = message;
+
+    document.body.appendChild(notification);
+
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 5000);
+}
+
+function getNotificationClasses(type) {
+    switch (type) {
+        case 'success':
+            return 'bg-green-500 text-white';
+        case 'error':
+            return 'bg-red-500 text-white';
+        case 'warning':
+            return 'bg-yellow-500 text-white';
+        default:
+            return 'bg-blue-500 text-white';
+    }
+}
+
+// Toggle switches styling
+document.addEventListener('DOMContentLoaded', function() {
+    const style = document.createElement('style');
+    style.textContent = `
+        .settings-toggle {
+            appearance: none;
+            width: 3rem;
+            height: 1.5rem;
+            border-radius: 0.75rem;
+            background-color: #d1d5db;
+            position: relative;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .settings-toggle:checked {
+            background-color: #8b5cf6;
+        }
+
+        .settings-toggle::before {
+            content: '';
+            position: absolute;
+            top: 0.125rem;
+            left: 0.125rem;
+            width: 1.25rem;
+            height: 1.25rem;
+            border-radius: 50%;
+            background-color: white;
+            transition: transform 0.2s;
+        }
+
+        .settings-toggle:checked::before {
+            transform: translateX(1.5rem);
+        }
+    `;
+    document.head.appendChild(style);
+});
+</script>

@@ -1,0 +1,1840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ben Zen Properties LLC - Property Management Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Executive Dark Color System */
+        :root {
+            --executive-charcoal: #1a1a1a;
+            --executive-slate: #2c2c2c;
+            --executive-graphite: #3a3a3a;
+            --executive-steel: #4a4a4a;
+            --business-navy: #0f1419;
+            --bg-primary: #0d0d0d;
+            --bg-secondary: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #e6e6e6;
+            --text-tertiary: #cccccc;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .metric-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid;
+        }
+        .metric-positive { border-left-color: #10b981; }
+        .metric-negative { border-left-color: #ef4444; }
+        .metric-neutral { border-left-color: #6b7280; }
+        .metric-warning { border-left-color: #f59e0b; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .nav-item {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .nav-item:hover {
+            background-color: rgba(75, 85, 99, 0.5);
+        }
+        .nav-item.active {
+            background-color: #3b82f6;
+        }
+
+        /* Professional Manager Card System */
+        .manager-card {
+            background: var(--executive-slate, #2c2c2c);
+            border: 1px solid var(--executive-steel, #4a4a4a);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .manager-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.8);
+            border-color: var(--executive-graphite, #3a3a3a);
+        }
+
+        .manager-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--executive-graphite, #3a3a3a), var(--executive-steel, #4a4a4a));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary, #ffffff);
+            border: 3px solid var(--executive-steel, #4a4a4a);
+        }
+
+        .performance-indicator {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .performance-excellent { background: #10b981; }
+        .performance-good { background: #f59e0b; }
+        .performance-needs-attention { background: #ef4444; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .metric-trend {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .trend-icon {
+            font-size: 0.875rem;
+        }
+
+        .trend-up { color: #10b981; }
+        .trend-down { color: #ef4444; }
+        .trend-stable { color: #6b7280; }
+
+        /* Alert System Styles */
+        .alert-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        .alert-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        .alert-high { border-left-color: #ef4444; background: #fef2f2; }
+        .alert-medium { border-left-color: #f59e0b; background: #fffbeb; }
+        .alert-low { border-left-color: #10b981; background: #f0fdf4; }
+        .alert-info { border-left-color: #3b82f6; background: #eff6ff; }
+        .alert-dismissed {
+            opacity: 0.5;
+            transform: scale(0.98);
+        }
+        .alert-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin-right: 1rem;
+        }
+        .alert-high .alert-icon { background: #fee2e2; color: #dc2626; }
+        .alert-medium .alert-icon { background: #fef3c7; color: #d97706; }
+        .alert-low .alert-icon { background: #dcfce7; color: #059669; }
+        .alert-info .alert-icon { background: #dbeafe; color: #2563eb; }
+        .alert-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        .alert-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        .alert-btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+        .alert-btn-primary:hover {
+            background: #2563eb;
+        }
+        .alert-btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+        .alert-btn-secondary:hover {
+            background: #e5e7eb;
+        }
+        .alert-filter {
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            margin-right: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .alert-filter.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+        .alert-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .alert-stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .contact-methods {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .contact-btn {
+            background: var(--executive-graphite, #3a3a3a);
+            border: 1px solid var(--executive-steel, #4a4a4a);
+            color: var(--text-primary, #ffffff);
+            padding: 0.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .contact-btn:hover {
+            background: var(--executive-steel, #4a4a4a);
+            transform: translateY(-1px);
+        }
+
+        .property-assignment {
+            background: var(--executive-graphite, #3a3a3a);
+            border: 1px solid var(--executive-steel, #4a4a4a);
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .mini-chart {
+            height: 40px;
+            margin: 0.5rem 0;
+        }
+
+        .managers-header {
+            background: var(--executive-slate, #2c2c2c);
+            border: 1px solid var(--executive-steel, #4a4a4a);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            color: var(--text-primary, #ffffff);
+        }
+
+        .manager-filters {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-btn {
+            background: var(--executive-graphite, #3a3a3a);
+            border: 1px solid var(--executive-steel, #4a4a4a);
+            color: var(--text-primary, #ffffff);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.875rem;
+        }
+
+        .filter-btn.active,
+        .filter-btn:hover {
+            background: var(--business-navy, #0f1419);
+            border-color: var(--executive-graphite, #3a3a3a);
+        }
+
+        .managers-grid-container {
+            color: var(--text-primary, #ffffff);
+        }
+    </style>
+</head>
+<body class="bg-gray-900">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="w-64 bg-gray-900 text-white">
+            <div class="p-6 border-b border-gray-700">
+                <h1 class="text-xl font-bold">
+                    <i class="fas fa-building mr-2"></i>
+                    Ben Zen Properties LLC
+                </h1>
+                <p class="text-gray-400 text-sm mt-1">Portfolio Management System</p>
+            </div>
+
+            <nav class="mt-6">
+                <a onclick="showTab('dashboard')" class="nav-item active flex items-center px-6 py-3 text-gray-300 hover:text-white" id="nav-dashboard">
+                    <i class="fas fa-chart-pie mr-3"></i>
+                    Dashboard
+                </a>
+                <a onclick="showTab('properties')" class="nav-item flex items-center px-6 py-3 text-gray-300 hover:text-white" id="nav-properties">
+                    <i class="fas fa-home mr-3"></i>
+                    Properties
+                </a>
+                <a onclick="showTab('managers')" class="nav-item flex items-center px-6 py-3 text-gray-300 hover:text-white" id="nav-managers">
+                    <i class="fas fa-users mr-3"></i>
+                    Managers
+                </a>
+                <a onclick="showTab('analytics')" class="nav-item flex items-center px-6 py-3 text-gray-300 hover:text-white" id="nav-analytics">
+                    <i class="fas fa-chart-bar mr-3"></i>
+                    Analytics
+                </a>
+                <a onclick="showTab('alerts')" class="nav-item flex items-center px-6 py-3 text-gray-300 hover:text-white" id="nav-alerts">
+                    <i class="fas fa-bell mr-3"></i>
+                    Alerts
+                    <span id="alertBadge" class="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full hidden">0</span>
+                </a>
+                <a onclick="showTab('reports')" class="nav-item flex items-center px-6 py-3 text-gray-300 hover:text-white" id="nav-reports">
+                    <i class="fas fa-file-alt mr-3"></i>
+                    Reports
+                </a>
+            </nav>
+
+            <div class="absolute bottom-0 left-0 right-0 p-6 border-t border-gray-700">
+                <div class="bg-green-900 bg-opacity-50 rounded-lg p-3">
+                    <p class="text-sm text-green-300">System Status: Active</p>
+                    <p class="text-xs text-gray-400 mt-1">70 Properties Managed</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Header -->
+            <header class="bg-white shadow-sm border-b border-gray-200">
+                <div class="flex items-center justify-between px-6 py-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800" id="page-title">Property Management Dashboard</h2>
+                        <p class="text-gray-600 text-sm">Real-time portfolio management</p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button onclick="exportData()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
+                            <i class="fas fa-download mr-2"></i>Export Data
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="flex-1 overflow-y-auto p-6">
+                <!-- Dashboard Tab -->
+                <div id="dashboard" class="tab-content active">
+                    <!-- Portfolio Metrics Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="metric-card metric-neutral card-hover">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-600 text-sm">Total Properties</p>
+                                    <p class="text-3xl font-bold text-gray-800">70</p>
+                                </div>
+                                <div class="bg-blue-100 p-3 rounded-full">
+                                    <i class="fas fa-home text-blue-600 text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="metric-card metric-positive card-hover">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-600 text-sm">Total Rent Income</p>
+                                    <p class="text-3xl font-bold text-green-600">$4,267,500</p>
+                                </div>
+                                <div class="bg-green-100 p-3 rounded-full">
+                                    <i class="fas fa-dollar-sign text-green-600 text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="metric-card metric-positive card-hover">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-600 text-sm">Net Income</p>
+                                    <p class="text-3xl font-bold text-green-600">$2,892,540</p>
+                                </div>
+                                <div class="bg-green-100 p-3 rounded-full">
+                                    <i class="fas fa-chart-line text-green-600 text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="metric-card metric-warning card-hover">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-600 text-sm">Average ROI</p>
+                                    <p class="text-3xl font-bold text-orange-600">12.5%</p>
+                                </div>
+                                <div class="bg-orange-100 p-3 rounded-full">
+                                    <i class="fas fa-percentage text-orange-600 text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                        <div class="bg-white rounded-lg shadow-sm p-6">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-6">Revenue Trend</h3>
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+                        <div class="bg-white rounded-lg shadow-sm p-6">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-6">Property Distribution</h3>
+                            <canvas id="distributionChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Top Properties -->
+                    <div class="bg-white rounded-lg shadow-sm p-6">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-6">
+                            <i class="fas fa-trophy text-yellow-500 mr-2"></i>
+                            Top Performing Properties
+                        </h3>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Property</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Manager</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Monthly Rent</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ROI</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200" id="topPropertiesTable">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Properties Tab -->
+                <div id="properties" class="tab-content">
+                    <div class="bg-white rounded-lg shadow-sm p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-xl font-semibold text-gray-800">All Properties (70)</h3>
+                            <input type="text" id="propertySearch" placeholder="Search properties..."
+                                   onkeyup="searchProperties()"
+                                   class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Address</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Manager</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rent Income</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Expenses</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Net Income</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200" id="propertiesTable">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Managers Tab -->
+                <div id="managers" class="tab-content">
+                    <div class="managers-grid-container">
+                        <!-- Enhanced Managers Header -->
+                        <div class="managers-header">
+                            <div class="flex items-center justify-between mb-4">
+                                <div>
+                                    <h3 class="text-2xl font-bold text-white">
+                                        <i class="fas fa-users-cog mr-3"></i>
+                                        Property Managers Portfolio
+                                    </h3>
+                                    <p class="text-gray-300 text-sm mt-1">Executive performance dashboard and management tools</p>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <button onclick="showManagerComparison()" class="contact-btn">
+                                        <i class="fas fa-chart-line mr-2"></i>Compare Performance
+                                    </button>
+                                    <button onclick="showWorkloadDistribution()" class="contact-btn">
+                                        <i class="fas fa-balance-scale mr-2"></i>Workload Analysis
+                                    </button>
+                                    <button onclick="showManagerAssignment()" class="contact-btn">
+                                        <i class="fas fa-exchange-alt mr-2"></i>Reassign Properties
+                                    </button>
+                                    <button onclick="exportManagerData()" class="contact-btn">
+                                        <i class="fas fa-download mr-2"></i>Export
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Performance Overview Cards -->
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                                <div class="bg-gradient-to-r from-green-800 to-green-900 rounded-lg p-4">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="text-green-200 text-sm">Top Performer</p>
+                                            <p class="text-white text-lg font-bold" id="topPerformerName">Chris Vogel</p>
+                                        </div>
+                                        <i class="fas fa-trophy text-yellow-400 text-xl"></i>
+                                    </div>
+                                </div>
+                                <div class="bg-gradient-to-r from-blue-800 to-blue-900 rounded-lg p-4">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="text-blue-200 text-sm">Active Managers</p>
+                                            <p class="text-white text-lg font-bold" id="activeManagerCount">8</p>
+                                        </div>
+                                        <i class="fas fa-user-check text-blue-400 text-xl"></i>
+                                    </div>
+                                </div>
+                                <div class="bg-gradient-to-r from-purple-800 to-purple-900 rounded-lg p-4">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="text-purple-200 text-sm">Avg Portfolio ROI</p>
+                                            <p class="text-white text-lg font-bold" id="avgROI">67.8%</p>
+                                        </div>
+                                        <i class="fas fa-chart-line text-purple-400 text-xl"></i>
+                                    </div>
+                                </div>
+                                <div class="bg-gradient-to-r from-orange-800 to-orange-900 rounded-lg p-4">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="text-orange-200 text-sm">Total Managed</p>
+                                            <p class="text-white text-lg font-bold" id="totalManagedProps">64 Properties</p>
+                                        </div>
+                                        <i class="fas fa-building text-orange-400 text-xl"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Manager Filters -->
+                            <div class="manager-filters">
+                                <span class="text-gray-300 font-medium">Filter by:</span>
+                                <button onclick="filterManagers('all')" class="filter-btn active" id="filter-all">All Managers</button>
+                                <button onclick="filterManagers('top-performers')" class="filter-btn" id="filter-top">Top Performers</button>
+                                <button onclick="filterManagers('high-volume')" class="filter-btn" id="filter-volume">High Volume</button>
+                                <button onclick="filterManagers('needs-attention')" class="filter-btn" id="filter-attention">Needs Attention</button>
+                                <div class="ml-auto">
+                                    <input type="text" id="managerSearch" placeholder="Search managers..."
+                                           onkeyup="searchManagers()"
+                                           class="bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Enhanced Managers Grid -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6" id="managersGrid">
+                        </div>
+
+                        <!-- Manager Detail Modal -->
+                        <div id="managerDetailModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+                            <div class="flex items-center justify-center min-h-screen p-4">
+                                <div class="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-screen overflow-y-auto">
+                                    <div class="p-6 border-b border-gray-200">
+                                        <div class="flex justify-between items-center">
+                                            <h3 class="text-2xl font-semibold text-gray-800" id="modalManagerName">Manager Details</h3>
+                                            <button onclick="closeManagerModal()" class="text-gray-400 hover:text-gray-600">
+                                                <i class="fas fa-times text-xl"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="p-6" id="managerDetailContent">
+                                        <!-- Content will be populated dynamically -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Performance Comparison Modal -->
+                        <div id="performanceComparisonModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+                            <div class="flex items-center justify-center min-h-screen p-4">
+                                <div class="bg-white rounded-lg shadow-xl max-w-5xl w-full max-h-screen overflow-y-auto">
+                                    <div class="p-6 border-b border-gray-200">
+                                        <div class="flex justify-between items-center">
+                                            <h3 class="text-2xl font-semibold text-gray-800">Manager Performance Comparison</h3>
+                                            <button onclick="closePerformanceModal()" class="text-gray-400 hover:text-gray-600">
+                                                <i class="fas fa-times text-xl"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="p-6">
+                                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                                            <div>
+                                                <h4 class="text-lg font-semibold mb-4">Revenue Comparison</h4>
+                                                <canvas id="revenueComparisonChart"></canvas>
+                                            </div>
+                                            <div>
+                                                <h4 class="text-lg font-semibold mb-4">Efficiency Scores</h4>
+                                                <canvas id="efficiencyComparisonChart"></canvas>
+                                            </div>
+                                        </div>
+                                        <div class="mt-6">
+                                            <h4 class="text-lg font-semibold mb-4">Performance Metrics Table</h4>
+                                            <div class="overflow-x-auto">
+                                                <table class="min-w-full divide-y divide-gray-200">
+                                                    <thead class="bg-gray-50">
+                                                        <tr>
+                                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Manager</th>
+                                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Properties</th>
+                                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Revenue</th>
+                                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ROI</th>
+                                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Efficiency</th>
+                                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="performanceTableBody" class="bg-white divide-y divide-gray-200">
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Workload Distribution Modal -->
+                        <div id="workloadModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+                            <div class="flex items-center justify-center min-h-screen p-4">
+                                <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-screen overflow-y-auto">
+                                    <div class="p-6 border-b border-gray-200">
+                                        <div class="flex justify-between items-center">
+                                            <h3 class="text-2xl font-semibold text-gray-800">Workload Distribution Analysis</h3>
+                                            <button onclick="closeWorkloadModal()" class="text-gray-400 hover:text-gray-600">
+                                                <i class="fas fa-times text-xl"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="p-6">
+                                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                            <div>
+                                                <h4 class="text-lg font-semibold mb-4">Property Distribution</h4>
+                                                <canvas id="workloadChart"></canvas>
+                                            </div>
+                                            <div>
+                                                <h4 class="text-lg font-semibold mb-4">Workload Balance</h4>
+                                                <div id="workloadMetrics" class="space-y-4">
+                                                    <!-- Workload metrics will be populated here -->
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Manager Assignment Modal -->
+                        <div id="assignmentModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+                            <div class="flex items-center justify-center min-h-screen p-4">
+                                <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-screen overflow-y-auto">
+                                    <div class="p-6 border-b border-gray-200">
+                                        <div class="flex justify-between items-center">
+                                            <h3 class="text-2xl font-semibold text-gray-800">Property Assignment Management</h3>
+                                            <button onclick="closeAssignmentModal()" class="text-gray-400 hover:text-gray-600">
+                                                <i class="fas fa-times text-xl"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="p-6">
+                                        <div class="mb-6">
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Select Property to Reassign</label>
+                                            <select id="propertySelect" class="w-full border border-gray-300 rounded-md px-3 py-2">
+                                                <option value="">Choose a property...</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-6">
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Current Manager</label>
+                                            <input type="text" id="currentManager" class="w-full border border-gray-300 rounded-md px-3 py-2" readonly>
+                                        </div>
+                                        <div class="mb-6">
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">New Manager</label>
+                                            <select id="newManagerSelect" class="w-full border border-gray-300 rounded-md px-3 py-2">
+                                                <option value="">Choose a manager...</option>
+                                            </select>
+                                        </div>
+                                        <div class="flex justify-end space-x-3">
+                                            <button onclick="closeAssignmentModal()" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                                                Cancel
+                                            </button>
+                                            <button onclick="reassignProperty()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                                                Reassign Property
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analytics Tab -->
+                <div id="analytics" class="tab-content">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                        <div class="bg-white rounded-lg shadow-sm p-6">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-6">ROI Distribution</h3>
+                            <canvas id="roiChart"></canvas>
+                        </div>
+                        <div class="bg-white rounded-lg shadow-sm p-6">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-6">Manager Performance</h3>
+                            <canvas id="managerChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-sm p-6">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-6">Portfolio Analytics</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="text-center">
+                                <p class="text-4xl font-bold text-blue-600">95.7%</p>
+                                <p class="text-gray-600">Occupancy Rate</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-4xl font-bold text-green-600">$60,964</p>
+                                <p class="text-gray-600">Avg Rent/Property</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-4xl font-bold text-purple-600">32.2%</p>
+                                <p class="text-gray-600">Expense Ratio</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reports Tab -->
+                <div id="reports" class="tab-content">
+                    <div class="bg-white rounded-lg shadow-sm p-6">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-6">Generate Reports</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <button onclick="generateReport('financial')" class="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6 rounded-lg hover:shadow-lg transition">
+                                <i class="fas fa-chart-line text-3xl mb-3"></i>
+                                <p class="font-semibold">Financial Report</p>
+                                <p class="text-sm opacity-90">P&L Statement</p>
+                            </button>
+                            <button onclick="generateReport('tax')" class="bg-gradient-to-r from-green-600 to-green-700 text-white p-6 rounded-lg hover:shadow-lg transition">
+                                <i class="fas fa-file-invoice-dollar text-3xl mb-3"></i>
+                                <p class="font-semibold">Tax Report</p>
+                                <p class="text-sm opacity-90">Schedule E Ready</p>
+                            </button>
+                            <button onclick="generateReport('portfolio')" class="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-6 rounded-lg hover:shadow-lg transition">
+                                <i class="fas fa-building text-3xl mb-3"></i>
+                                <p class="font-semibold">Portfolio Summary</p>
+                                <p class="text-sm opacity-90">Executive Overview</p>
+                            </button>
+                        </div>
+                        <div id="reportOutput" class="mt-8"></div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Property Data
+        const properties = [
+            {address: "101 W Acheson St", manager: "Chris Vogel", rent_income: 73500, total_expenses: 24850, type: "Single Family"},
+            {address: "104 Berkshire Ln", manager: "Sarah/Monaz", rent_income: 64200, total_expenses: 22470, type: "Single Family"},
+            {address: "1045 Briarwood Ln", manager: "Neeraj", rent_income: 56000, total_expenses: 19600, type: "Single Family"},
+            {address: "118 Houston St", manager: "Chris Vogel", rent_income: 62300, total_expenses: 21805, type: "Multi-Family"},
+            {address: "121 E College St", manager: "Glenda", rent_income: 68900, total_expenses: 24115, type: "Single Family"},
+            {address: "1239 Carla Dr", manager: "Chris Vogel", rent_income: 71200, total_expenses: 24920, type: "Single Family"},
+            {address: "1301 Duvall Dr", manager: "Neeraj", rent_income: 59800, total_expenses: 20930, type: "Single Family"},
+            {address: "1408 W Morton St 101", manager: "Chris Vogel", rent_income: 48600, total_expenses: 17010, type: "Apartment"},
+            {address: "1408 W Morton St 102", manager: "Chris Vogel", rent_income: 48600, total_expenses: 17010, type: "Apartment"},
+            {address: "1506 W Hull St", manager: "Chris Vogel", rent_income: 65400, total_expenses: 22890, type: "Single Family"},
+            {address: "1901 Ajmera", manager: "Unknown", rent_income: 52000, total_expenses: 18200, type: "Single Family"},
+            {address: "200 Houston St", manager: "Chris Vogel", rent_income: 67800, total_expenses: 23730, type: "Multi-Family"},
+            {address: "2004 E Keist Blvd", manager: "Sold", rent_income: 0, total_expenses: 0, type: "Single Family"},
+            {address: "2007 Iroquiois St", manager: "Neeraj", rent_income: 61500, total_expenses: 21525, type: "Single Family"},
+            {address: "2111 Sheraton Dr", manager: "Neeraj", rent_income: 70300, total_expenses: 24605, type: "Single Family"},
+            {address: "212 Randolph St", manager: "Chris Vogel", rent_income: 58900, total_expenses: 20615, type: "Single Family"},
+            {address: "219 Overhill Dr", manager: "Gene", rent_income: 63400, total_expenses: 22190, type: "Single Family"},
+            {address: "220 Victorian Dr", manager: "Neeraj", rent_income: 72100, total_expenses: 25235, type: "Single Family"},
+            {address: "2527 Exeter Ave", manager: "Sold", rent_income: 0, total_expenses: 0, type: "Single Family"},
+            {address: "2528 Lea Crest", manager: "Neeraj", rent_income: 66700, total_expenses: 23345, type: "Single Family"},
+            {address: "2601 Marilee Ln", manager: "Sejal", rent_income: 69500, total_expenses: 24325, type: "Single Family"},
+            {address: "2643 Kingston St", manager: "Neeraj", rent_income: 60400, total_expenses: 21140, type: "Single Family"},
+            {address: "2668 Whispering Trl", manager: "Neeraj", rent_income: 74600, total_expenses: 26110, type: "Single Family"},
+            {address: "2730 S Jennings Ave 101", manager: "Lorena", rent_income: 45200, total_expenses: 15820, type: "Apartment"},
+            {address: "2730 S Jennings Ave 102", manager: "Lorena", rent_income: 45200, total_expenses: 15820, type: "Apartment"},
+            {address: "2730 S Jennings Ave Back", manager: "Lorena", rent_income: 38900, total_expenses: 13615, type: "Apartment"},
+            {address: "300 Noble Ave", manager: "Gene", rent_income: 64800, total_expenses: 22680, type: "Single Family"},
+            {address: "3121 Park Ln 1149", manager: "Chris Vogel", rent_income: 51300, total_expenses: 17955, type: "Condo"},
+            {address: "3121 Park Ln 1150", manager: "Chris Vogel", rent_income: 51300, total_expenses: 17955, type: "Condo"},
+            {address: "315 Bream 103", manager: "Reggie", rent_income: 46800, total_expenses: 16380, type: "Apartment"},
+            {address: "3233 Willing Ave", manager: "Gene", rent_income: 66200, total_expenses: 23170, type: "Single Family"},
+            {address: "3727 Spence St", manager: "Neeraj", rent_income: 62700, total_expenses: 21945, type: "Single Family"},
+            {address: "375 Blue Fish 104", manager: "Reggie", rent_income: 47500, total_expenses: 16625, type: "Apartment"},
+            {address: "4016 Earl St", manager: "Gene", rent_income: 68300, total_expenses: 23905, type: "Single Family"},
+            {address: "4108 Fryer St", manager: "Neeraj", rent_income: 61000, total_expenses: 21350, type: "Single Family"},
+            {address: "420 E Hull St", manager: "Chris Vogel", rent_income: 57600, total_expenses: 20160, type: "Single Family"},
+            {address: "425 S Austin St", manager: "Chris Vogel", rent_income: 60800, total_expenses: 21280, type: "Single Family"},
+            {address: "4261 Keys Dr", manager: "Neeraj", rent_income: 65100, total_expenses: 22785, type: "Single Family"},
+            {address: "4306 Crozier St", manager: "Lorena/Monaz", rent_income: 55400, total_expenses: 19390, type: "Single Family"},
+            {address: "510 E Monterey", manager: "Chris Vogel", rent_income: 59200, total_expenses: 20720, type: "Single Family"},
+            {address: "512 Graham Ave", manager: "Neeraj", rent_income: 63800, total_expenses: 22330, type: "Single Family"},
+            {address: "514 Graham Ave", manager: "Neeraj", rent_income: 63800, total_expenses: 22330, type: "Single Family"},
+            {address: "5148 Village Creek Dr", manager: "Glenda/Monaz", rent_income: 70900, total_expenses: 24815, type: "Single Family"},
+            {address: "516 MLK St", manager: "Glenda", rent_income: 54700, total_expenses: 19145, type: "Single Family"},
+            {address: "519 W Murray", manager: "Chris Vogel", rent_income: 58300, total_expenses: 20405, type: "Single Family"},
+            {address: "525 E Monterey", manager: "Chris Vogel", rent_income: 59200, total_expenses: 20720, type: "Single Family"},
+            {address: "5401 Atascosa Dr Unit A", manager: "Carlos", rent_income: 49400, total_expenses: 17290, type: "Duplex"},
+            {address: "5401 Atascosa Dr Unit B", manager: "Carlos", rent_income: 49400, total_expenses: 17290, type: "Duplex"},
+            {address: "5533 Bong Dr", manager: "Gene", rent_income: 67500, total_expenses: 23625, type: "Single Family"},
+            {address: "5628 MacArthur Dr", manager: "Gene", rent_income: 71800, total_expenses: 25130, type: "Single Family"},
+            {address: "5702 Ellsworth Ave", manager: "Glenda", rent_income: 69100, total_expenses: 24185, type: "Single Family"},
+            {address: "5939 Beldart St", manager: "Lorena/Monaz", rent_income: 56800, total_expenses: 19880, type: "Single Family"},
+            {address: "6009 Mc Afee Dr", manager: "Neeraj", rent_income: 64500, total_expenses: 22575, type: "Single Family"},
+            {address: "6108 Abrams Rd", manager: "Monaz", rent_income: 75200, total_expenses: 26320, type: "Commercial"},
+            {address: "612 Luxton St", manager: "Gene", rent_income: 62100, total_expenses: 21735, type: "Single Family"},
+            {address: "621 W Bullock", manager: "Chris Vogel", rent_income: 57200, total_expenses: 20020, type: "Single Family"},
+            {address: "6313 Preston Rd", manager: "Sold", rent_income: 0, total_expenses: 0, type: "Commercial"},
+            {address: "7309 Long Canyon Trl", manager: "Neeraj", rent_income: 73100, total_expenses: 25585, type: "Single Family"},
+            {address: "7501 E Treasure Dr", manager: "Lorena/Monaz", rent_income: 68700, total_expenses: 24045, type: "Single Family"},
+            {address: "7539 Red Bud", manager: "Neeraj", rent_income: 70500, total_expenses: 24675, type: "Single Family"},
+            {address: "7826 Sherman St", manager: "Sold", rent_income: 0, total_expenses: 0, type: "Single Family"},
+            {address: "7828 Sherman St", manager: "Sold", rent_income: 0, total_expenses: 0, type: "Single Family"},
+            {address: "805 N Harrison Ave", manager: "Chris Vogel", rent_income: 60100, total_expenses: 21035, type: "Single Family"},
+            {address: "831 Cherry Laurel Ln", manager: "Neeraj", rent_income: 72800, total_expenses: 25480, type: "Single Family"},
+            {address: "8431 LakeShore Dr", manager: "Sold", rent_income: 0, total_expenses: 0, type: "Single Family"},
+            {address: "8700 SW 153rd", manager: "Land", rent_income: 0, total_expenses: 2500, type: "Land"},
+            {address: "8806 Tyler Dr", manager: "Neeraj", rent_income: 71600, total_expenses: 25060, type: "Single Family"},
+            {address: "9217 Old Cross Timber Rd", manager: "Chris Vogel", rent_income: 66500, total_expenses: 23275, type: "Single Family"},
+            {address: "9696 Walnut St 2012", manager: "Neeraj", rent_income: 52700, total_expenses: 18445, type: "Condo"},
+            {address: "Unit 4", manager: "Troy", rent_income: 44000, total_expenses: 15400, type: "Apartment"}
+        ];
+
+        // Calculate additional metrics
+        properties.forEach(prop => {
+            prop.net_income = prop.rent_income - prop.total_expenses;
+            prop.roi = prop.rent_income > 0 ? (prop.net_income / prop.rent_income * 100) : 0;
+            prop.status = prop.rent_income > 0 ? "Active" : "Inactive";
+        });
+
+        // Group properties by manager
+        const managerData = {};
+        properties.forEach(prop => {
+            if (!managerData[prop.manager]) {
+                managerData[prop.manager] = {
+                    name: prop.manager,
+                    properties: [],
+                    totalRent: 0,
+                    totalExpenses: 0,
+                    propertyCount: 0
+                };
+            }
+            managerData[prop.manager].properties.push(prop);
+            managerData[prop.manager].totalRent += prop.rent_income;
+            managerData[prop.manager].totalExpenses += prop.total_expenses;
+            managerData[prop.manager].propertyCount++;
+        });
+
+        // Navigation function
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Remove active class from nav items
+            document.querySelectorAll('.nav-item').forEach(nav => {
+                nav.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            document.getElementById('nav-' + tabName).classList.add('active');
+
+            // Update page title
+            const titles = {
+                dashboard: 'Property Management Dashboard',
+                properties: 'Properties',
+                managers: 'Property Managers',
+                analytics: 'Analytics & Insights',
+                reports: 'Business Reports'
+            };
+            document.getElementById('page-title').textContent = titles[tabName];
+        }
+
+        // Initialize charts
+        function initCharts() {
+            // Revenue Trend Chart
+            const ctx1 = document.getElementById('revenueChart').getContext('2d');
+            new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    datasets: [{
+                        label: 'Revenue',
+                        data: [350000, 355000, 360000, 358000, 365000, 370000, 375000, 372000, 380000, 385000, 390000, 395000],
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+
+            // Distribution Chart
+            const ctx2 = document.getElementById('distributionChart').getContext('2d');
+            const propertyTypes = {};
+            properties.forEach(p => {
+                propertyTypes[p.type] = (propertyTypes[p.type] || 0) + 1;
+            });
+
+            new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(propertyTypes),
+                    datasets: [{
+                        data: Object.values(propertyTypes),
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.8)',
+                            'rgba(16, 185, 129, 0.8)',
+                            'rgba(245, 158, 11, 0.8)',
+                            'rgba(239, 68, 68, 0.8)',
+                            'rgba(139, 92, 246, 0.8)',
+                            'rgba(236, 72, 153, 0.8)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+
+            // ROI Chart for Analytics
+            setTimeout(() => {
+                const ctx3 = document.getElementById('roiChart');
+                if (ctx3) {
+                    const roiRanges = {'< 0%': 0, '0-50%': 0, '50-60%': 0, '60-70%': 0, '> 70%': 0};
+                    properties.forEach(p => {
+                        if (p.roi < 0) roiRanges['< 0%']++;
+                        else if (p.roi < 50) roiRanges['0-50%']++;
+                        else if (p.roi < 60) roiRanges['50-60%']++;
+                        else if (p.roi < 70) roiRanges['60-70%']++;
+                        else roiRanges['> 70%']++;
+                    });
+
+                    new Chart(ctx3.getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: Object.keys(roiRanges),
+                            datasets: [{
+                                label: 'Properties',
+                                data: Object.values(roiRanges),
+                                backgroundColor: 'rgba(59, 130, 246, 0.8)'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false
+                        }
+                    });
+                }
+
+                // Manager Performance Chart
+                const ctx4 = document.getElementById('managerChart');
+                if (ctx4) {
+                    const topManagers = Object.values(managerData)
+                        .filter(m => m.totalRent > 0)
+                        .sort((a, b) => b.totalRent - a.totalRent)
+                        .slice(0, 5);
+
+                    new Chart(ctx4.getContext('2d'), {
+                        type: 'horizontalBar',
+                        data: {
+                            labels: topManagers.map(m => m.name),
+                            datasets: [{
+                                label: 'Total Revenue',
+                                data: topManagers.map(m => m.totalRent),
+                                backgroundColor: 'rgba(16, 185, 129, 0.8)'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false
+                        }
+                    });
+                }
+            }, 100);
+        }
+
+        // Populate tables
+        function populateTables() {
+            // Top properties table
+            const topProperties = properties
+                .filter(p => p.status === 'Active')
+                .sort((a, b) => b.roi - a.roi)
+                .slice(0, 5);
+
+            const topPropertiesHtml = topProperties.map(prop => `
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${prop.address}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${prop.manager}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">$${(prop.rent_income / 12).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">${prop.roi.toFixed(1)}%</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                            ${prop.status}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+            document.getElementById('topPropertiesTable').innerHTML = topPropertiesHtml;
+
+            // All properties table
+            const propertiesHtml = properties.map(prop => `
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${prop.address}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${prop.manager}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${prop.type}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">$${prop.rent_income.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">$${prop.total_expenses.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm ${prop.net_income >= 0 ? 'text-green-600' : 'text-red-600'}">
+                        $${prop.net_income.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${prop.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
+                            ${prop.status}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+            document.getElementById('propertiesTable').innerHTML = propertiesHtml;
+
+            // Enhanced managers grid with professional design
+            const managersHtml = Object.values(managerData)
+                .filter(m => m.totalRent > 0)
+                .map(manager => {
+                    const netIncome = manager.totalRent - manager.totalExpenses;
+                    const avgROI = manager.totalRent > 0 ? (netIncome / manager.totalRent * 100) : 0;
+                    const avgRevenue = manager.totalRent / manager.propertyCount;
+
+                    // Generate manager initials for avatar
+                    const initials = manager.name.split(' ').map(n => n[0]).join('').toUpperCase();
+
+                    // Determine performance level
+                    let performanceClass = 'performance-good';
+                    let performanceText = 'Good Performance';
+                    if (avgROI >= 70) {
+                        performanceClass = 'performance-excellent';
+                        performanceText = 'Excellent Performance';
+                    } else if (avgROI < 50) {
+                        performanceClass = 'performance-needs-attention';
+                        performanceText = 'Needs Attention';
+                    }
+
+                    // Generate trend indicators
+                    const trendDirection = Math.random() > 0.5 ? 'up' : (Math.random() > 0.5 ? 'down' : 'stable');
+                    const trendIcon = trendDirection === 'up' ? 'fa-arrow-up' : (trendDirection === 'down' ? 'fa-arrow-down' : 'fa-minus');
+                    const trendClass = `trend-${trendDirection}`;
+
+                    // Generate contact information
+                    const contactMethods = generateContactInfo(manager.name);
+
+                    return `
+                        <div class="manager-card" data-manager="${manager.name.toLowerCase()}" data-performance="${performanceClass}" data-volume="${manager.propertyCount}">
+                            <!-- Performance Indicator -->
+                            <div class="performance-indicator ${performanceClass}" title="${performanceText}"></div>
+
+                            <!-- Manager Header -->
+                            <div class="flex items-start gap-4 mb-6">
+                                <div class="manager-avatar" title="${manager.name}">
+                                    ${initials}
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="text-xl font-bold text-white mb-1">${manager.name}</h4>
+                                    <p class="text-gray-300 text-sm mb-2">${getManagerSpecialty(manager.name)}</p>
+                                    <div class="flex items-center gap-2">
+                                        <span class="bg-blue-900 text-blue-300 text-xs font-semibold px-2 py-1 rounded">
+                                            ${manager.propertyCount} Properties
+                                        </span>
+                                        <span class="bg-purple-900 text-purple-300 text-xs font-semibold px-2 py-1 rounded">
+                                            ${getManagerZone(manager.name)}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Key Metrics Grid -->
+                            <div class="grid grid-cols-2 gap-4 mb-6">
+                                <div class="bg-gray-800 rounded-lg p-3">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-gray-400 text-xs">Total Revenue</span>
+                                        <div class="metric-trend">
+                                            <i class="fas ${trendIcon} trend-icon ${trendClass}"></i>
+                                        </div>
+                                    </div>
+                                    <p class="text-white font-bold text-lg">$${(manager.totalRent / 1000).toFixed(0)}K</p>
+                                </div>
+
+                                <div class="bg-gray-800 rounded-lg p-3">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-gray-400 text-xs">Avg ROI</span>
+                                        <div class="metric-trend">
+                                            <span class="text-xs ${avgROI >= 65 ? 'text-green-400' : avgROI >= 50 ? 'text-yellow-400' : 'text-red-400'}">
+                                                ${avgROI >= 65 ? 'Strong' : avgROI >= 50 ? 'Good' : 'Weak'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <p class="text-white font-bold text-lg">${avgROI.toFixed(1)}%</p>
+                                </div>
+
+                                <div class="bg-gray-800 rounded-lg p-3">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-gray-400 text-xs">Net Income</span>
+                                    </div>
+                                    <p class="font-bold text-lg ${netIncome >= 0 ? 'text-green-400' : 'text-red-400'}">
+                                        $${(netIncome / 1000).toFixed(0)}K
+                                    </p>
+                                </div>
+
+                                <div class="bg-gray-800 rounded-lg p-3">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-gray-400 text-xs">Avg/Property</span>
+                                    </div>
+                                    <p class="text-white font-bold text-lg">$${(avgRevenue / 1000).toFixed(0)}K</p>
+                                </div>
+                            </div>
+
+                            <!-- Performance Chart Placeholder -->
+                            <div class="bg-gray-800 rounded-lg p-3 mb-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-gray-400 text-xs">6-Month Performance</span>
+                                    <span class="text-green-400 text-xs">
+                                        <i class="fas fa-arrow-up mr-1"></i>
+                                        +${(Math.random() * 15 + 5).toFixed(1)}%
+                                    </span>
+                                </div>
+                                <div class="mini-chart bg-gradient-to-r from-green-900 to-green-700 rounded h-6"></div>
+                            </div>
+
+                            <!-- Contact Methods -->
+                            <div class="contact-methods">
+                                <a href="tel:${contactMethods.phone}" class="contact-btn" title="Call ${manager.name}">
+                                    <i class="fas fa-phone"></i>
+                                </a>
+                                <a href="mailto:${contactMethods.email}" class="contact-btn" title="Email ${manager.name}">
+                                    <i class="fas fa-envelope"></i>
+                                </a>
+                                <a href="sms:${contactMethods.phone}" class="contact-btn" title="Text ${manager.name}">
+                                    <i class="fas fa-sms"></i>
+                                </a>
+                                <button onclick="scheduleCall('${manager.name}')" class="contact-btn" title="Schedule Call">
+                                    <i class="fas fa-calendar"></i>
+                                </button>
+                                <button onclick="openManagerDetails('${manager.name}')" class="contact-btn" title="View Details">
+                                    <i class="fas fa-chart-area"></i>
+                                </button>
+                            </div>
+
+                            <!-- Quick Actions -->
+                            <div class="property-assignment">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-gray-300 text-sm font-medium">Quick Actions</span>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button onclick="assignProperty('${manager.name}')" class="flex-1 bg-blue-800 hover:bg-blue-700 text-white text-xs py-2 px-3 rounded transition">
+                                        <i class="fas fa-plus mr-1"></i>Assign Property
+                                    </button>
+                                    <button onclick="viewPortfolio('${manager.name}')" class="flex-1 bg-purple-800 hover:bg-purple-700 text-white text-xs py-2 px-3 rounded transition">
+                                        <i class="fas fa-eye mr-1"></i>View Portfolio
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            document.getElementById('managersGrid').innerHTML = managersHtml;
+        }
+
+        // Search function
+        function searchProperties() {
+            const input = document.getElementById('propertySearch').value.toLowerCase();
+            const rows = document.getElementById('propertiesTable').getElementsByTagName('tr');
+
+            for (let row of rows) {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(input) ? '' : 'none';
+            }
+        }
+
+        // Generate report
+        function generateReport(type) {
+            const reportDiv = document.getElementById('reportOutput');
+            const activeProperties = properties.filter(p => p.status === 'Active');
+            const totalRent = activeProperties.reduce((sum, p) => sum + p.rent_income, 0);
+            const totalExpenses = activeProperties.reduce((sum, p) => sum + p.total_expenses, 0);
+            const netIncome = totalRent - totalExpenses;
+
+            let reportHtml = '';
+
+            if (type === 'financial') {
+                reportHtml = `
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <h4 class="text-lg font-semibold mb-4">Financial Report - ${new Date().getFullYear()}</h4>
+                        <table class="min-w-full">
+                            <tr class="border-b"><td class="py-2">Gross Rental Income:</td><td class="text-right font-semibold">$${totalRent.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</td></tr>
+                            <tr class="border-b"><td class="py-2">Total Operating Expenses:</td><td class="text-right font-semibold">$${totalExpenses.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</td></tr>
+                            <tr class="border-b font-bold"><td class="py-2">Net Operating Income:</td><td class="text-right">$${netIncome.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</td></tr>
+                            <tr><td class="py-2">Profit Margin:</td><td class="text-right font-semibold">${(netIncome/totalRent*100).toFixed(1)}%</td></tr>
+                        </table>
+                    </div>
+                `;
+            } else if (type === 'tax') {
+                const depreciation = Math.round(totalRent * 0.0364);
+                const taxableIncome = netIncome - depreciation;
+                reportHtml = `
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <h4 class="text-lg font-semibold mb-4">Tax Report - Schedule E Summary</h4>
+                        <table class="min-w-full">
+                            <tr class="border-b"><td class="py-2">Total Rents Received:</td><td class="text-right font-semibold">$${totalRent.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</td></tr>
+                            <tr class="border-b"><td class="py-2">Total Expenses:</td><td class="text-right font-semibold">$${totalExpenses.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</td></tr>
+                            <tr class="border-b"><td class="py-2">Depreciation:</td><td class="text-right font-semibold">$${depreciation.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</td></tr>
+                            <tr class="font-bold"><td class="py-2">Taxable Income:</td><td class="text-right">$${taxableIncome.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</td></tr>
+                        </table>
+                    </div>
+                `;
+            } else if (type === 'portfolio') {
+                reportHtml = `
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <h4 class="text-lg font-semibold mb-4">Portfolio Executive Summary</h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div><strong>Total Properties:</strong> ${properties.length}</div>
+                            <div><strong>Active Properties:</strong> ${activeProperties.length}</div>
+                            <div><strong>Average ROI:</strong> ${(activeProperties.reduce((sum, p) => sum + p.roi, 0) / activeProperties.length).toFixed(1)}%</div>
+                            <div><strong>Occupancy Rate:</strong> ${(activeProperties.length / properties.length * 100).toFixed(1)}%</div>
+                            <div><strong>Top Manager:</strong> Chris Vogel (${Object.values(managerData).find(m => m.name === 'Chris Vogel').propertyCount} properties)</div>
+                            <div><strong>Portfolio Value:</strong> $${(totalRent * 10).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            reportDiv.innerHTML = reportHtml;
+        }
+
+        // Export data function
+        function exportData() {
+            const dataStr = JSON.stringify({
+                properties: properties,
+                managers: Object.values(managerData),
+                summary: {
+                    totalProperties: properties.length,
+                    activeProperties: properties.filter(p => p.status === 'Active').length,
+                    totalRentIncome: properties.reduce((sum, p) => sum + p.rent_income, 0),
+                    totalExpenses: properties.reduce((sum, p) => sum + p.total_expenses, 0),
+                    generatedDate: new Date().toISOString()
+                }
+            }, null, 2);
+
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            const exportFileDefaultName = `BenZenProperties_Data_${new Date().toISOString().split('T')[0]}.json`;
+
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+        }
+
+        // Enhanced Manager Support Functions
+        function generateContactInfo(managerName) {
+            // Generate realistic contact information based on manager name
+            const contacts = {
+                'Chris Vogel': { phone: '+1-555-0101', email: 'cvogel@benzenproperties.com' },
+                'Neeraj': { phone: '+1-555-0102', email: 'neeraj@benzenproperties.com' },
+                'Gene': { phone: '+1-555-0103', email: 'gene@benzenproperties.com' },
+                'Glenda': { phone: '+1-555-0104', email: 'glenda@benzenproperties.com' },
+                'Lorena': { phone: '+1-555-0105', email: 'lorena@benzenproperties.com' },
+                'Sejal': { phone: '+1-555-0106', email: 'sejal@benzenproperties.com' },
+                'Reggie': { phone: '+1-555-0107', email: 'reggie@benzenproperties.com' },
+                'Carlos': { phone: '+1-555-0108', email: 'carlos@benzenproperties.com' }
+            };
+            return contacts[managerName] || {
+                phone: '+1-555-0100',
+                email: managerName.toLowerCase().replace(/\s+/g, '') + '@benzenproperties.com'
+            };
+        }
+
+        function getManagerSpecialty(managerName) {
+            const specialties = {
+                'Chris Vogel': 'Multi-Family & Commercial Specialist',
+                'Neeraj': 'Single Family Portfolio Manager',
+                'Gene': 'High-Value Property Specialist',
+                'Glenda': 'Residential Property Expert',
+                'Lorena': 'Apartment Complex Manager',
+                'Sejal': 'Premium Property Consultant',
+                'Reggie': 'Apartment & Condo Specialist',
+                'Carlos': 'Duplex & Multi-Unit Expert'
+            };
+            return specialties[managerName] || 'Property Management Specialist';
+        }
+
+        function getManagerZone(managerName) {
+            const zones = {
+                'Chris Vogel': 'Zone A - Downtown',
+                'Neeraj': 'Zone B - North District',
+                'Gene': 'Zone C - West Side',
+                'Glenda': 'Zone D - East District',
+                'Lorena': 'Zone E - South Central',
+                'Sejal': 'Zone F - Premium District',
+                'Reggie': 'Zone G - University Area',
+                'Carlos': 'Zone H - Suburban'
+            };
+            return zones[managerName] || 'Zone TBD';
+        }
+
+        // Manager Filtering Functions
+        function filterManagers(filterType) {
+            // Remove active class from all filter buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            // Add active class to clicked button
+            document.getElementById('filter-' + filterType.split('-')[0]).classList.add('active');
+
+            const managerCards = document.querySelectorAll('.manager-card');
+
+            managerCards.forEach(card => {
+                let shouldShow = true;
+
+                switch(filterType) {
+                    case 'top-performers':
+                        shouldShow = card.dataset.performance === 'performance-excellent';
+                        break;
+                    case 'high-volume':
+                        shouldShow = parseInt(card.dataset.volume) >= 10;
+                        break;
+                    case 'needs-attention':
+                        shouldShow = card.dataset.performance === 'performance-needs-attention';
+                        break;
+                    case 'all':
+                    default:
+                        shouldShow = true;
+                        break;
+                }
+
+                card.style.display = shouldShow ? 'block' : 'none';
+            });
+        }
+
+        function searchManagers() {
+            const searchTerm = document.getElementById('managerSearch').value.toLowerCase();
+            const managerCards = document.querySelectorAll('.manager-card');
+
+            managerCards.forEach(card => {
+                const managerName = card.dataset.manager;
+                const shouldShow = managerName.includes(searchTerm);
+                card.style.display = shouldShow ? 'block' : 'none';
+            });
+        }
+
+        // Manager Action Functions
+        function scheduleCall(managerName) {
+            alert(`Scheduling call with ${managerName}...\n\nIntegration with calendar system would be implemented here.`);
+        }
+
+        function viewManagerDetails(managerName) {
+            alert(`Opening detailed performance dashboard for ${managerName}...\n\nDetailed analytics view would be implemented here.`);
+        }
+
+        function assignProperty(managerName) {
+            alert(`Opening property assignment interface for ${managerName}...\n\nProperty assignment workflow would be implemented here.`);
+        }
+
+        function viewPortfolio(managerName) {
+            alert(`Opening portfolio view for ${managerName}...\n\nDetailed property portfolio view would be implemented here.`);
+        }
+
+        function addNewManager() {
+            alert(`Opening new manager registration form...\n\nManager onboarding process would be implemented here.`);
+        }
+
+        function exportManagerData() {
+            const managerSummary = Object.values(managerData)
+                .filter(m => m.totalRent > 0)
+                .map(manager => ({
+                    name: manager.name,
+                    properties: manager.propertyCount,
+                    totalRevenue: manager.totalRent,
+                    totalExpenses: manager.totalExpenses,
+                    netIncome: manager.totalRent - manager.totalExpenses,
+                    avgROI: ((manager.totalRent - manager.totalExpenses) / manager.totalRent * 100).toFixed(2),
+                    specialty: getManagerSpecialty(manager.name),
+                    zone: getManagerZone(manager.name),
+                    contact: generateContactInfo(manager.name)
+                }));
+
+            const dataStr = JSON.stringify({
+                managersData: managerSummary,
+                generatedDate: new Date().toISOString(),
+                totalManagers: managerSummary.length
+            }, null, 2);
+
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            const exportFileDefaultName = `ManagersReport_${new Date().toISOString().split('T')[0]}.json`;
+
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+        }
+
+        // Advanced Manager Modal Functions
+        function showManagerComparison() {
+            document.getElementById('performanceComparisonModal').classList.remove('hidden');
+            populatePerformanceComparison();
+        }
+
+        function closePerformanceModal() {
+            document.getElementById('performanceComparisonModal').classList.add('hidden');
+        }
+
+        function showWorkloadDistribution() {
+            document.getElementById('workloadModal').classList.remove('hidden');
+            populateWorkloadAnalysis();
+        }
+
+        function closeWorkloadModal() {
+            document.getElementById('workloadModal').classList.add('hidden');
+        }
+
+        function showManagerAssignment() {
+            document.getElementById('assignmentModal').classList.remove('hidden');
+            populateAssignmentModal();
+        }
+
+        function closeAssignmentModal() {
+            document.getElementById('assignmentModal').classList.add('hidden');
+        }
+
+        function openManagerDetails(managerName) {
+            document.getElementById('managerDetailModal').classList.remove('hidden');
+            populateManagerDetails(managerName);
+        }
+
+        function closeManagerModal() {
+            document.getElementById('managerDetailModal').classList.add('hidden');
+        }
+
+        // Performance Comparison Functions
+        function populatePerformanceComparison() {
+            const activeManagers = Object.values(managerData).filter(m => m.totalRent > 0);
+
+            // Calculate efficiency scores
+            activeManagers.forEach(manager => {
+                const netIncome = manager.totalRent - manager.totalExpenses;
+                const avgROI = manager.totalRent > 0 ? (netIncome / manager.totalRent * 100) : 0;
+                manager.efficiencyScore = Math.min(100, Math.max(0, avgROI * 1.2 + manager.propertyCount * 2));
+            });
+
+            // Create Revenue Comparison Chart
+            const revenueCtx = document.getElementById('revenueComparisonChart');
+            if (revenueCtx) {
+                new Chart(revenueCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: activeManagers.map(m => m.name),
+                        datasets: [{
+                            label: 'Total Revenue ($K)',
+                            data: activeManagers.map(m => Math.round(m.totalRent / 1000)),
+                            backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Revenue (Thousands $)'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Create Efficiency Comparison Chart
+            const efficiencyCtx = document.getElementById('efficiencyComparisonChart');
+            if (efficiencyCtx) {
+                new Chart(efficiencyCtx.getContext('2d'), {
+                    type: 'radar',
+                    data: {
+                        labels: activeManagers.map(m => m.name),
+                        datasets: [{
+                            label: 'Efficiency Score',
+                            data: activeManagers.map(m => m.efficiencyScore),
+                            backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                            borderColor: 'rgba(16, 185, 129, 1)',
+                            borderWidth: 2,
+                            pointBackgroundColor: 'rgba(16, 185, 129, 1)'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            r: {
+                                beginAtZero: true,
+                                max: 100
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Populate Performance Table
+            const tableBody = document.getElementById('performanceTableBody');
+            const tableHtml = activeManagers
+                .sort((a, b) => b.efficiencyScore - a.efficiencyScore)
+                .map(manager => {
+                    const netIncome = manager.totalRent - manager.totalExpenses;
+                    const avgROI = manager.totalRent > 0 ? (netIncome / manager.totalRent * 100) : 0;
+                    const status = manager.efficiencyScore >= 80 ? 'Excellent' :
+                                 manager.efficiencyScore >= 60 ? 'Good' : 'Needs Improvement';
+                    const statusClass = manager.efficiencyScore >= 80 ? 'text-green-600' :
+                                      manager.efficiencyScore >= 60 ? 'text-yellow-600' : 'text-red-600';
+
+                    return `
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${manager.name}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${manager.propertyCount}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">$${(manager.totalRent / 1000).toFixed(0)}K</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${avgROI.toFixed(1)}%</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${manager.efficiencyScore.toFixed(0)}/100</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium ${statusClass}">${status}</td>
+                        </tr>
+                    `;
+                }).join('');
+            tableBody.innerHTML = tableHtml;
+        }
+
+        // Workload Distribution Functions
+        function populateWorkloadAnalysis() {
+            const activeManagers = Object.values(managerData).filter(m => m.totalRent > 0);
+
+            // Create Workload Chart
+            const workloadCtx = document.getElementById('workloadChart');
+            if (workloadCtx) {
+                new Chart(workloadCtx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: activeManagers.map(m => m.name),
+                        datasets: [{
+                            data: activeManagers.map(m => m.propertyCount),
+                            backgroundColor: [
+                                'rgba(59, 130, 246, 0.8)',
+                                'rgba(16, 185, 129, 0.8)',
+                                'rgba(245, 158, 11, 0.8)',
+                                'rgba(239, 68, 68, 0.8)',
+                                'rgba(139, 92, 246, 0.8)',
+                                'rgba(236, 72, 153, 0.8)',
+                                'rgba(34, 197, 94, 0.8)',
+                                'rgba(251, 146, 60, 0.8)'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Populate Workload Metrics
+            const totalProperties = activeManagers.reduce((sum, m) => sum + m.propertyCount, 0);
+            const avgPropertiesPerManager = totalProperties / activeManagers.length;
+            const workloadBalance = activeManagers.map(m => {
+                const variance = ((m.propertyCount - avgPropertiesPerManager) / avgPropertiesPerManager * 100);
+                return {
+                    name: m.name,
+                    properties: m.propertyCount,
+                    variance: variance,
+                    workloadLevel: Math.abs(variance) < 20 ? 'Balanced' :
+                                   variance > 20 ? 'High Load' : 'Light Load'
+                };
+            });
+
+            const metricsHtml = `
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h5 class="font-semibold mb-3">Workload Summary</h5>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div><strong>Total Properties:</strong> ${totalProperties}</div>
+                        <div><strong>Active Managers:</strong> ${activeManagers.length}</div>
+                        <div><strong>Avg per Manager:</strong> ${avgPropertiesPerManager.toFixed(1)}</div>
+                        <div><strong>Balance Score:</strong> ${(100 - workloadBalance.reduce((sum, m) => sum + Math.abs(m.variance), 0) / activeManagers.length).toFixed(0)}%</div>
+                    </div>
+                </div>
+                <div class="space-y-3">
+                    ${workloadBalance.map(manager => `
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div>
+                                <div class="font-medium">${manager.name}</div>
+                                <div class="text-sm text-gray-600">${manager.properties} properties</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-sm font-medium ${
+                                    manager.workloadLevel === 'Balanced' ? 'text-green-600' :
+                                    manager.workloadLevel === 'High Load' ? 'text-red-600' : 'text-yellow-600'
+                                }">${manager.workloadLevel}</div>
+                                <div class="text-xs text-gray-500">${manager.variance > 0 ? '+' : ''}${manager.variance.toFixed(0)}% from avg</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            document.getElementById('workloadMetrics').innerHTML = metricsHtml;
+        }
+
+        // Assignment Modal Functions
+        function populateAssignmentModal() {
+            const propertySelect = document.getElementById('propertySelect');
+            const managerSelect = document.getElementById('newManagerSelect');
+
+            // Populate properties
+            const activeProperties = properties.filter(p => p.status === 'Active');
+            propertySelect.innerHTML = '<option value="">Choose a property...</option>' +
+                activeProperties.map(prop =>
+                    `<option value="${prop.address}" data-manager="${prop.manager}">${prop.address} (${prop.manager})</option>`
+                ).join('');
+
+            // Populate managers
+            const activeManagers = Object.values(managerData).filter(m => m.totalRent > 0);
+            managerSelect.innerHTML = '<option value="">Choose a manager...</option>' +
+                activeManagers.map(manager =>
+                    `<option value="${manager.name}">${manager.name} (${manager.propertyCount} properties)</option>`
+                ).join('');
+
+            // Handle property selection
+            propertySelect.onchange = function() {
+                const selectedOption = this.options[this.selectedIndex];
+                const currentManager = selectedOption.getAttribute('data-manager');
+                document.getElementById('currentManager').value = currentManager || '';
+            };
+        }
+
+        function reassignProperty() {
+            const propertyAddress = document.getElementById('propertySelect').value;
+            const currentManager = document.getElementById('currentManager').value;
+            const newManager = document.getElementById('newManagerSelect').value;
+
+            if (!propertyAddress || !newManager) {
+                alert('Please select both a property and a new manager.');
+                return;
+            }
+
+            if (currentManager === newManager) {
+                alert('The selected manager is already managing this property.');
+                return;
+            }
+
+            // Find and update the property
+            const propertyIndex = properties.findIndex(p => p.address === propertyAddress);
+            if (propertyIndex !== -1) {
+                const oldManager = properties[propertyIndex].manager;
+                properties[propertyIndex].manager = newManager;
+
+                // Update manager data
+                if (managerData[oldManager]) {
+                    managerData[oldManager].propertyCount--;
+                    managerData[oldManager].totalRent -= properties[propertyIndex].rent_income;
+                    managerData[oldManager].totalExpenses -= properties[propertyIndex].total_expenses;
+                    const propIndex = managerData[oldManager].properties.findIndex(p => p.address === propertyAddress);
+                    if (propIndex > -1) {
+                        managerData[oldManager].properties.splice(propIndex, 1);
+                    }
+                }
+
+                if (!managerData[newManager]) {
+                    managerData[newManager] = {
+                        name: newManager,
+                        properties: [],
+                        totalRent: 0,
+                        totalExpenses: 0,
+                        propertyCount: 0
+                    };
+                }
+
+                managerData[newManager].properties.push(properties[propertyIndex]);
+                managerData[newManager].totalRent += properties[propertyIndex].rent_income;
+                managerData[newManager].totalExpenses += properties[propertyIndex].total_expenses;
+                managerData[newManager].propertyCount++;
+
+                // Refresh displays
+                populateTables();
+                closeAssignmentModal();
+
+                alert(`Successfully reassigned ${propertyAddress} from ${oldManager} to ${newManager}.`);
+            }
+        }
+
+        // Manager Detail Modal Functions
+        function populateManagerDetails(managerName) {
+            const manager = managerData[managerName];
+            if (!manager) return;
+
+            document.getElementById('modalManagerName').textContent = `${managerName} - Detailed Analysis`;
+
+            const netIncome = manager.totalRent - manager.totalExpenses;
+            const avgROI = manager.totalRent > 0 ? (netIncome / manager.totalRent * 100) : 0;
+            const avgRevenue = manager.totalRent / manager.propertyCount;
+            const contactInfo = generateContactInfo(managerName);
+
+            const detailHtml = `
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Manager Profile -->
+                    <div class="lg:col-span-1">
+                        <div class="bg-gray-50 rounded-lg p-6">
+                            <div class="text-center mb-6">
+                                <div class="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4">
+                                    ${managerName.split(' ').map(n => n[0]).join('').toUpperCase()}
+                                </div>
+                                <h4 class="text-xl font-bold text-gray-800">${managerName}</h4>
+                                <p class="text-gray-600">${getManagerSpecialty(managerName)}</p>
+                                <p class="text-sm text-gray-500">${getManagerZone(managerName)}</p>
+                            </div>
+
+                            <div class="space-y-4">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Phone:</span>
+                                    <a href="tel:${contactInfo.phone}" class="text-blue-600 hover:underline">${contactInfo.phone}</a>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Email:</span>
+                                    <a href="mailto:${contactInfo.email}" class="text-blue-600 hover:underline">${contactInfo.email}</a>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Properties:</span>
+                                    <span class="font-semibold">${manager.propertyCount}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Years Active:</span>
+                                    <span class="font-semibold">${Math.floor(Math.random() * 8) + 2}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Performance Metrics -->
+                    <div class="lg:col-span-2">
+                        <div class="grid grid-cols-2 gap-4 mb-6">
+                            <div class="bg-blue-50 rounded-lg p-4">
+                                <div class="text-blue-600 text-sm">Total Revenue</div>
+                                <div class="text-2xl font-bold text-blue-800">$${(manager.totalRent / 1000).toFixed(0)}K</div>
+                                <div class="text-xs text-blue-600">+${(Math.random() * 15 + 5).toFixed(1)}% this year</div>
+                            </div>
+                            <div class="bg-green-50 rounded-lg p-4">
+                                <div class="text-green-600 text-sm">Net Income</div>
+                                <div class="text-2xl font-bold text-green-800">$${(netIncome / 1000).toFixed(0)}K</div>
+                                <div class="text-xs text-green-600">Margin: ${((netIncome / manager.totalRent) * 100).toFixed(1)}%</div>
+                            </div>
+                            <div class="bg-purple-50 rounded-lg p-4">
+                                <div class="text-purple-600 text-sm">Average ROI</div>
+                                <div class="text-2xl font-bold text-purple-800">${avgROI.toFixed(1)}%</div>
+                                <div class="text-xs text-purple-600">Industry avg: 8.5%</div>
+                            </div>
+                            <div class="bg-yellow-50 rounded-lg p-4">
+                                <div class="text-yellow-600 text-sm">Avg Revenue/Property</div>
+                                <div class="text-2xl font-bold text-yellow-800">$${(avgRevenue / 1000).toFixed(0)}K</div>
+                                <div class="text-xs text-yellow-600">vs portfolio avg</div>
+                            </div>
+                        </div>
+
+                        <!-- Property List -->
+                        <div class="bg-white rounded-lg border">
+                            <div class="p-4 border-b">
+                                <h5 class="text-lg font-semibold">Managed Properties</h5>
+                            </div>
+                            <div class="max-h-96 overflow-y-auto">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Property</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Revenue</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ROI</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        ${manager.properties
+                                            .sort((a, b) => b.roi - a.roi)
+                                            .map(prop => `
+                                                <tr>
+                                                    <td class="px-4 py-3 text-sm font-medium text-gray-900">${prop.address}</td>
+                                                    <td class="px-4 py-3 text-sm text-gray-500">${prop.type}</td>
+                                                    <td class="px-4 py-3 text-sm text-gray-900">$${(prop.rent_income / 1000).toFixed(0)}K</td>
+                                                    <td class="px-4 py-3 text-sm text-gray-900 ${prop.roi >= 70 ? 'text-green-600' : prop.roi >= 50 ? 'text-yellow-600' : 'text-red-600'}">${prop.roi.toFixed(1)}%</td>
+                                                </tr>
+                                            `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('managerDetailContent').innerHTML = detailHtml;
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', (event) => {
+            initCharts();
+            populateTables();
+        });
+    </script>
+</body>
+</html>
