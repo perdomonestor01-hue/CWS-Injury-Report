@@ -1,0 +1,3861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Workforce Solutions LLC - Injury Report System</title>
+
+    <!-- External Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+            --safety-accent: #4ade80;
+            --safety-green: #16a34a;
+            --alert-red: #b91c1c;
+            --corporate-navy: #0f172a;
+            --professional-gray: #475569;
+            --light-gray: #f8fafc;
+            --border-gray: #e2e8f0;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --shadow: 0 4px 20px rgba(15,23,42,0.15);
+            --card-shadow: 0 8px 32px rgba(15,23,42,0.1);
+            --success-gradient: linear-gradient(135deg, #16a34a 0%, #4ade80 100%);
+            --danger-gradient: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
+            --warning-gradient: linear-gradient(135deg, #eab308 0%, #f59e0b 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: var(--light-gray);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .animated-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: var(--primary-gradient);
+            opacity: 0.05;
+            animation: gradientShift 10s ease-in-out infinite alternate;
+        }
+
+        @keyframes gradientShift {
+            0% { background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%); }
+            50% { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%); }
+            100% { background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%); }
+        }
+
+        /* Header */
+        .header {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 3px solid var(--safety-accent);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            gap: 0.75rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .logo i {
+            color: var(--safety-accent);
+            filter: drop-shadow(0 0 8px rgba(74, 222, 128, 0.8));
+        }
+
+        .header-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .report-id {
+            background: rgba(255,255,255,0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            backdrop-filter: blur(10px);
+        }
+
+        /* Form Container */
+        .form-container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .progress-bar::before {
+            content: '';
+            position: absolute;
+            top: 25px;
+            left: 12.5%;
+            right: 12.5%;
+            height: 3px;
+            background: var(--border-gray);
+            z-index: 0;
+        }
+
+        .progress-step {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .step-number {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid var(--border-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+        }
+
+        .progress-step.active .step-number {
+            background: var(--primary-gradient);
+            border-color: var(--corporate-navy);
+            color: white;
+            box-shadow: 0 0 20px rgba(30, 58, 95, 0.5);
+        }
+
+        .progress-step.completed .step-number {
+            background: var(--success-gradient);
+            border-color: var(--safety-green);
+            color: white;
+        }
+
+        .progress-step.completed .step-number::after {
+            content: '✓';
+            position: absolute;
+            font-size: 1.5rem;
+        }
+
+        .step-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        .progress-step.active .step-label {
+            color: var(--corporate-navy);
+        }
+
+        /* Form Steps */
+        .form-step {
+            display: none;
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: var(--card-shadow);
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .form-step.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: var(--corporate-navy);
+            border-bottom: 3px solid var(--border-gray);
+            padding-bottom: 1rem;
+        }
+
+        .section-title i {
+            color: var(--safety-accent);
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .required {
+            color: var(--alert-red);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border-gray);
+            border-radius: 10px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--corporate-navy);
+            box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.1);
+        }
+
+        .form-input:invalid:not(:placeholder-shown) {
+            border-color: var(--alert-red);
+        }
+
+        select.form-input {
+            cursor: pointer;
+        }
+
+        textarea.form-input {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-hint {
+            display: block;
+            margin-top: 0.25rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+            border-left: 4px solid var(--corporate-navy);
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .info-box i {
+            font-size: 1.5rem;
+            color: var(--corporate-navy);
+        }
+
+        .info-box p {
+            margin: 0;
+            color: var(--corporate-navy);
+        }
+
+        /* Photo Upload */
+        .photo-upload-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .btn-upload {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(30, 58, 95, 0.3);
+        }
+
+        .btn-upload:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(30, 58, 95, 0.5);
+        }
+
+        /* Drag and Drop Zone */
+        .drop-zone {
+            border: 3px dashed var(--border-gray);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            background: var(--light-gray);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .drop-zone:hover {
+            border-color: var(--corporate-navy);
+            background: #e0e7ff;
+        }
+
+        .drop-zone.drag-over {
+            border-color: var(--safety-green);
+            background: #dcfce7;
+            transform: scale(1.02);
+        }
+
+        .drop-zone i {
+            font-size: 3rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .drop-zone p {
+            margin: 0.5rem 0;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .drop-zone-hint {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 400 !important;
+        }
+
+        /* Camera Modal */
+        .camera-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.95);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            backdrop-filter: blur(5px);
+        }
+
+        .camera-modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: var(--card-shadow);
+        }
+
+        .camera-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-gray);
+        }
+
+        .camera-header h3 {
+            margin: 0;
+            color: var(--corporate-navy);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-close-camera {
+            background: var(--danger-gradient);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-close-camera:hover {
+            transform: scale(1.1);
+        }
+
+        #cameraStream {
+            width: 100%;
+            height: auto;
+            border-radius: 15px;
+            background: #000;
+            max-height: 400px;
+            object-fit: cover;
+        }
+
+        .camera-controls {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            justify-content: center;
+        }
+
+        .photo-preview {
+            position: relative;
+            max-width: 400px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+        }
+
+        .photo-preview img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .btn-remove-photo {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--danger-gradient);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(185, 28, 28, 0.4);
+        }
+
+        .btn-remove-photo:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(185, 28, 28, 0.6);
+        }
+
+        /* Signature Pad */
+        .signature-container {
+            position: relative;
+        }
+
+        .signature-pad {
+            width: 100%;
+            height: 200px;
+            border: 3px solid var(--border-gray);
+            border-radius: 15px;
+            cursor: crosshair;
+            background: white;
+            touch-action: none;
+        }
+
+        .btn-clear-signature {
+            margin-top: 0.75rem;
+            background: var(--warning-gradient);
+            color: var(--corporate-navy);
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-clear-signature:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(234, 179, 8, 0.3);
+        }
+
+        /* Buttons */
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            justify-content: space-between;
+        }
+
+        .btn {
+            padding: 0.875rem 2rem;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: white;
+            box-shadow: 0 4px 15px rgba(30, 58, 95, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(30, 58, 95, 0.5);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--corporate-navy);
+            border: 2px solid var(--border-gray);
+        }
+
+        .btn-secondary:hover {
+            background: var(--light-gray);
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: var(--success-gradient);
+            color: white;
+            box-shadow: 0 4px 15px rgba(22, 163, 74, 0.3);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(22, 163, 74, 0.5);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* Success Message */
+        .success-message {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: var(--card-shadow);
+            text-align: center;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .success-icon {
+            font-size: 5rem;
+            color: var(--safety-green);
+            margin-bottom: 1rem;
+            animation: scaleIn 0.5s ease-out;
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+            }
+            to {
+                transform: scale(1);
+            }
+        }
+
+        .success-message h2 {
+            color: var(--corporate-navy);
+            margin-bottom: 1rem;
+        }
+
+        .report-id-success {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+
+        .success-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            backdrop-filter: blur(5px);
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(74, 222, 128, 0.3);
+            border-top-color: var(--safety-accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-overlay p {
+            color: white;
+            margin-top: 1.5rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        /* Notifications */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: 15px;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            z-index: 10000;
+            min-width: 300px;
+            opacity: 0;
+            transform: translateX(400px);
+            transition: all 0.3s ease;
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .notification i {
+            font-size: 1.5rem;
+        }
+
+        .notification-success {
+            border-left: 4px solid var(--safety-green);
+        }
+
+        .notification-success i {
+            color: var(--safety-green);
+        }
+
+        .notification-error {
+            border-left: 4px solid var(--alert-red);
+        }
+
+        .notification-error i {
+            color: var(--alert-red);
+        }
+
+        .notification-info {
+            border-left: 4px solid #0284c7;
+        }
+
+        .notification-info i {
+            color: #0284c7;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            margin-top: 4rem;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .footer p {
+            margin: 0.5rem 0;
+        }
+
+        /* Body Diagram Styles */
+        .body-diagram-container {
+            margin: 2rem 0;
+        }
+
+        .diagram-view-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .view-toggle-btn {
+            padding: 0.75rem 2rem;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .view-toggle-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .view-toggle-btn.active {
+            background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        .body-diagram-wrapper {
+            position: relative;
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(15,23,42,0.1);
+        }
+
+        .body-diagram {
+            width: 100%;
+            height: auto;
+            display: none;
+        }
+
+        .body-diagram.active {
+            display: block;
+        }
+
+        .body-part {
+            fill: #fef3e2;
+            stroke: #a78667;
+            stroke-width: 2;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .body-part:hover {
+            fill: #ffe8c5;
+            stroke: #10b981;
+            stroke-width: 3.5;
+            filter: drop-shadow(0 3px 8px rgba(16, 185, 129, 0.5));
+        }
+
+        .body-part.selected {
+            fill: #ef4444;
+            stroke: #991b1b;
+            stroke-width: 4;
+            animation: pulseSelected 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulseSelected {
+            0%, 100% {
+                fill: #ef4444;
+                filter: drop-shadow(0 0 12px rgba(239, 68, 68, 0.8));
+            }
+            50% {
+                fill: #dc2626;
+                filter: drop-shadow(0 0 18px rgba(239, 68, 68, 1));
+            }
+        }
+
+        /* Joint styling */
+        .joint {
+            fill: #f4dcc4;
+            stroke: #a78667;
+            stroke-width: 2;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .joint:hover {
+            fill: #f0d4b8;
+            stroke: #10b981;
+            stroke-width: 3.5;
+        }
+
+        .joint.selected {
+            fill: #ef4444;
+            stroke: #991b1b;
+            stroke-width: 4;
+            animation: pulseSelected 1.5s ease-in-out infinite;
+        }
+
+        .body-label {
+            fill: #1e3a5f;
+            font-size: 12px;
+            font-weight: 600;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .body-label-small {
+            font-size: 10px;
+        }
+
+        .selected-parts-container {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: #f8fafc;
+            border-radius: 15px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .selected-parts-container h3 {
+            margin-bottom: 1rem;
+            color: #0f172a;
+            font-size: 1.1rem;
+        }
+
+        .selected-parts-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .selected-part-tag {
+            background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .remove-part-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .remove-part-btn:hover {
+            background: rgba(255,255,255,0.4);
+            transform: scale(1.1);
+        }
+
+        .no-selection {
+            color: #64748b;
+            font-style: italic;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem;
+            }
+
+            .logo {
+                font-size: 1.2rem;
+            }
+
+            .form-container {
+                padding: 0 0.5rem;
+            }
+
+            .form-step {
+                padding: 1.5rem;
+            }
+
+            .section-title {
+                font-size: 1.4rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .progress-bar {
+                flex-wrap: wrap;
+            }
+
+            .step-label {
+                font-size: 0.75rem;
+            }
+
+            .notification {
+                right: 10px;
+                left: 10px;
+                min-width: unset;
+            }
+
+            .success-actions {
+                flex-direction: column;
+            }
+
+            .success-actions .btn {
+                width: 100%;
+            }
+        }
+
+        /* Touch-friendly adjustments */
+        @media (hover: none) and (pointer: coarse) {
+            .btn,
+            .form-input,
+            .body-part {
+                min-height: 44px;
+            }
+        }
+
+        /* Classification Cards */
+        .classification-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .classification-card {
+            background: white;
+            border: 3px solid var(--border-gray);
+            border-radius: 20px;
+            padding: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .classification-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: var(--border-gray);
+            transition: all 0.3s ease;
+        }
+
+        .classification-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(15,23,42,0.2);
+            border-color: var(--corporate-navy);
+        }
+
+        .classification-card:hover::before {
+            height: 8px;
+            background: var(--primary-gradient);
+        }
+
+        .classification-card.selected {
+            border-color: var(--safety-green);
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            box-shadow: 0 12px 40px rgba(22, 163, 74, 0.3);
+        }
+
+        .classification-card.selected::before {
+            height: 8px;
+            background: var(--success-gradient);
+        }
+
+        .classification-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            display: block;
+            transition: all 0.3s ease;
+        }
+
+        .classification-card:hover .classification-icon {
+            transform: scale(1.1);
+        }
+
+        .classification-card.selected .classification-icon {
+            animation: bounceIcon 0.6s ease-out;
+        }
+
+        @keyframes bounceIcon {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        .classification-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--corporate-navy);
+            margin-bottom: 0.75rem;
+        }
+
+        .classification-description {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .classification-card.selected .classification-title {
+            color: var(--safety-green);
+        }
+
+        .classification-checkmark {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 40px;
+            height: 40px;
+            background: var(--success-gradient);
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            animation: scaleIn 0.3s ease-out;
+        }
+
+        .classification-card.selected .classification-checkmark {
+            display: flex;
+        }
+    </style>
+</head>
+<body>
+    <div class="animated-background"></div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">
+            <i class="fas fa-file-medical" id="headerIcon"></i>
+            <span id="headerTitle">Injury Report System</span>
+        </div>
+        <div class="header-info">
+            <span class="report-id" id="reportIdDisplay">Local Demo Mode</span>
+        </div>
+    </header>
+
+    <!-- Main Form Container -->
+    <div class="form-container">
+        <form id="injuryReportForm" onsubmit="return false;">
+
+            <!-- Progress Indicator -->
+            <div class="progress-bar">
+                <div class="progress-step active" data-step="0">
+                    <div class="step-number">1</div>
+                    <div class="step-label">Classification</div>
+                </div>
+                <div class="progress-step" data-step="1">
+                    <div class="step-number">2</div>
+                    <div class="step-label">Employee Info</div>
+                </div>
+                <div class="progress-step" data-step="2">
+                    <div class="step-number">3</div>
+                    <div class="step-label">Incident Details</div>
+                </div>
+                <div class="progress-step" data-step="3">
+                    <div class="step-number">4</div>
+                    <div class="step-label">Injury Details</div>
+                </div>
+                <div class="progress-step" data-step="4">
+                    <div class="step-number">5</div>
+                    <div class="step-label">Photo & Signature</div>
+                </div>
+            </div>
+
+            <!-- Step 0: Incident/Accident Classification -->
+            <div class="form-step active" id="step0">
+                <h2 class="section-title">
+                    <i class="fas fa-clipboard-question"></i>
+                    Report Classification
+                </h2>
+
+                <div class="info-box">
+                    <i class="fas fa-info-circle"></i>
+                    <p>Please select the type of report you are filing. This helps us ensure the proper documentation and follow-up procedures.</p>
+                </div>
+
+                <div class="classification-container">
+                    <div class="classification-card" onclick="selectClassification('incident')" id="incidentCard">
+                        <div class="classification-checkmark">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <i class="fas fa-triangle-exclamation classification-icon" style="color: #f59e0b;"></i>
+                        <div class="classification-title">Incident</div>
+                        <div class="classification-description">
+                            An unexpected event or near miss that could have resulted in injury, but did not cause harm. Examples: slip without fall, near miss, unsafe condition discovered.
+                        </div>
+                    </div>
+
+                    <div class="classification-card" onclick="selectClassification('accident')" id="accidentCard">
+                        <div class="classification-checkmark">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <i class="fas fa-user-injured classification-icon" style="color: #ef4444;"></i>
+                        <div class="classification-title">Accident</div>
+                        <div class="classification-description">
+                            An unexpected event that resulted in actual injury, illness, or property damage. Examples: fall with injury, equipment malfunction causing harm, workplace injury.
+                        </div>
+                    </div>
+                </div>
+
+                <input type="hidden" id="reportClassification" required>
+
+                <button type="button" class="btn btn-primary btn-next" onclick="nextStep(1)" id="classificationNextBtn" disabled>
+                    Continue <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+
+            <!-- Step 1: Employee Information -->
+            <div class="form-step" id="step1">
+                <h2 class="section-title">
+                    <i class="fas fa-user"></i>
+                    Employee Information
+                </h2>
+
+                <div class="form-group">
+                    <label class="form-label" for="employeeName">
+                        Employee Name <span class="required">*</span>
+                    </label>
+                    <input type="text" id="employeeName" class="form-input" required
+                           placeholder="Enter full name">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="employeeId">
+                        Employee ID <span class="required">*</span>
+                    </label>
+                    <input type="text" id="employeeId" class="form-input" required
+                           placeholder="Enter employee ID">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="affiliate">
+                        Affiliate <span class="required">*</span>
+                    </label>
+                    <select id="affiliate" class="form-input" required>
+                        <option value="">Select affiliate...</option>
+                        <option value="Arlington">Arlington</option>
+                        <option value="San Antonio">San Antonio</option>
+                        <option value="Houston">Houston</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="client">
+                        Client Company <span class="required">*</span>
+                    </label>
+                    <input type="text" id="client" class="form-input" required
+                           placeholder="Enter client company name">
+                </div>
+
+                <button type="button" class="btn btn-primary btn-next" onclick="nextStep(2)">
+                    Next <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+
+            <!-- Step 2: Incident Details -->
+            <div class="form-step" id="step2">
+                <h2 class="section-title">
+                    <i class="fas fa-clock"></i>
+                    <span id="step2Title">Incident Details</span>
+                </h2>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="incidentDate">
+                            Incident Date <span class="required">*</span>
+                        </label>
+                        <input type="date" id="incidentDate" class="form-input" required>
+                        <small class="form-hint">When did the incident occur?</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="incidentTime">
+                            Incident Time <span class="required">*</span>
+                        </label>
+                        <input type="time" id="incidentTime" class="form-input" required>
+                        <small class="form-hint">Time the incident occurred</small>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="reportedDate">
+                            Date Reported <span class="required">*</span>
+                        </label>
+                        <input type="date" id="reportedDate" class="form-input" required>
+                        <small class="form-hint">When is this being reported?</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="reportedTime">
+                            Time Reported <span class="required">*</span>
+                        </label>
+                        <input type="time" id="reportedTime" class="form-input" required>
+                        <small class="form-hint">Time this report is being submitted</small>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="location">
+                        Complete Address <span class="required">*</span>
+                    </label>
+                    <input type="text" id="location" class="form-input" required
+                           placeholder="Enter full street address, city, state, zip code">
+                    <small class="form-hint" id="locationHint">Where the incident/accident happened</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="injuryType">
+                        Type of Injury <span class="required">*</span>
+                    </label>
+                    <select id="injuryType" class="form-input" required>
+                        <option value="">Select injury type...</option>
+                        <option value="Slip/Fall">Slip/Fall</option>
+                        <option value="Cut/Laceration">Cut/Laceration</option>
+                        <option value="Burn">Burn</option>
+                        <option value="Strain/Sprain">Strain/Sprain</option>
+                        <option value="Crushing Injury">Crushing Injury</option>
+                        <option value="Foreign Object in Eye">Foreign Object in Eye</option>
+                        <option value="Equipment Accident">Equipment Accident</option>
+                        <option value="Chemical Exposure">Chemical Exposure</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="description">
+                        Incident Description <span class="required">*</span>
+                    </label>
+                    <textarea id="description" class="form-input" required rows="4"
+                              placeholder="Describe what happened in detail..."></textarea>
+                    <small class="form-hint">Include: What was the employee doing? What happened? Any equipment involved?</small>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="witnessName">
+                            Witness Name (if any)
+                        </label>
+                        <input type="text" id="witnessName" class="form-input"
+                               placeholder="Optional">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="witnessContact">
+                            Witness Contact
+                        </label>
+                        <input type="text" id="witnessContact" class="form-input"
+                               placeholder="Phone or email">
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button type="button" class="btn btn-secondary" onclick="previousStep(1)">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <button type="button" class="btn btn-primary btn-next" onclick="nextStep(3)">
+                        Next <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 3: Injury Details (Body Diagram) -->
+            <div class="form-step" id="step3">
+                <h2 class="section-title">
+                    <i class="fas fa-user-injured" id="step3Icon"></i>
+                    <span id="step3Title">Select Injured Body Parts</span>
+                </h2>
+
+                <div class="info-box">
+                    <i class="fas fa-info-circle"></i>
+                    <p id="step3Info">Click on the body diagram below to select injured areas. You can select multiple areas.</p>
+                </div>
+
+                <!-- Body Diagram -->
+                <div class="body-diagram-container">
+                    <div class="diagram-view-toggle">
+                        <button type="button" class="view-toggle-btn active" onclick="switchView('front')" id="frontBtn">
+                            <i class="fas fa-user"></i> Front View
+                        </button>
+                        <button type="button" class="view-toggle-btn" onclick="switchView('back')" id="backBtn">
+                            <i class="fas fa-user"></i> Back View
+                        </button>
+                    </div>
+
+                    <div class="body-diagram-wrapper">
+                        <!-- Front View SVG Body Diagram -->
+                        <svg id="bodyDiagramFront" class="body-diagram active" viewBox="0 0 320 780" xmlns="http://www.w3.org/2000/svg">
+
+                <!-- HEAD -->
+                <ellipse cx="160" cy="55" rx="38" ry="48" class="body-part"
+                         data-part="Head/Face" onclick="selectBodyPart('Head/Face')"/>
+
+                <!-- Right Ear (viewer's left side) -->
+                <ellipse cx="122" cy="55" rx="7" ry="14" class="body-part"
+                         data-part="Right Ear" onclick="selectBodyPart('Right Ear')"/>
+
+                <!-- Left Ear (viewer's right side) -->
+                <ellipse cx="198" cy="55" rx="7" ry="14" class="body-part"
+                         data-part="Left Ear" onclick="selectBodyPart('Left Ear')"/>
+
+                <!-- NECK -->
+                <path d="M 144 98 Q 142 108 142 120 L 178 120 Q 178 108 176 98 Z"
+                      class="body-part" data-part="Neck" onclick="selectBodyPart('Neck')"/>
+
+                <!-- SHOULDERS -->
+                <ellipse cx="120" cy="145" rx="22" ry="26" class="joint"
+                         data-part="Right Shoulder" onclick="selectBodyPart('Right Shoulder')"/>
+
+                <ellipse cx="200" cy="145" rx="22" ry="26" class="joint"
+                         data-part="Left Shoulder" onclick="selectBodyPart('Left Shoulder')"/>
+
+                <!-- CHEST -->
+                <path d="M 142 120 Q 122 126 116 148 L 116 185 Q 122 205 145 212 L 175 212 Q 198 205 204 185 L 204 148 Q 198 126 178 120 Z"
+                      class="body-part" data-part="Chest" onclick="selectBodyPart('Chest')"/>
+
+                <!-- ABDOMEN -->
+                <path d="M 145 212 Q 136 232 138 260 L 182 260 Q 184 232 175 212 Z"
+                      class="body-part" data-part="Abdomen" onclick="selectBodyPart('Abdomen')"/>
+
+                <!-- PELVIS/GROIN -->
+                <path d="M 138 260 Q 128 270 128 290 Q 128 308 136 315 L 184 315 Q 192 308 192 290 Q 192 270 182 260 Z"
+                      class="body-part" data-part="Pelvis/Groin" onclick="selectBodyPart('Pelvis/Groin')"/>
+
+                <!-- RIGHT ARM (viewer's left side) -->
+                <path d="M 106 155 Q 94 164 90 188 Q 86 208 88 230 L 100 230 Q 104 208 108 188 Z"
+                      class="body-part" data-part="Right Upper Arm" onclick="selectBodyPart('Right Upper Arm')"/>
+
+                <ellipse cx="94" cy="244" rx="14" ry="17" class="joint"
+                         data-part="Right Elbow" onclick="selectBodyPart('Right Elbow')"/>
+
+                <path d="M 88 258 Q 82 282 80 315 Q 78 340 80 360 L 92 360 Q 94 340 96 315 Q 98 282 100 258 Z"
+                      class="body-part" data-part="Right Forearm" onclick="selectBodyPart('Right Forearm')"/>
+
+                <ellipse cx="86" cy="372" rx="10" ry="9" class="joint"
+                         data-part="Right Wrist" onclick="selectBodyPart('Right Wrist')"/>
+
+                <!-- RIGHT HAND & FINGERS -->
+                <path d="M 80 382 Q 76 390 76 402 L 96 402 Q 96 390 92 382 Z"
+                      class="body-part" data-part="Right Palm" onclick="selectBodyPart('Right Palm')"/>
+
+                <!-- Right Thumb -->
+                <path d="M 70 387 Q 66 390 65 395 Q 65 400 67 405 Q 70 407 73 406 Q 76 403 77 398 Q 77 392 74 388 Z"
+                      class="body-part" data-part="Right Thumb" onclick="selectBodyPart('Right Thumb')"/>
+
+                <!-- Right Index Finger -->
+                <ellipse cx="81" cy="415" rx="4" ry="13" class="body-part"
+                         data-part="Right Index Finger" onclick="selectBodyPart('Right Index Finger')"/>
+
+                <!-- Right Middle Finger -->
+                <ellipse cx="86" cy="418" rx="4" ry="15" class="body-part"
+                         data-part="Right Middle Finger" onclick="selectBodyPart('Right Middle Finger')"/>
+
+                <!-- Right Ring Finger -->
+                <ellipse cx="91" cy="416" rx="4" ry="13.5" class="body-part"
+                         data-part="Right Ring Finger" onclick="selectBodyPart('Right Ring Finger')"/>
+
+                <!-- Right Pinky Finger -->
+                <ellipse cx="95" cy="413" rx="3.5" ry="11" class="body-part"
+                         data-part="Right Pinky Finger" onclick="selectBodyPart('Right Pinky Finger')"/>
+
+                <!-- LEFT ARM (viewer's right side) -->
+                <path d="M 214 155 Q 226 164 230 188 Q 234 208 232 230 L 220 230 Q 216 208 212 188 Z"
+                      class="body-part" data-part="Left Upper Arm" onclick="selectBodyPart('Left Upper Arm')"/>
+
+                <ellipse cx="226" cy="244" rx="14" ry="17" class="joint"
+                         data-part="Left Elbow" onclick="selectBodyPart('Left Elbow')"/>
+
+                <path d="M 232 258 Q 238 282 240 315 Q 242 340 240 360 L 228 360 Q 226 340 224 315 Q 222 282 220 258 Z"
+                      class="body-part" data-part="Left Forearm" onclick="selectBodyPart('Left Forearm')"/>
+
+                <ellipse cx="234" cy="372" rx="10" ry="9" class="joint"
+                         data-part="Left Wrist" onclick="selectBodyPart('Left Wrist')"/>
+
+                <!-- LEFT HAND & FINGERS -->
+                <path d="M 240 382 Q 244 390 244 402 L 224 402 Q 224 390 228 382 Z"
+                      class="body-part" data-part="Left Palm" onclick="selectBodyPart('Left Palm')"/>
+
+                <!-- Left Thumb -->
+                <path d="M 250 387 Q 254 390 255 395 Q 255 400 253 405 Q 250 407 247 406 Q 244 403 243 398 Q 243 392 246 388 Z"
+                      class="body-part" data-part="Left Thumb" onclick="selectBodyPart('Left Thumb')"/>
+
+                <!-- Left Index Finger -->
+                <ellipse cx="239" cy="415" rx="4" ry="13" class="body-part"
+                         data-part="Left Index Finger" onclick="selectBodyPart('Left Index Finger')"/>
+
+                <!-- Left Middle Finger -->
+                <ellipse cx="234" cy="418" rx="4" ry="15" class="body-part"
+                         data-part="Left Middle Finger" onclick="selectBodyPart('Left Middle Finger')"/>
+
+                <!-- Left Ring Finger -->
+                <ellipse cx="229" cy="416" rx="4" ry="13.5" class="body-part"
+                         data-part="Left Ring Finger" onclick="selectBodyPart('Left Ring Finger')"/>
+
+                <!-- Left Pinky Finger -->
+                <ellipse cx="225" cy="413" rx="3.5" ry="11" class="body-part"
+                         data-part="Left Pinky Finger" onclick="selectBodyPart('Left Pinky Finger')"/>
+
+                <!-- RIGHT LEG (viewer's left side) -->
+                <path d="M 136 320 Q 128 350 126 390 Q 124 430 128 470 L 145 470 Q 148 430 148 390 Q 147 350 143 320 Z"
+                      class="body-part" data-part="Right Thigh" onclick="selectBodyPart('Right Thigh')"/>
+
+                <ellipse cx="136.5" cy="490" rx="17" ry="20" class="joint"
+                         data-part="Right Knee" onclick="selectBodyPart('Right Knee')"/>
+
+                <path d="M 128 510 Q 122 550 120 600 Q 118 640 120 675 L 134 675 Q 136 640 136 600 Q 136 550 142 510 Z"
+                      class="body-part" data-part="Right Shin" onclick="selectBodyPart('Right Shin')"/>
+
+                <ellipse cx="127" cy="690" rx="12" ry="11" class="joint"
+                         data-part="Right Ankle" onclick="selectBodyPart('Right Ankle')"/>
+
+                <!-- RIGHT FOOT & TOES -->
+                <path d="M 120 700 Q 114 708 113 720 L 141 720 Q 140 708 136 700 Z"
+                      class="body-part" data-part="Right Foot" onclick="selectBodyPart('Right Foot')"/>
+
+                <!-- Right Big Toe -->
+                <ellipse cx="117" cy="732" rx="6" ry="9" class="body-part"
+                         data-part="Right Big Toe" onclick="selectBodyPart('Right Big Toe')"/>
+
+                <!-- Right 2nd Toe -->
+                <ellipse cx="123" cy="734" rx="5" ry="8" class="body-part"
+                         data-part="Right 2nd Toe" onclick="selectBodyPart('Right 2nd Toe')"/>
+
+                <!-- Right 3rd Toe -->
+                <ellipse cx="128" cy="734" rx="4.5" ry="7.5" class="body-part"
+                         data-part="Right 3rd Toe" onclick="selectBodyPart('Right 3rd Toe')"/>
+
+                <!-- Right 4th Toe -->
+                <ellipse cx="133" cy="733" rx="4" ry="7" class="body-part"
+                         data-part="Right 4th Toe" onclick="selectBodyPart('Right 4th Toe')"/>
+
+                <!-- Right Pinky Toe -->
+                <ellipse cx="137" cy="731" rx="3.5" ry="6.5" class="body-part"
+                         data-part="Right Pinky Toe" onclick="selectBodyPart('Right Pinky Toe')"/>
+
+                <!-- LEFT LEG (viewer's right side) -->
+                <path d="M 184 320 Q 192 350 194 390 Q 196 430 192 470 L 175 470 Q 172 430 172 390 Q 173 350 177 320 Z"
+                      class="body-part" data-part="Left Thigh" onclick="selectBodyPart('Left Thigh')"/>
+
+                <ellipse cx="183.5" cy="490" rx="17" ry="20" class="joint"
+                         data-part="Left Knee" onclick="selectBodyPart('Left Knee')"/>
+
+                <path d="M 192 510 Q 198 550 200 600 Q 202 640 200 675 L 186 675 Q 184 640 184 600 Q 184 550 178 510 Z"
+                      class="body-part" data-part="Left Shin" onclick="selectBodyPart('Left Shin')"/>
+
+                <ellipse cx="193" cy="690" rx="12" ry="11" class="joint"
+                         data-part="Left Ankle" onclick="selectBodyPart('Left Ankle')"/>
+
+                <!-- LEFT FOOT & TOES -->
+                <path d="M 200 700 Q 206 708 207 720 L 179 720 Q 180 708 184 700 Z"
+                      class="body-part" data-part="Left Foot" onclick="selectBodyPart('Left Foot')"/>
+
+                <!-- Left Big Toe -->
+                <ellipse cx="203" cy="732" rx="6" ry="9" class="body-part"
+                         data-part="Left Big Toe" onclick="selectBodyPart('Left Big Toe')"/>
+
+                <!-- Left 2nd Toe -->
+                <ellipse cx="197" cy="734" rx="5" ry="8" class="body-part"
+                         data-part="Left 2nd Toe" onclick="selectBodyPart('Left 2nd Toe')"/>
+
+                <!-- Left 3rd Toe -->
+                <ellipse cx="192" cy="734" rx="4.5" ry="7.5" class="body-part"
+                         data-part="Left 3rd Toe" onclick="selectBodyPart('Left 3rd Toe')"/>
+
+                <!-- Left 4th Toe -->
+                <ellipse cx="187" cy="733" rx="4" ry="7" class="body-part"
+                         data-part="Left 4th Toe" onclick="selectBodyPart('Left 4th Toe')"/>
+
+                <!-- Left Pinky Toe -->
+                <ellipse cx="183" cy="731" rx="3.5" ry="6.5" class="body-part"
+                         data-part="Left Pinky Toe" onclick="selectBodyPart('Left Pinky Toe')"/>
+            </svg>
+
+                        <!-- Back View SVG Body Diagram -->
+                        <svg id="bodyDiagramBack" class="body-diagram" viewBox="0 0 320 780" xmlns="http://www.w3.org/2000/svg">
+
+                <!-- Back of Head -->
+                <ellipse cx="160" cy="55" rx="38" ry="48" class="body-part"
+                         data-part="Back of Head" onclick="selectBodyPart('Back of Head')"/>
+
+                <!-- Ears (Back) -->
+                <ellipse cx="122" cy="55" rx="7" ry="14" class="body-part"
+                         data-part="Left Ear (Back)" onclick="selectBodyPart('Left Ear (Back)')"/>
+
+                <ellipse cx="198" cy="55" rx="7" ry="14" class="body-part"
+                         data-part="Right Ear (Back)" onclick="selectBodyPart('Right Ear (Back)')"/>
+
+                <!-- Neck (Back) -->
+                <path d="M 144 98 Q 142 108 142 120 L 178 120 Q 178 108 176 98 Z"
+                      class="body-part" data-part="Neck (Back)" onclick="selectBodyPart('Neck (Back)')"/>
+
+                <!-- Shoulders (Back) -->
+                <ellipse cx="120" cy="145" rx="22" ry="26" class="joint"
+                         data-part="Left Shoulder (Back)" onclick="selectBodyPart('Left Shoulder (Back)')"/>
+
+                <ellipse cx="200" cy="145" rx="22" ry="26" class="joint"
+                         data-part="Right Shoulder (Back)" onclick="selectBodyPart('Right Shoulder (Back)')"/>
+
+                <!-- Shoulder Blades -->
+                <ellipse cx="130" cy="165" rx="24" ry="36" class="body-part"
+                         data-part="Left Shoulder Blade" onclick="selectBodyPart('Left Shoulder Blade')"/>
+
+                <ellipse cx="190" cy="165" rx="24" ry="36" class="body-part"
+                         data-part="Right Shoulder Blade" onclick="selectBodyPart('Right Shoulder Blade')"/>
+
+                <!-- Upper Back -->
+                <path d="M 110 130 Q 98 138 98 170 Q 98 200 115 220 L 205 220 Q 222 200 222 170 Q 222 138 210 130 Z"
+                      class="body-part" data-part="Upper Back" onclick="selectBodyPart('Upper Back')"/>
+
+                <!-- Lower Back -->
+                <path d="M 115 220 Q 108 245 108 275 L 212 275 Q 212 245 205 220 Z"
+                      class="body-part" data-part="Lower Back" onclick="selectBodyPart('Lower Back')"/>
+
+                <!-- Buttocks -->
+                <path d="M 128 275 Q 118 290 118 312 Q 118 335 130 342 L 190 342 Q 202 335 202 312 Q 202 290 192 275 Z"
+                      class="body-part" data-part="Buttocks" onclick="selectBodyPart('Buttocks')"/>
+
+                <!-- LEFT ARM (BACK) -->
+                <path d="M 106 155 Q 94 164 90 188 Q 86 208 88 230 L 100 230 Q 104 208 108 188 Z"
+                      class="body-part" data-part="Left Upper Arm (Back)" onclick="selectBodyPart('Left Upper Arm (Back)')"/>
+
+                <ellipse cx="94" cy="244" rx="14" ry="17" class="joint"
+                         data-part="Left Elbow (Back)" onclick="selectBodyPart('Left Elbow (Back)')"/>
+
+                <path d="M 88 258 Q 82 282 80 315 Q 78 340 80 360 L 92 360 Q 94 340 96 315 Q 98 282 100 258 Z"
+                      class="body-part" data-part="Left Forearm (Back)" onclick="selectBodyPart('Left Forearm (Back)')"/>
+
+                <ellipse cx="86" cy="372" rx="10" ry="9" class="joint"
+                         data-part="Left Wrist (Back)" onclick="selectBodyPart('Left Wrist (Back)')"/>
+
+                <!-- LEFT HAND (BACK) & FINGERS -->
+                <path d="M 80 382 Q 76 390 76 402 L 96 402 Q 96 390 92 382 Z"
+                      class="body-part" data-part="Left Hand (Back)" onclick="selectBodyPart('Left Hand (Back)')"/>
+
+                <path d="M 70 387 Q 66 390 65 395 Q 65 400 67 405 Q 70 407 73 406 Q 76 403 77 398 Q 77 392 74 388 Z"
+                      class="body-part" data-part="Left Thumb (Back)" onclick="selectBodyPart('Left Thumb (Back)')"/>
+
+                <ellipse cx="81" cy="415" rx="4" ry="13" class="body-part"
+                         data-part="Left Index Finger (Back)" onclick="selectBodyPart('Left Index Finger (Back)')"/>
+
+                <ellipse cx="86" cy="418" rx="4" ry="15" class="body-part"
+                         data-part="Left Middle Finger (Back)" onclick="selectBodyPart('Left Middle Finger (Back)')"/>
+
+                <ellipse cx="91" cy="416" rx="4" ry="13.5" class="body-part"
+                         data-part="Left Ring Finger (Back)" onclick="selectBodyPart('Left Ring Finger (Back)')"/>
+
+                <ellipse cx="95" cy="413" rx="3.5" ry="11" class="body-part"
+                         data-part="Left Pinky Finger (Back)" onclick="selectBodyPart('Left Pinky Finger (Back)')"/>
+
+                <!-- RIGHT ARM (BACK) -->
+                <path d="M 214 155 Q 226 164 230 188 Q 234 208 232 230 L 220 230 Q 216 208 212 188 Z"
+                      class="body-part" data-part="Right Upper Arm (Back)" onclick="selectBodyPart('Right Upper Arm (Back)')"/>
+
+                <ellipse cx="226" cy="244" rx="14" ry="17" class="joint"
+                         data-part="Right Elbow (Back)" onclick="selectBodyPart('Right Elbow (Back)')"/>
+
+                <path d="M 232 258 Q 238 282 240 315 Q 242 340 240 360 L 228 360 Q 226 340 224 315 Q 222 282 220 258 Z"
+                      class="body-part" data-part="Right Forearm (Back)" onclick="selectBodyPart('Right Forearm (Back)')"/>
+
+                <ellipse cx="234" cy="372" rx="10" ry="9" class="joint"
+                         data-part="Right Wrist (Back)" onclick="selectBodyPart('Right Wrist (Back)')"/>
+
+                <!-- RIGHT HAND (BACK) & FINGERS -->
+                <path d="M 240 382 Q 244 390 244 402 L 224 402 Q 224 390 228 382 Z"
+                      class="body-part" data-part="Right Hand (Back)" onclick="selectBodyPart('Right Hand (Back)')"/>
+
+                <path d="M 250 387 Q 254 390 255 395 Q 255 400 253 405 Q 250 407 247 406 Q 244 403 243 398 Q 243 392 246 388 Z"
+                      class="body-part" data-part="Right Thumb (Back)" onclick="selectBodyPart('Right Thumb (Back)')"/>
+
+                <ellipse cx="239" cy="415" rx="4" ry="13" class="body-part"
+                         data-part="Right Index Finger (Back)" onclick="selectBodyPart('Right Index Finger (Back)')"/>
+
+                <ellipse cx="234" cy="418" rx="4" ry="15" class="body-part"
+                         data-part="Right Middle Finger (Back)" onclick="selectBodyPart('Right Middle Finger (Back)')"/>
+
+                <ellipse cx="229" cy="416" rx="4" ry="13.5" class="body-part"
+                         data-part="Right Ring Finger (Back)" onclick="selectBodyPart('Right Ring Finger (Back)')"/>
+
+                <ellipse cx="225" cy="413" rx="3.5" ry="11" class="body-part"
+                         data-part="Right Pinky Finger (Back)" onclick="selectBodyPart('Right Pinky Finger (Back)')"/>
+
+                <!-- LEFT LEG (BACK) -->
+                <path d="M 136 345 Q 128 380 126 425 Q 124 460 128 500 L 145 500 Q 148 460 148 425 Q 147 380 143 345 Z"
+                      class="body-part" data-part="Left Hamstring" onclick="selectBodyPart('Left Hamstring')"/>
+
+                <ellipse cx="136.5" cy="520" rx="17" ry="20" class="joint"
+                         data-part="Left Knee (Back)" onclick="selectBodyPart('Left Knee (Back)')"/>
+
+                <path d="M 128 540 Q 122 585 120 635 Q 118 670 120 700 L 134 700 Q 136 670 136 635 Q 136 585 142 540 Z"
+                      class="body-part" data-part="Left Calf" onclick="selectBodyPart('Left Calf')"/>
+
+                <ellipse cx="127" cy="715" rx="12" ry="11" class="joint"
+                         data-part="Left Achilles" onclick="selectBodyPart('Left Achilles')"/>
+
+                <!-- LEFT HEEL (Back view shows heel, not toes) -->
+                <ellipse cx="127" cy="740" rx="18" ry="15" class="body-part"
+                         data-part="Left Heel" onclick="selectBodyPart('Left Heel')"/>
+
+                <!-- RIGHT LEG (BACK) -->
+                <path d="M 184 345 Q 192 380 194 425 Q 196 460 192 500 L 175 500 Q 172 460 172 425 Q 173 380 177 345 Z"
+                      class="body-part" data-part="Right Hamstring" onclick="selectBodyPart('Right Hamstring')"/>
+
+                <ellipse cx="183.5" cy="520" rx="17" ry="20" class="joint"
+                         data-part="Right Knee (Back)" onclick="selectBodyPart('Right Knee (Back)')"/>
+
+                <path d="M 192 540 Q 198 585 200 635 Q 202 670 200 700 L 186 700 Q 184 670 184 635 Q 184 585 178 540 Z"
+                      class="body-part" data-part="Right Calf" onclick="selectBodyPart('Right Calf')"/>
+
+                <ellipse cx="193" cy="715" rx="12" ry="11" class="joint"
+                         data-part="Right Achilles" onclick="selectBodyPart('Right Achilles')"/>
+
+                <!-- RIGHT HEEL -->
+                <ellipse cx="193" cy="740" rx="18" ry="15" class="body-part"
+                         data-part="Right Heel" onclick="selectBodyPart('Right Heel')"/>
+            </svg>
+                    </div>
+                </div>
+
+                <div class="selected-parts-container">
+                    <h3>Selected Body Parts:</h3>
+                    <div id="selectedPartsList" class="selected-parts-list">
+                        <span class="no-selection">No body parts selected yet</span>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button type="button" class="btn btn-secondary" onclick="previousStep(2)">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <button type="button" class="btn btn-primary btn-next" onclick="nextStep(4)">
+                        Next <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 4: Photo & Signature -->
+            <div class="form-step" id="step4">
+                <h2 class="section-title">
+                    <i class="fas fa-camera"></i>
+                    Photo & Digital Signature
+                </h2>
+
+                <!-- Photo Upload -->
+                <div class="form-group">
+                    <label class="form-label">
+                        Injury Photo <span class="required">*</span>
+                    </label>
+                    <div class="photo-upload-container">
+                        <input type="file" id="injuryPhoto" accept="image/*" capture="environment"
+                               style="display: none;" onchange="handlePhotoUpload(event)">
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                            <button type="button" class="btn btn-upload" onclick="openCamera()">
+                                <i class="fas fa-camera"></i> Take Photo
+                            </button>
+                            <button type="button" class="btn btn-upload" onclick="requestFileAccess()">
+                                <i class="fas fa-upload"></i> Upload from Device
+                            </button>
+                        </div>
+                        <small class="form-hint" id="cameraStatus" style="display: block; margin-top: 0.5rem;"></small>
+
+                        <!-- Drag and Drop Zone -->
+                        <div id="dropZone" class="drop-zone">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Drag and drop an image here</p>
+                            <p class="drop-zone-hint">or click the buttons above</p>
+                        </div>
+
+                        <!-- Camera Modal -->
+                        <div id="cameraModal" class="camera-modal" style="display: none;">
+                            <div class="camera-modal-content">
+                                <div class="camera-header">
+                                    <h3><i class="fas fa-camera"></i> Take Photo</h3>
+                                    <button type="button" class="btn-close-camera" onclick="closeCamera()">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <video id="cameraStream" autoplay playsinline></video>
+                                <div class="camera-controls">
+                                    <button type="button" class="btn btn-success" onclick="capturePhoto()">
+                                        <i class="fas fa-camera"></i> Capture Photo
+                                    </button>
+                                    <button type="button" class="btn btn-secondary" onclick="closeCamera()">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="photoPreview" class="photo-preview" style="display: none;">
+                            <img id="photoPreviewImg" alt="Injury photo preview">
+                            <button type="button" class="btn-remove-photo" onclick="removePhoto()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Digital Signature -->
+                <div class="form-group">
+                    <label class="form-label">
+                        Employee Signature <span class="required">*</span>
+                    </label>
+                    <div class="signature-container">
+                        <canvas id="signaturePad" class="signature-pad"></canvas>
+                        <button type="button" class="btn btn-clear-signature" onclick="clearSignature()">
+                            <i class="fas fa-eraser"></i> Clear Signature
+                        </button>
+                    </div>
+                    <small class="form-hint">Sign above using your finger or stylus</small>
+                </div>
+
+                <!-- Reporter Information -->
+                <div class="form-group">
+                    <label class="form-label" for="reporterName">
+                        Report Submitted By <span class="required">*</span>
+                    </label>
+                    <input type="text" id="reporterName" class="form-input" required
+                           placeholder="Your name">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="reporterPosition">
+                        Position <span class="required">*</span>
+                    </label>
+                    <input type="text" id="reporterPosition" class="form-input" required
+                           placeholder="Your position/title">
+                </div>
+
+                <div class="button-group">
+                    <button type="button" class="btn btn-secondary" onclick="previousStep(3)">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <button type="button" class="btn btn-success btn-submit" onclick="submitReport()">
+                        <i class="fas fa-check-circle"></i> Submit Report
+                    </button>
+                </div>
+            </div>
+
+        </form>
+
+        <!-- Success Message -->
+        <div id="successMessage" class="success-message" style="display: none;">
+            <div class="success-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h2>Report Submitted Successfully!</h2>
+            <p class="report-id-success">Report ID: <strong id="successReportId"></strong></p>
+            <p>Your injury report has been saved locally for demonstration purposes.</p>
+            <div class="success-actions">
+                <button class="btn btn-primary" onclick="downloadPdfImproved()">
+                    <i class="fas fa-download"></i> Download PDF
+                </button>
+                <button class="btn btn-secondary" onclick="submitAnother()">
+                    <i class="fas fa-plus"></i> Submit Another Report
+                </button>
+                <button class="btn btn-secondary" onclick="viewReportData()">
+                    <i class="fas fa-eye"></i> View Report Data
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div id="loadingSpinner" class="loading-overlay" style="display: none;">
+            <div class="spinner"></div>
+            <p>Submitting report...</p>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p><strong>Custom Workforce Solutions LLC</strong> - Safety Management System</p>
+        <p>© 2025 Custom Workforce Solutions LLC - Engineered by Jufipai</p>
+    </footer>
+
+    <script>
+        // Global variables
+        let currentStep = 0;
+        let reportClassification = null;
+        let signaturePad;
+        let signaturePadInitialized = false;
+        let selectedBodyParts = [];
+        let photoData = null;
+        let submittedReportId = null;
+        let currentView = 'front';
+        let savedReportData = null;
+        let cameraStream = null;
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function() {
+            setDefaultDateTime();
+            captureGeolocation();
+            initializeDragAndDrop();
+            showNotification('Local demo mode - data will be saved to browser storage', 'info');
+        });
+
+        // Initialize signature pad
+        function initializeSignaturePad() {
+            if (signaturePadInitialized) return;
+
+            const canvas = document.getElementById('signaturePad');
+            if (!canvas) return;
+
+            // Wait a moment for the canvas to be properly rendered
+            setTimeout(() => {
+                // Set canvas size before initializing SignaturePad
+                const ratio = Math.max(window.devicePixelRatio || 1, 1);
+                const rect = canvas.getBoundingClientRect();
+
+                canvas.width = rect.width * ratio;
+                canvas.height = rect.height * ratio;
+
+                const ctx = canvas.getContext('2d');
+                ctx.scale(ratio, ratio);
+
+                // Initialize SignaturePad after canvas is sized
+                signaturePad = new SignaturePad(canvas, {
+                    backgroundColor: 'rgb(255, 255, 255)',
+                    penColor: 'rgb(0, 0, 0)',
+                    minWidth: 1,
+                    maxWidth: 3,
+                    throttle: 16,
+                    velocityFilterWeight: 0.7
+                });
+
+                signaturePadInitialized = true;
+                console.log('SignaturePad initialized successfully');
+
+                // Handle window resize - save data before resizing
+                window.addEventListener('resize', function() {
+                    if (signaturePad && !signaturePad.isEmpty()) {
+                        const data = signaturePad.toData();
+                        resizeCanvas();
+                        signaturePad.fromData(data);
+                    } else if (signaturePad) {
+                        resizeCanvas();
+                    }
+                });
+            }, 100);
+        }
+
+        function resizeCanvas() {
+            const canvas = document.getElementById('signaturePad');
+            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+            const rect = canvas.getBoundingClientRect();
+
+            canvas.width = rect.width * ratio;
+            canvas.height = rect.height * ratio;
+
+            const ctx = canvas.getContext('2d');
+            ctx.scale(ratio, ratio);
+        }
+
+        function clearSignature() {
+            if (signaturePad) {
+                signaturePad.clear();
+                showNotification('Signature cleared', 'info');
+            }
+        }
+
+        // Set default date/time to now
+        function setDefaultDateTime() {
+            const now = new Date();
+            // Set incident date/time to now as default
+            document.getElementById('incidentDate').valueAsDate = now;
+            document.getElementById('incidentTime').value = now.toTimeString().slice(0, 5);
+            // Set reported date/time to now as default
+            document.getElementById('reportedDate').valueAsDate = now;
+            document.getElementById('reportedTime').value = now.toTimeString().slice(0, 5);
+        }
+
+        // Capture geolocation
+        let userLocation = { latitude: '', longitude: '' };
+        function captureGeolocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    position => {
+                        userLocation.latitude = position.coords.latitude;
+                        userLocation.longitude = position.coords.longitude;
+                        console.log('Geolocation captured:', userLocation);
+                    },
+                    error => console.log('Geolocation not available')
+                );
+            }
+        }
+
+        // Device detection
+        function isMobileDevice() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
+
+        function hasMediaDevices() {
+            return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+        }
+
+        // Initialize Drag and Drop
+        function initializeDragAndDrop() {
+            const dropZone = document.getElementById('dropZone');
+
+            // Prevent default drag behaviors
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, preventDefaults, false);
+                document.body.addEventListener(eventName, preventDefaults, false);
+            });
+
+            // Highlight drop zone when item is dragged over it
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, () => {
+                    dropZone.classList.add('drag-over');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, () => {
+                    dropZone.classList.remove('drag-over');
+                }, false);
+            });
+
+            // Handle dropped files
+            dropZone.addEventListener('drop', handleDrop, false);
+
+            // Click to open file dialog
+            dropZone.addEventListener('click', requestFileAccess);
+        }
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+
+            if (files.length > 0) {
+                const file = files[0];
+                processImageFile(file);
+            }
+        }
+
+        // Camera functionality
+        async function openCamera() {
+            const statusElement = document.getElementById('cameraStatus');
+            const modal = document.getElementById('cameraModal');
+            const video = document.getElementById('cameraStream');
+
+            // Check if device supports camera access
+            if (!hasMediaDevices()) {
+                statusElement.textContent = 'Camera API not supported on this device. Using file upload instead.';
+                statusElement.style.color = 'var(--text-secondary)';
+                showNotification('Camera not available. Please upload an image instead.', 'info');
+                return;
+            }
+
+            try {
+                statusElement.textContent = 'Opening camera...';
+                statusElement.style.color = 'var(--text-secondary)';
+
+                // Request camera access
+                cameraStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: 'environment',
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 }
+                    }
+                });
+
+                // Show modal and stream
+                video.srcObject = cameraStream;
+                modal.style.display = 'flex';
+
+                statusElement.textContent = '✓ Camera opened successfully';
+                statusElement.style.color = 'var(--safety-green)';
+
+                setTimeout(() => {
+                    statusElement.textContent = '';
+                }, 2000);
+
+            } catch (error) {
+                console.error('Camera access error:', error);
+
+                if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+                    statusElement.textContent = '⚠️ Camera permission denied. Please enable camera access in your browser settings.';
+                    statusElement.style.color = 'var(--alert-red)';
+                    showNotification('Camera permission denied. Please check your browser settings.', 'error');
+                } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+                    statusElement.textContent = '⚠️ No camera found on this device.';
+                    statusElement.style.color = 'var(--text-secondary)';
+                    showNotification('No camera found. Please upload an image instead.', 'info');
+                } else {
+                    statusElement.textContent = '⚠️ Camera access failed.';
+                    statusElement.style.color = 'var(--alert-red)';
+                    showNotification('Camera access failed: ' + error.message, 'error');
+                }
+            }
+        }
+
+        function closeCamera() {
+            const modal = document.getElementById('cameraModal');
+            const video = document.getElementById('cameraStream');
+
+            // Stop camera stream
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+            }
+
+            video.srcObject = null;
+            modal.style.display = 'none';
+        }
+
+        function capturePhoto() {
+            const video = document.getElementById('cameraStream');
+            const canvas = document.createElement('canvas');
+            const statusElement = document.getElementById('cameraStatus');
+
+            // Set canvas size to video size
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            // Draw video frame to canvas
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // Convert to data URL
+            photoData = canvas.toDataURL('image/jpeg', 0.9);
+
+            // Display preview
+            document.getElementById('photoPreviewImg').src = photoData;
+            document.getElementById('photoPreview').style.display = 'block';
+
+            // Hide drop zone when photo is captured
+            document.getElementById('dropZone').style.display = 'none';
+
+            // Close camera
+            closeCamera();
+
+            statusElement.textContent = '✓ Photo captured successfully!';
+            statusElement.style.color = 'var(--safety-green)';
+            showNotification('Photo captured successfully!', 'success');
+
+            setTimeout(() => {
+                statusElement.textContent = '';
+            }, 3000);
+        }
+
+        // File access request
+        function requestFileAccess() {
+            const fileInput = document.getElementById('injuryPhoto');
+            const statusElement = document.getElementById('cameraStatus');
+
+            // Remove capture attribute for file selection
+            fileInput.removeAttribute('capture');
+
+            statusElement.textContent = 'Opening file browser...';
+            statusElement.style.color = 'var(--text-secondary)';
+
+            // Click the file input
+            fileInput.click();
+
+            // Clear status after a moment
+            setTimeout(() => {
+                statusElement.textContent = '';
+            }, 2000);
+        }
+
+        // Photo handling - unified function for all upload methods
+        function processImageFile(file) {
+            const statusElement = document.getElementById('cameraStatus');
+
+            if (!file) return;
+
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                statusElement.textContent = '⚠️ Please select a valid image file.';
+                statusElement.style.color = 'var(--alert-red)';
+                showNotification('Please select a valid image file', 'error');
+                return;
+            }
+
+            // Validate file size (max 10MB)
+            const maxSize = 10 * 1024 * 1024; // 10MB
+            if (file.size > maxSize) {
+                statusElement.textContent = '⚠️ Image file is too large (max 10MB).';
+                statusElement.style.color = 'var(--alert-red)';
+                showNotification('Image file is too large. Maximum size is 10MB.', 'error');
+                return;
+            }
+
+            statusElement.textContent = '✓ Photo uploaded successfully!';
+            statusElement.style.color = 'var(--safety-green)';
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                photoData = e.target.result;
+                document.getElementById('photoPreviewImg').src = photoData;
+                document.getElementById('photoPreview').style.display = 'block';
+
+                // Hide drop zone when photo is uploaded
+                document.getElementById('dropZone').style.display = 'none';
+
+                showNotification('Photo uploaded successfully!', 'success');
+
+                // Clear status after a moment
+                setTimeout(() => {
+                    statusElement.textContent = '';
+                }, 3000);
+            };
+            reader.onerror = function() {
+                statusElement.textContent = '⚠️ Failed to read image file.';
+                statusElement.style.color = 'var(--alert-red)';
+                showNotification('Failed to read image file', 'error');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function handlePhotoUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                processImageFile(file);
+            }
+        }
+
+        function removePhoto() {
+            photoData = null;
+            document.getElementById('injuryPhoto').value = '';
+            document.getElementById('photoPreview').style.display = 'none';
+            document.getElementById('dropZone').style.display = 'block';
+            document.getElementById('cameraStatus').textContent = '';
+            showNotification('Photo removed', 'info');
+        }
+
+        // Classification Selection
+        function selectClassification(type) {
+            // Update global variable
+            reportClassification = type;
+
+            // Update hidden input
+            document.getElementById('reportClassification').value = type;
+
+            // Update UI - remove previous selection
+            document.getElementById('incidentCard').classList.remove('selected');
+            document.getElementById('accidentCard').classList.remove('selected');
+
+            // Add selected class to chosen card
+            if (type === 'incident') {
+                document.getElementById('incidentCard').classList.add('selected');
+                showNotification('Incident report selected', 'info');
+            } else if (type === 'accident') {
+                document.getElementById('accidentCard').classList.add('selected');
+                showNotification('Accident report selected', 'info');
+            }
+
+            // Enable the next button
+            document.getElementById('classificationNextBtn').disabled = false;
+
+            // Update form terminology based on classification
+            updateFormTerminology(type);
+        }
+
+        // Update form terminology based on classification
+        function updateFormTerminology(type) {
+            if (type === 'incident') {
+                // Update header title and icon
+                document.getElementById('headerTitle').textContent = 'Incident Report System';
+                document.getElementById('headerIcon').className = 'fas fa-triangle-exclamation';
+
+                // Update Step 2 title
+                document.getElementById('step2Title').textContent = 'Incident Details';
+
+                // Update location hint
+                document.getElementById('locationHint').textContent = 'Where the incident happened';
+
+                // Update Step 3 for incidents (potential injury or near-miss)
+                document.getElementById('step3Title').textContent = 'Affected/Potentially Affected Body Parts';
+                document.getElementById('step3Info').textContent = 'Click on the body diagram to indicate areas that were affected or could have been injured. You can select multiple areas.';
+                document.getElementById('step3Icon').className = 'fas fa-triangle-exclamation';
+
+            } else if (type === 'accident') {
+                // Update header title and icon
+                document.getElementById('headerTitle').textContent = 'Accident Report System';
+                document.getElementById('headerIcon').className = 'fas fa-user-injured';
+
+                // Update Step 2 title
+                document.getElementById('step2Title').textContent = 'Accident Details';
+
+                // Update location hint
+                document.getElementById('locationHint').textContent = 'Where the accident happened';
+
+                // Update Step 3 for accidents (actual injury)
+                document.getElementById('step3Title').textContent = 'Select Injured Body Parts';
+                document.getElementById('step3Info').textContent = 'Click on the body diagram below to select injured areas. You can select multiple areas.';
+                document.getElementById('step3Icon').className = 'fas fa-user-injured';
+            }
+        }
+
+        // Step navigation
+        function nextStep(stepNumber) {
+            // Validate current step before proceeding
+            if (!validateStep(currentStep)) {
+                return;
+            }
+
+            // Hide current step
+            document.getElementById('step' + currentStep).classList.remove('active');
+            document.querySelector(`.progress-step[data-step="${currentStep}"]`).classList.remove('active');
+            document.querySelector(`.progress-step[data-step="${currentStep}"]`).classList.add('completed');
+
+            // Show next step
+            currentStep = stepNumber;
+            document.getElementById('step' + stepNumber).classList.add('active');
+            document.querySelector(`.progress-step[data-step="${stepNumber}"]`).classList.add('active');
+
+            // Initialize signature pad when reaching step 4
+            if (stepNumber === 4 && !signaturePadInitialized) {
+                initializeSignaturePad();
+            }
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function previousStep(stepNumber) {
+            // Hide current step
+            document.getElementById('step' + currentStep).classList.remove('active');
+            document.querySelector(`.progress-step[data-step="${currentStep}"]`).classList.remove('active');
+
+            // Show previous step
+            currentStep = stepNumber;
+            document.getElementById('step' + stepNumber).classList.add('active');
+            document.querySelector(`.progress-step[data-step="${stepNumber}"]`).classList.add('active');
+            document.querySelector(`.progress-step[data-step="${stepNumber}"]`).classList.remove('completed');
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Form validation
+        function validateStep(step) {
+            // Special validation for Step 0 (classification)
+            if (step === 0) {
+                if (!reportClassification) {
+                    showNotification('Please select a report type (Incident or Accident)', 'error');
+                    return false;
+                }
+                return true;
+            }
+
+            const stepElement = document.getElementById('step' + step);
+            const requiredFields = stepElement.querySelectorAll('[required]');
+
+            for (let field of requiredFields) {
+                if (!field.value.trim()) {
+                    field.focus();
+                    showNotification('Please fill in all required fields', 'error');
+                    return false;
+                }
+            }
+
+            // Additional validation for step 4
+            if (step === 4) {
+                if (!photoData) {
+                    showNotification('Please take or upload an injury photo', 'error');
+                    return false;
+                }
+                if (signaturePad.isEmpty()) {
+                    showNotification('Please provide your signature', 'error');
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        // Submit report
+        async function submitReport() {
+            if (!validateStep(4)) {
+                return;
+            }
+
+            // Show loading
+            document.getElementById('loadingSpinner').style.display = 'flex';
+
+            // Generate unique serial number report ID
+            const timestamp = new Date();
+
+            // Get and increment counter from localStorage for unique serial numbers
+            let reportCounter = parseInt(localStorage.getItem('reportCounter') || '1000');
+            reportCounter++;
+            localStorage.setItem('reportCounter', reportCounter.toString());
+
+            // Format: CWS-SERIAL-YYYY-MM-DD (e.g., CWS-1001-2025-11-05)
+            const dateStr = timestamp.toISOString().split('T')[0];
+            const reportId = `CWS-${reportCounter}-${dateStr}`;
+            const serialNumber = `CWS-${reportCounter}`;
+
+            // CRITICAL: Capture body diagram BEFORE hiding the form
+            // This is when the SVG is still visible in the DOM
+            let bodyDiagramImage = null;
+            if (selectedBodyParts && selectedBodyParts.length > 0) {
+                console.log('Capturing body diagram during form submission...');
+                try {
+                    bodyDiagramImage = await captureBodyDiagram();
+                    console.log('Body diagram captured:', bodyDiagramImage ? 'SUCCESS' : 'FAILED');
+                } catch (error) {
+                    console.error('Error capturing body diagram during submission:', error);
+                }
+            }
+
+            // Collect form data
+            const formData = {
+                reportId: reportId,
+                serialNumber: serialNumber,
+                timestamp: timestamp.toISOString(),
+                reportClassification: reportClassification,
+                employeeName: document.getElementById('employeeName').value,
+                employeeId: document.getElementById('employeeId').value,
+                affiliate: document.getElementById('affiliate').value,
+                client: document.getElementById('client').value,
+                incidentDate: document.getElementById('incidentDate').value,
+                incidentTime: document.getElementById('incidentTime').value,
+                reportedDate: document.getElementById('reportedDate').value,
+                reportedTime: document.getElementById('reportedTime').value,
+                location: document.getElementById('location').value,
+                injuryType: document.getElementById('injuryType').value,
+                description: document.getElementById('description').value,
+                witnessName: document.getElementById('witnessName').value,
+                witnessContact: document.getElementById('witnessContact').value,
+                bodyParts: selectedBodyParts,
+                bodyDiagramImage: bodyDiagramImage,  // Store the captured diagram
+                injuryPhoto: photoData,
+                signature: signaturePad.toDataURL(),
+                reporterName: document.getElementById('reporterName').value,
+                reporterPosition: document.getElementById('reporterPosition').value,
+                latitude: userLocation.latitude,
+                longitude: userLocation.longitude
+            };
+
+            // Save to localStorage
+            savedReportData = formData;
+            localStorage.setItem('lastInjuryReport', JSON.stringify(formData));
+
+            // Debug: Log the saved data to console for verification
+            console.log('Report submitted with data:', {
+                reportId: formData.reportId,
+                employeeName: formData.employeeName,
+                incidentDate: formData.incidentDate,
+                injuryType: formData.injuryType,
+                hasPhoto: !!formData.injuryPhoto,
+                hasSignature: !!formData.signature,
+                bodyParts: formData.bodyParts,
+                bodyDiagramCaptured: !!formData.bodyDiagramImage
+            });
+
+            // Simulate server delay
+            setTimeout(() => {
+                handleSubmitSuccess(reportId);
+            }, 1500);
+        }
+
+        async function handleSubmitSuccess(reportId) {
+            document.getElementById('loadingSpinner').style.display = 'none';
+            submittedReportId = reportId;
+
+            // Hide form, show success message
+            document.getElementById('injuryReportForm').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'block';
+            document.getElementById('successReportId').textContent = submittedReportId;
+
+            showNotification('Report submitted successfully!', 'success');
+
+            // Send email notification automatically
+            await sendReportEmail();
+        }
+
+        async function sendReportEmail() {
+            try {
+                console.log('Attempting to send email notification...');
+                const response = await fetch('https://cws-injury-report-production.up.railway.app/api/send-email', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(savedReportData)
+                });
+
+                console.log('Response status:', response.status);
+
+                // Check if response is ok (status 200-299)
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                console.log('Email API response:', result);
+
+                if (result.success) {
+                    console.log('Email sent successfully:', result.messageId);
+                    showNotification('Email notification sent to safety team!', 'success');
+                } else {
+                    console.error('Email sending failed:', result.error);
+                    showNotification('Report saved but email notification failed: ' + (result.error || 'Unknown error'), 'warning');
+                }
+            } catch (error) {
+                console.error('Error sending email:', error);
+                showNotification('Report saved but email notification failed: ' + error.message, 'warning');
+            }
+        }
+
+        // Helper function to generate PDF document - COMPLETE VERSION WITH BODY DIAGRAM
+        async function generatePdfDocument() {
+            // Verify we have data
+            if (!savedReportData) {
+                console.error('No savedReportData available for PDF generation');
+                return null;
+            }
+
+            // Use the pre-captured body diagram from form submission
+            let bodyDiagramImage = savedReportData.bodyDiagramImage || null;
+            if (bodyDiagramImage) {
+                console.log('Body diagram for PDF: Using pre-captured image (length: ' + bodyDiagramImage.length + ')');
+            } else if (savedReportData.bodyParts && savedReportData.bodyParts.length > 0) {
+                console.log('Body diagram for PDF: No pre-captured image, but body parts were selected');
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const margin = 20;
+            let yPos = 20;
+
+            // ===== HEADER WITH BANNER =====
+            doc.setFillColor(30, 58, 95);
+            doc.rect(0, 0, pageWidth, 35, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(22);
+            doc.setFont(undefined, 'bold');
+            doc.text('CUSTOM WORKFORCE SOLUTIONS LLC', pageWidth / 2, 13, { align: 'center' });
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            doc.text('Engineered by Jufipai', pageWidth / 2, 20, { align: 'center' });
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'bold');
+            doc.text('WORKPLACE INJURY REPORT', pageWidth / 2, 28, { align: 'center' });
+            doc.setFillColor(74, 222, 128);
+            doc.rect(0, 35, pageWidth, 2, 'F');
+            yPos = 50;
+
+            // ===== REPORT ID BOX =====
+            doc.setFillColor(248, 250, 252);
+            doc.setDrawColor(226, 232, 240);
+            doc.roundedRect(margin, yPos, pageWidth - (2 * margin), 15, 2, 2, 'FD');
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(11);
+            doc.setFont(undefined, 'bold');
+            doc.text('Serial #: ' + savedReportData.serialNumber, margin + 5, yPos + 6);
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(9);
+            doc.text('Report ID: ' + savedReportData.reportId, margin + 5, yPos + 11);
+            doc.text('Generated: ' + new Date().toLocaleString('en-US'), pageWidth - margin - 5, yPos + 11, { align: 'right' });
+            yPos += 25;
+
+            // ===== EMPLOYEE INFORMATION SECTION =====
+            doc.setFillColor(30, 58, 95);
+            doc.rect(margin, yPos, 3, 8, 'F');
+            doc.setTextColor(30, 58, 95);
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text('EMPLOYEE INFORMATION', margin + 6, yPos + 6);
+            yPos += 12;
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'bold');
+            doc.text('Name:', margin, yPos);
+            doc.setFont(undefined, 'normal');
+            doc.text(savedReportData.employeeName, margin + 40, yPos);
+            doc.setFont(undefined, 'bold');
+            doc.text('Employee ID:', pageWidth / 2 + 10, yPos);
+            doc.setFont(undefined, 'normal');
+            doc.text(savedReportData.employeeId, pageWidth / 2 + 40, yPos);
+            yPos += 7;
+            doc.setFont(undefined, 'bold');
+            doc.text('Affiliate:', margin, yPos);
+            doc.setFont(undefined, 'normal');
+            doc.text(savedReportData.affiliate, margin + 40, yPos);
+            doc.setFont(undefined, 'bold');
+            doc.text('Client:', pageWidth / 2 + 10, yPos);
+            doc.setFont(undefined, 'normal');
+            doc.text(savedReportData.client, pageWidth / 2 + 40, yPos);
+            yPos += 15;
+
+            // ===== INCIDENT DETAILS SECTION =====
+            doc.setFillColor(30, 58, 95);
+            doc.rect(margin, yPos, 3, 8, 'F');
+            doc.setTextColor(30, 58, 95);
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text('INCIDENT DETAILS', margin + 6, yPos + 6);
+            yPos += 12;
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'bold');
+            doc.text('Incident Date:', margin, yPos);
+            doc.setFont(undefined, 'normal');
+            doc.text(savedReportData.incidentDate, margin + 40, yPos);
+            doc.setFont(undefined, 'bold');
+            doc.text('Time:', pageWidth / 2 + 10, yPos);
+            doc.setFont(undefined, 'normal');
+            doc.text(savedReportData.incidentTime, pageWidth / 2 + 40, yPos);
+            yPos += 7;
+            doc.setFont(undefined, 'bold');
+            doc.text('Reported Date:', margin, yPos);
+            doc.setFont(undefined, 'normal');
+            doc.text(savedReportData.reportedDate, margin + 40, yPos);
+            doc.setFont(undefined, 'bold');
+            doc.text('Time:', pageWidth / 2 + 10, yPos);
+            doc.setFont(undefined, 'normal');
+            doc.text(savedReportData.reportedTime, pageWidth / 2 + 40, yPos);
+            yPos += 7;
+            doc.setFont(undefined, 'bold');
+            doc.text('Complete Address:', margin, yPos);
+            doc.setFont(undefined, 'normal');
+            const locationLines = doc.splitTextToSize(savedReportData.location, 140);
+            doc.text(locationLines, margin + 55, yPos);
+            yPos += 7;
+            doc.setFont(undefined, 'bold');
+            doc.text('Injury Type:', margin, yPos);
+            doc.setFont(undefined, 'normal');
+            doc.text(savedReportData.injuryType, margin + 40, yPos);
+            yPos += 12;
+
+            // ===== DESCRIPTION SECTION =====
+            doc.setFillColor(30, 58, 95);
+            doc.rect(margin, yPos, 3, 8, 'F');
+            doc.setTextColor(30, 58, 95);
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text('INCIDENT DESCRIPTION', margin + 6, yPos + 6);
+            yPos += 12;
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            const descLines = doc.splitTextToSize(savedReportData.description, pageWidth - (2 * margin));
+            doc.text(descLines, margin, yPos);
+            yPos += (descLines.length * 5) + 10;
+
+            // Check if we need a new page
+            if (yPos > pageHeight - 100) {
+                doc.addPage();
+                yPos = 20;
+            }
+
+            // ===== INJURED BODY PARTS WITH DIAGRAM =====
+            if (savedReportData.bodyParts && savedReportData.bodyParts.length > 0) {
+                doc.setFillColor(30, 58, 95);
+                doc.rect(margin, yPos, 3, 8, 'F');
+                doc.setTextColor(30, 58, 95);
+                doc.setFontSize(12);
+                doc.setFont(undefined, 'bold');
+                doc.text('INJURED BODY PARTS', margin + 6, yPos + 6);
+                yPos += 12;
+
+                // Check if we need a new page for the body diagram
+                if (yPos > pageHeight - 140) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+
+                // If we have body diagram image, show it with the list
+                if (bodyDiagramImage) {
+                    try {
+                        const diagramWidth = 50;
+                        const diagramHeight = 122;
+                        const diagramX = margin;
+                        const diagramY = yPos;
+
+                        // Add the body diagram on the left
+                        doc.addImage(bodyDiagramImage, 'PNG', diagramX, diagramY, diagramWidth, diagramHeight);
+
+                        // Add text list on the right side of the diagram
+                        const textX = diagramX + diagramWidth + 10;
+                        const textStartY = diagramY + 5;
+
+                        doc.setTextColor(185, 28, 28);
+                        doc.setFontSize(11);
+                        doc.setFont(undefined, 'bold');
+                        doc.text('Selected Injuries:', textX, textStartY);
+
+                        doc.setFontSize(10);
+                        doc.setFont(undefined, 'normal');
+
+                        // List each body part with a bullet
+                        let listY = textStartY + 7;
+                        savedReportData.bodyParts.forEach((part, index) => {
+                            doc.text('• ' + part, textX, listY);
+                            listY += 6;
+                        });
+
+                        yPos += diagramHeight + 15;
+                    } catch (e) {
+                        console.error('Error adding body diagram to PDF:', e);
+                        // Fallback to text-only list
+                        doc.setTextColor(185, 28, 28);
+                        doc.setFontSize(10);
+                        doc.setFont(undefined, 'bold');
+                        doc.text(savedReportData.bodyParts.join(', '), margin, yPos);
+                        yPos += 15;
+                    }
+                } else {
+                    // No diagram image, just show text list
+                    doc.setTextColor(185, 28, 28);
+                    doc.setFontSize(10);
+                    doc.setFont(undefined, 'bold');
+                    doc.text(savedReportData.bodyParts.join(', '), margin, yPos);
+                    yPos += 15;
+                }
+            }
+
+            // Check if we need a new page
+            if (yPos > pageHeight - 100) {
+                doc.addPage();
+                yPos = 20;
+            }
+
+            // ===== WITNESS INFORMATION =====
+            if (savedReportData.witnessName || savedReportData.witnessContact) {
+                doc.setFillColor(30, 58, 95);
+                doc.rect(margin, yPos, 3, 8, 'F');
+                doc.setTextColor(30, 58, 95);
+                doc.setFontSize(12);
+                doc.setFont(undefined, 'bold');
+                doc.text('WITNESS INFORMATION', margin + 6, yPos + 6);
+                yPos += 12;
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(10);
+                if (savedReportData.witnessName) {
+                    doc.setFont(undefined, 'bold');
+                    doc.text('Name:', margin, yPos);
+                    doc.setFont(undefined, 'normal');
+                    doc.text(savedReportData.witnessName, margin + 40, yPos);
+                    yPos += 7;
+                }
+                if (savedReportData.witnessContact) {
+                    doc.setFont(undefined, 'bold');
+                    doc.text('Contact:', margin, yPos);
+                    doc.setFont(undefined, 'normal');
+                    doc.text(savedReportData.witnessContact, margin + 40, yPos);
+                    yPos += 7;
+                }
+                yPos += 8;
+            }
+
+            // Check if we need a new page for photo
+            if (yPos > pageHeight - 100) {
+                doc.addPage();
+                yPos = 20;
+            }
+
+            // ===== INJURY PHOTO =====
+            if (savedReportData.injuryPhoto) {
+                doc.setFillColor(30, 58, 95);
+                doc.rect(margin, yPos, 3, 8, 'F');
+                doc.setTextColor(30, 58, 95);
+                doc.setFontSize(12);
+                doc.setFont(undefined, 'bold');
+                doc.text('INJURY PHOTO', margin + 6, yPos + 6);
+                yPos += 12;
+                try {
+                    doc.addImage(savedReportData.injuryPhoto, 'JPEG', margin, yPos, 80, 60);
+                    yPos += 75;
+                } catch (e) {
+                    console.error('Error adding photo:', e);
+                    doc.setTextColor(185, 28, 28);
+                    doc.setFontSize(10);
+                    doc.text('Error: Photo could not be embedded', margin, yPos);
+                    yPos += 10;
+                }
+            }
+
+            // Check if we need a new page for signature
+            if (yPos > pageHeight - 60) {
+                doc.addPage();
+                yPos = 20;
+            }
+
+            // ===== EMPLOYEE SIGNATURE =====
+            if (savedReportData.signature) {
+                doc.setFillColor(30, 58, 95);
+                doc.rect(margin, yPos, 3, 8, 'F');
+                doc.setTextColor(30, 58, 95);
+                doc.setFontSize(12);
+                doc.setFont(undefined, 'bold');
+                doc.text('EMPLOYEE SIGNATURE', margin + 6, yPos + 6);
+                yPos += 12;
+                try {
+                    const sigWidth = 70;
+                    const sigHeight = 25;
+                    doc.setDrawColor(200, 200, 200);
+                    doc.setLineWidth(0.5);
+                    doc.rect(margin, yPos, sigWidth, sigHeight);
+                    doc.addImage(savedReportData.signature, 'PNG', margin + 2, yPos + 2, sigWidth - 4, sigHeight - 4);
+                    yPos += sigHeight + 10;
+                } catch (error) {
+                    console.error('Error adding signature to PDF:', error);
+                    doc.setTextColor(185, 28, 28);
+                    doc.setFontSize(10);
+                    doc.text('Error: Signature could not be embedded', margin, yPos);
+                    yPos += 10;
+                }
+            }
+
+            // ===== REPORTED BY SECTION =====
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'bold');
+            doc.text('Report Submitted By:', margin, yPos);
+            doc.setFont(undefined, 'normal');
+            doc.text(savedReportData.reporterName + ' (' + savedReportData.reporterPosition + ')', margin, yPos + 5);
+            yPos += 15;
+
+            // ===== FOOTER =====
+            doc.setFillColor(30, 58, 95);
+            doc.rect(0, pageHeight - 20, pageWidth, 20, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(8);
+            doc.text('This is an official workplace injury report. Keep for records and compliance.', pageWidth / 2, pageHeight - 12, { align: 'center' });
+            doc.text('© 2025 Custom Workforce Solutions LLC - Engineered by Jufipai', pageWidth / 2, pageHeight - 7, { align: 'center' });
+            doc.text('Page 1 of ' + doc.internal.getNumberOfPages(), pageWidth - margin, pageHeight - 7, { align: 'right' });
+
+            return doc;
+        }
+
+        // Open email client with mailto link (works in most environments)
+        function openEmailClient(emailData) {
+            // Since browser mailto: doesn't support attachments, we'll use a different approach
+            // Create a simple mailto link with the email content
+            const subject = encodeURIComponent(emailData.subject);
+            const body = encodeURIComponent(
+                `WORKPLACE INJURY REPORT\n\n` +
+                `Report ID: ${savedReportData.reportId}\n` +
+                `Employee: ${savedReportData.employeeName} (ID: ${savedReportData.employeeId})\n` +
+                `Affiliate: ${savedReportData.affiliate}\n` +
+                `Client: ${savedReportData.client}\n` +
+                `Incident Date: ${savedReportData.incidentDate} at ${savedReportData.incidentTime}\n` +
+                `Injury Type: ${savedReportData.injuryType}\n` +
+                `Complete Address: ${savedReportData.location}\n\n` +
+                `Injured Body Parts: ${savedReportData.bodyParts.join(', ')}\n\n` +
+                `Description:\n${savedReportData.description}\n\n` +
+                `---\n` +
+                `Submitted by: ${savedReportData.reporterName} (${savedReportData.reporterPosition})\n` +
+                `Generated: ${new Date().toLocaleString('en-US')}\n\n` +
+                `IMPORTANT: Please download and attach the PDF report from the dashboard before sending this email.\n` +
+                `The PDF contains the complete report with injury photos and employee signature.`
+            );
+
+            const mailtoLink = `mailto:safety@customworkforcesolutionsllc.com?subject=${subject}&body=${body}`;
+
+            // Open mailto link
+            window.location.href = mailtoLink;
+
+            // Also show a helpful message
+            setTimeout(() => {
+                showNotification('Please attach the downloaded PDF to the email before sending', 'info');
+            }, 2000);
+        }
+
+        // Capture body diagram before generating PDF
+        async function captureBodyDiagram() {
+            try {
+                console.log('=== Starting body diagram capture ===');
+
+                // Check if html2canvas is available
+                if (typeof html2canvas === 'undefined') {
+                    console.error('html2canvas library not loaded!');
+                    return null;
+                }
+
+                // Try to find the active diagram
+                let activeDiagram = document.querySelector('.body-diagram.active');
+                console.log('Active diagram found:', !!activeDiagram);
+
+                // If no active diagram, try to find any diagram
+                if (!activeDiagram) {
+                    activeDiagram = document.querySelector('#bodyDiagramFront') || document.querySelector('#bodyDiagramBack');
+                    console.log('Fallback to any diagram:', !!activeDiagram);
+                }
+
+                if (!activeDiagram) {
+                    console.error('No body diagram element found in DOM');
+                    return null;
+                }
+
+                // Clone the SVG
+                const svgClone = activeDiagram.cloneNode(true);
+                console.log('SVG cloned successfully');
+
+                // CRITICAL FIX: Convert CSS classes to inline styles for html2canvas
+                // Apply inline styles to selected parts
+                const selectedParts = svgClone.querySelectorAll('.body-part.selected');
+                console.log('Found', selectedParts.length, 'selected body parts to style');
+
+                selectedParts.forEach(part => {
+                    part.setAttribute('fill', '#ef4444');  // Red fill for selected
+                    part.setAttribute('stroke', '#991b1b');  // Dark red stroke
+                    part.setAttribute('stroke-width', '4');
+                    console.log('Styled:', part.getAttribute('data-part'));
+                });
+
+                // Apply base styles to all unselected body parts
+                const allParts = svgClone.querySelectorAll('.body-part');
+                allParts.forEach(part => {
+                    if (!part.classList.contains('selected')) {
+                        part.setAttribute('fill', '#e0f2fe');
+                        part.setAttribute('stroke', '#0c4a6e');
+                        part.setAttribute('stroke-width', '2');
+                    }
+                });
+
+                // Create temporary container with explicit styling
+                const container = document.createElement('div');
+                container.style.position = 'absolute';
+                container.style.left = '-9999px';
+                container.style.top = '0';
+                container.style.width = '320px';
+                container.style.height = '780px';
+                container.style.backgroundColor = 'white';
+
+                // Style the SVG clone
+                svgClone.style.display = 'block';
+                svgClone.style.width = '320px';
+                svgClone.style.height = '780px';
+
+                container.appendChild(svgClone);
+                document.body.appendChild(container);
+                console.log('Temporary container added to DOM');
+
+                // Wait a moment for DOM to settle
+                await new Promise(resolve => setTimeout(resolve, 100));
+
+                // Capture with html2canvas
+                console.log('Starting html2canvas capture...');
+                const canvas = await html2canvas(container, {
+                    backgroundColor: '#ffffff',
+                    scale: 2,
+                    logging: false,
+                    useCORS: true,
+                    allowTaint: true,
+                    width: 320,
+                    height: 780
+                });
+                console.log('Canvas created:', canvas.width, 'x', canvas.height);
+
+                // Clean up
+                document.body.removeChild(container);
+                console.log('Container cleaned up');
+
+                const dataURL = canvas.toDataURL('image/png');
+                console.log('Body diagram captured successfully! Data URL length:', dataURL.length);
+                return dataURL;
+            } catch (error) {
+                console.error('Error capturing body diagram:', error);
+                console.error('Error stack:', error.stack);
+                return null;
+            }
+        }
+
+        // Helper function to add page header and footer
+        function addPageHeaderFooter(doc, pageNum, totalPages, title) {
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+
+            // Header banner
+            doc.setFillColor(30, 58, 95);
+            doc.rect(0, 0, pageWidth, 30, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(18);
+            doc.setFont(undefined, 'bold');
+            doc.text('CUSTOM WORKFORCE SOLUTIONS LLC', pageWidth / 2, 12, { align: 'center' });
+            doc.setFontSize(9);
+            doc.setFont(undefined, 'normal');
+            doc.text('Engineered by Jufipai', pageWidth / 2, 19, { align: 'center' });
+
+            // Page title
+            if (title) {
+                doc.setFontSize(11);
+                doc.setFont(undefined, 'bold');
+                doc.text(title, pageWidth / 2, 26, { align: 'center' });
+            }
+
+            // Green accent line
+            doc.setFillColor(74, 222, 128);
+            doc.rect(0, 30, pageWidth, 2, 'F');
+
+            // Footer
+            doc.setFillColor(30, 58, 95);
+            doc.rect(0, pageHeight - 15, pageWidth, 15, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(8);
+            doc.text('© 2025 Custom Workforce Solutions LLC - Engineered by Jufipai', pageWidth / 2, pageHeight - 7, { align: 'center' });
+            doc.text(`Page ${pageNum} of ${totalPages}`, pageWidth - 20, pageHeight - 7, { align: 'right' });
+        }
+
+        // Success actions - Enhanced PDF with improved layout
+        async function downloadPdf() {
+            console.log('=== downloadPdf() CALLED ===');
+            if (!savedReportData) {
+                showNotification('No report data available', 'error');
+                return;
+            }
+
+            console.log('savedReportData:', {
+                reportId: savedReportData.reportId,
+                bodyParts: savedReportData.bodyParts,
+                hasPhoto: !!savedReportData.injuryPhoto,
+                incidentDate: savedReportData.incidentDate,
+                hasBodyDiagram: !!savedReportData.bodyDiagramImage
+            });
+
+            // Show loading
+            showNotification('Generating professional PDF report...', 'info');
+
+            // Use the pre-captured body diagram
+            let bodyDiagramImage = savedReportData.bodyDiagramImage || null;
+
+            // Create PDF using jsPDF
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const margin = 20;
+            const contentWidth = pageWidth - (2 * margin);
+            let yPos = 40;
+
+            // ===== HEADER WITH BANNER =====
+            // Blue header banner
+            doc.setFillColor(30, 58, 95);
+            doc.rect(0, 0, pageWidth, 35, 'F');
+
+            // Company name in white
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(22);
+            doc.setFont(undefined, 'bold');
+            doc.text('CUSTOM WORKFORCE SOLUTIONS LLC', pageWidth / 2, 13, { align: 'center' });
+
+            // Engineered by line
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            doc.text('Engineered by Jufipai', pageWidth / 2, 20, { align: 'center' });
+
+            // Report title
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'bold');
+            doc.text('WORKPLACE INJURY REPORT', pageWidth / 2, 28, { align: 'center' });
+
+            // Green accent line
+            doc.setFillColor(74, 222, 128);
+            doc.rect(0, 35, pageWidth, 2, 'F');
+
+            yPos = 50;
+
+            // ===== REPORT ID BOX =====
+            doc.setFillColor(248, 250, 252);
+            doc.setDrawColor(226, 232, 240);
+            doc.roundedRect(margin, yPos, pageWidth - (2 * margin), 15, 2, 2, 'FD');
+
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(11);
+            doc.setFont(undefined, 'bold');
+            doc.text('Serial #: ' + savedReportData.serialNumber, margin + 5, yPos + 6);
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(9);
+            doc.text('Report ID: ' + savedReportData.reportId, margin + 5, yPos + 11);
+            doc.text('Generated: ' + new Date().toLocaleString('en-US'), pageWidth - margin - 5, yPos + 11, { align: 'right' });
+
+            yPos += 25;
+
+            // ===== EMPLOYEE INFORMATION SECTION =====
+            // Section header with underline
+            doc.setFillColor(30, 58, 95);
+            doc.rect(margin, yPos, 3, 8, 'F');
+            doc.setTextColor(30, 58, 95);
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text('EMPLOYEE INFORMATION', margin + 6, yPos + 6);
+            yPos += 12;
+
+            // Employee details in grid
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'bold');
+            doc.text('Name:', margin, yPos);
+            doc.setFont(undefined, 'normal');
+            doc.text(savedReportData.employeeName, margin + 40, yPos);
+
+            doc.setFont(undefined, 'bold');
+            doc.text('Employee ID:', pageWidth / 2 + 10, yPos);
+            doc.setFont(undefined, 'normal');
+            doc.text(savedReportData.employeeId, pageWidth / 2 + 40, yPos);
+            yPos += 7;
+
+            doc.setFont(undefined, 'bold');
+            doc.text('Affiliate:', margin, yPos);
+            doc.setFont(undefined, 'normal');
+            doc.text(savedReportData.affiliate, margin + 40, yPos);
+
+            doc.setFont(undefined, 'bold');
+            doc.text('Client:', pageWidth / 2 + 10, yPos);
+            doc.setFont(undefined, 'normal');
+            doc.text(savedReportData.client, pageWidth / 2 + 40, yPos);
+            yPos += 15;
+
+            // ===== INCIDENT DETAILS SECTION =====
+            doc.setFillColor(30, 58, 95);
+            doc.rect(margin, yPos, 3, 8, 'F');
+            doc.setTextColor(30, 58, 95);
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text('INCIDENT DETAILS', margin + 6, yPos + 6);
+            yPos += 12;
+
+            // Incident details in grid
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'bold');
+            doc.text('Incident Date:', margin, yPos);
+            doc.setFont(undefined, 'normal');
+            doc.text(savedReportData.incidentDate, margin + 40, yPos);
+
+            doc.setFont(undefined, 'bold');
+            doc.text('Time:', pageWidth / 2 + 10, yPos);
+            doc.setFont(undefined, 'normal');
+            doc.text(savedReportData.incidentTime, pageWidth / 2 + 40, yPos);
+            yPos += 7;
+
+            doc.setFont(undefined, 'bold');
+            doc.text('Reported Date:', margin, yPos);
+            doc.setFont(undefined, 'normal');
+            doc.text(savedReportData.reportedDate, margin + 40, yPos);
+
+            doc.setFont(undefined, 'bold');
+            doc.text('Time:', pageWidth / 2 + 10, yPos);
+            doc.setFont(undefined, 'normal');
+            doc.text(savedReportData.reportedTime, pageWidth / 2 + 40, yPos);
+            yPos += 7;
+
+            doc.setFont(undefined, 'bold');
+            doc.text('Location:', margin, yPos);
+            doc.setFont(undefined, 'normal');
+            const locationLines = doc.splitTextToSize(savedReportData.location, 140);
+            doc.text(locationLines, margin + 40, yPos);
+            yPos += 7;
+
+            doc.setFont(undefined, 'bold');
+            doc.text('Injury Type:', margin, yPos);
+            doc.setFont(undefined, 'normal');
+            doc.text(savedReportData.injuryType, margin + 40, yPos);
+            yPos += 12;
+
+            // ===== DESCRIPTION SECTION =====
+            doc.setFillColor(30, 58, 95);
+            doc.rect(margin, yPos, 3, 8, 'F');
+            doc.setTextColor(30, 58, 95);
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text('INCIDENT DESCRIPTION', margin + 6, yPos + 6);
+            yPos += 12;
+
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            const descriptionLines = doc.splitTextToSize(savedReportData.description, pageWidth - (2 * margin));
+            doc.text(descriptionLines, margin, yPos);
+            yPos += (descriptionLines.length * 5) + 10;
+
+            // ===== INJURED BODY PARTS WITH DIAGRAM =====
+            doc.setFillColor(30, 58, 95);
+            doc.rect(margin, yPos, 3, 8, 'F');
+            doc.setTextColor(30, 58, 95);
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text('INJURED BODY PARTS & DIAGRAM', margin + 6, yPos + 6);
+            yPos += 12;
+
+            // Check if we need a new page for the diagram
+            if (yPos > pageHeight - 140) {
+                doc.addPage();
+                yPos = 20;
+            }
+
+            // Add body diagram visualization if body parts selected
+            console.log('Body diagram check:', {
+                hasImage: !!bodyDiagramImage,
+                imageLength: bodyDiagramImage ? bodyDiagramImage.length : 0,
+                bodyPartsCount: savedReportData.bodyParts.length,
+                bodyParts: savedReportData.bodyParts
+            });
+
+            if (bodyDiagramImage && savedReportData.bodyParts.length > 0) {
+                try {
+                    console.log('Adding body diagram to PDF at position:', yPos);
+                    const diagramWidth = 50;
+                    const diagramHeight = 122;
+                    const diagramX = margin;
+                    const diagramY = yPos;
+
+                    // Add the body diagram on the left
+                    doc.addImage(bodyDiagramImage, 'PNG', diagramX, diagramY, diagramWidth, diagramHeight);
+                    console.log('Body diagram added successfully!');
+
+                    // Add text list on the right side of the diagram
+                    const textX = diagramX + diagramWidth + 10;
+                    const textStartY = diagramY + 5;
+
+                    doc.setTextColor(185, 28, 28);
+                    doc.setFontSize(11);
+                    doc.setFont(undefined, 'bold');
+                    doc.text('Selected Injuries:', textX, textStartY);
+
+                    doc.setFontSize(10);
+                    doc.setFont(undefined, 'normal');
+
+                    // List each body part with a bullet
+                    let listY = textStartY + 7;
+                    savedReportData.bodyParts.forEach((part, index) => {
+                        doc.text('• ' + part, textX, listY);
+                        listY += 6;
+                    });
+
+                    yPos += diagramHeight + 15;
+                } catch (e) {
+                    console.error('Error adding body diagram to PDF:', e);
+                    // Fallback to text-only list
+                    doc.setTextColor(185, 28, 28);
+                    doc.setFontSize(10);
+                    doc.setFont(undefined, 'normal');
+                    const bodyPartsText = savedReportData.bodyParts.join(', ');
+                    const bodyPartsLines = doc.splitTextToSize(bodyPartsText, pageWidth - (2 * margin));
+                    doc.text(bodyPartsLines, margin, yPos);
+                    yPos += (bodyPartsLines.length * 5) + 15;
+                }
+            } else {
+                // No body parts selected
+                doc.setTextColor(100, 100, 100);
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'normal');
+                doc.text('No body parts selected', margin, yPos);
+                yPos += 15;
+            }
+
+            // Check if we need a new page for images
+            if (yPos > pageHeight - 100) {
+                doc.addPage();
+                yPos = 20;
+            }
+
+            // ===== INJURY PHOTO =====
+            if (savedReportData.injuryPhoto) {
+                doc.setFillColor(30, 58, 95);
+                doc.rect(margin, yPos, 3, 8, 'F');
+                doc.setTextColor(30, 58, 95);
+                doc.setFontSize(12);
+                doc.setFont(undefined, 'bold');
+                doc.text('INJURY PHOTO', margin + 6, yPos + 6);
+                yPos += 12;
+
+                try {
+                    const imgWidth = 80;
+                    const imgHeight = 60;
+                    doc.addImage(savedReportData.injuryPhoto, 'JPEG', margin, yPos, imgWidth, imgHeight);
+                    yPos += imgHeight + 15;
+                } catch (error) {
+                    console.error('Error adding photo to PDF:', error);
+                    doc.setTextColor(185, 28, 28);
+                    doc.setFontSize(10);
+                    doc.text('Error: Could not add photo to PDF', margin, yPos);
+                    yPos += 15;
+                }
+            }
+
+            // Check if we need a new page for signature
+            if (yPos > pageHeight - 60) {
+                doc.addPage();
+                yPos = 20;
+            }
+
+            // ===== EMPLOYEE SIGNATURE =====
+            if (savedReportData.signature) {
+                doc.setFillColor(30, 58, 95);
+                doc.rect(margin, yPos, 3, 8, 'F');
+                doc.setTextColor(30, 58, 95);
+                doc.setFontSize(12);
+                doc.setFont(undefined, 'bold');
+                doc.text('EMPLOYEE SIGNATURE', margin + 6, yPos + 6);
+                yPos += 12;
+
+                try {
+                    const sigWidth = 70;
+                    const sigHeight = 25;
+                    doc.setDrawColor(200, 200, 200);
+                    doc.setLineWidth(0.5);
+                    doc.rect(margin, yPos, sigWidth, sigHeight);
+                    doc.addImage(savedReportData.signature, 'PNG', margin + 2, yPos + 2, sigWidth - 4, sigHeight - 4);
+                    yPos += sigHeight + 10;
+                } catch (error) {
+                    console.error('Error adding signature to PDF:', error);
+                }
+            }
+
+            // ===== REPORTED BY SECTION =====
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'bold');
+            doc.text('Report Submitted By:', margin, yPos);
+            doc.setFont(undefined, 'normal');
+            doc.text(savedReportData.reporterName + ' (' + savedReportData.reporterPosition + ')', margin, yPos + 5);
+            yPos += 15;
+
+            // ===== FOOTER =====
+            doc.setFillColor(30, 58, 95);
+            doc.rect(0, pageHeight - 20, pageWidth, 20, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(8);
+            doc.text('This is an official workplace injury report. Keep for records and compliance.', pageWidth / 2, pageHeight - 12, { align: 'center' });
+            doc.text('© 2025 Custom Workforce Solutions LLC - Engineered by Jufipai', pageWidth / 2, pageHeight - 7, { align: 'center' });
+            doc.text('Page 1 of ' + doc.internal.getNumberOfPages(), pageWidth - margin, pageHeight - 7, { align: 'right' });
+
+            // Save PDF
+            doc.save('Injury_Report_' + savedReportData.reportId + '.pdf');
+            showNotification('Professional PDF downloaded successfully!', 'success');
+        }
+
+        // NEW: Improved multi-page PDF layout
+        async function downloadPdfImproved() {
+            console.log('=== downloadPdfImproved() CALLED ===');
+            if (!savedReportData) {
+                showNotification('No report data available', 'error');
+                return;
+            }
+
+            showNotification('Generating professional multi-page PDF...', 'info');
+
+            const bodyDiagramImage = savedReportData.bodyDiagramImage || null;
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const margin = 20;
+            const contentWidth = pageWidth - (2 * margin);
+            let yPos;
+
+            function addPageHeaderFooter(pageNum, pageTitle) {
+                doc.setFillColor(30, 58, 95);
+                doc.rect(0, 0, pageWidth, 30, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(16);
+                doc.setFont(undefined, 'bold');
+                doc.text('CUSTOM WORKFORCE SOLUTIONS LLC', pageWidth / 2, 12, { align: 'center' });
+                doc.setFontSize(8);
+                doc.setFont(undefined, 'normal');
+                doc.text('Engineered by Jufipai', pageWidth / 2, 18, { align: 'center' });
+                if (pageTitle) {
+                    doc.setFontSize(10);
+                    doc.setFont(undefined, 'bold');
+                    doc.text(pageTitle, pageWidth / 2, 25, { align: 'center' });
+                }
+
+                // Add small classification badge in header
+                const headerBadgeWidth = 30;
+                const headerBadgeHeight = 6;
+                const headerBadgeX = pageWidth - margin - headerBadgeWidth;
+                const headerBadgeY = 5;
+
+                if (savedReportData.reportClassification === 'incident') {
+                    doc.setFillColor(245, 158, 11);
+                } else {
+                    doc.setFillColor(239, 68, 68);
+                }
+                doc.roundedRect(headerBadgeX, headerBadgeY, headerBadgeWidth, headerBadgeHeight, 1, 1, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(7);
+                doc.setFont(undefined, 'bold');
+                doc.text((savedReportData.reportClassification || 'accident').toUpperCase(), headerBadgeX + headerBadgeWidth/2, headerBadgeY + 4.5, { align: 'center' });
+
+                doc.setFillColor(74, 222, 128);
+                doc.rect(0, 30, pageWidth, 2, 'F');
+                doc.setFillColor(30, 58, 95);
+                doc.rect(0, pageHeight - 15, pageWidth, 15, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(7);
+                doc.text('© 2025 Custom Workforce Solutions LLC - Engineered by Jufipai', pageWidth / 2, pageHeight - 7, { align: 'center' });
+                doc.setFontSize(8);
+                doc.text(`Page ${pageNum}`, pageWidth - margin, pageHeight - 7, { align: 'right' });
+            }
+
+            // PAGE 1: COVER
+            doc.setFillColor(30, 58, 95);
+            doc.rect(0, 0, pageWidth, 90, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(28);
+            doc.setFont(undefined, 'bold');
+            doc.text('WORKPLACE', pageWidth / 2, 35, { align: 'center' });
+
+            // Add prominent classification badge
+            const classificationType = savedReportData.reportClassification || 'accident';
+            const badgeText = classificationType.toUpperCase();
+
+            // Dynamic title based on classification
+            const reportTypeTitle = classificationType === 'incident' ? 'INCIDENT REPORT' : 'ACCIDENT REPORT';
+            doc.text(reportTypeTitle, pageWidth / 2, 52, { align: 'center' });
+            const badgeWidth = 60;
+            const badgeHeight = 12;
+            const badgeX = (pageWidth - badgeWidth) / 2;
+            const badgeY = 60;
+
+            if (classificationType === 'incident') {
+                // Warning orange/amber for incidents
+                doc.setFillColor(245, 158, 11);
+                doc.setDrawColor(180, 83, 9);
+            } else {
+                // Alert red for accidents
+                doc.setFillColor(239, 68, 68);
+                doc.setDrawColor(153, 27, 27);
+            }
+
+            doc.setLineWidth(2);
+            doc.roundedRect(badgeX, badgeY, badgeWidth, badgeHeight, 2, 2, 'FD');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'bold');
+            doc.text(badgeText, pageWidth / 2, badgeY + 8.5, { align: 'center' });
+
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'normal');
+            doc.text('Official Safety Documentation', pageWidth / 2, 80, { align: 'center' });
+            doc.setFillColor(74, 222, 128);
+            doc.rect(0, 90, pageWidth, 4, 'F');
+
+            yPos = 115;
+            const boxWidth = 150;
+            const boxX = (pageWidth - boxWidth) / 2;
+            doc.setFillColor(248, 250, 252);
+            doc.setDrawColor(30, 58, 95);
+            doc.setLineWidth(1);
+            doc.roundedRect(boxX, yPos, boxWidth, 70, 3, 3, 'FD');
+            doc.setTextColor(30, 58, 95);
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'bold');
+            doc.text('REPORT DETAILS', pageWidth / 2, yPos + 14, { align: 'center' });
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(11);
+            doc.text('Serial Number:', boxX + 10, yPos + 30);
+            doc.setFont(undefined, 'normal');
+            doc.text(savedReportData.serialNumber, boxX + 60, yPos + 30);
+            doc.setFont(undefined, 'bold');
+            doc.text('Report ID:', boxX + 10, yPos + 42);
+            doc.setFont(undefined, 'normal');
+            doc.text(savedReportData.reportId, boxX + 60, yPos + 42);
+            doc.setFont(undefined, 'bold');
+            doc.text('Generated:', boxX + 10, yPos + 54);
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(9);
+            doc.text(new Date().toLocaleString('en-US'), boxX + 60, yPos + 54);
+
+            yPos = 200;
+            doc.setFillColor(255, 255, 255);
+            doc.setDrawColor(226, 232, 240);
+            doc.setLineWidth(0.5);
+            doc.roundedRect(margin, yPos, contentWidth, 60, 2, 2, 'D');
+            doc.setTextColor(30, 58, 95);
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text('QUICK SUMMARY', margin + 5, yPos + 10);
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+
+            // Add classification as first item
+            doc.setFont(undefined, 'bold');
+            doc.text('Classification: ', margin + 10, yPos + 22);
+            doc.setFont(undefined, 'normal');
+
+            // Color-code the classification text
+            if (classificationType === 'incident') {
+                doc.setTextColor(245, 158, 11);
+            } else {
+                doc.setTextColor(239, 68, 68);
+            }
+            doc.setFont(undefined, 'bold');
+            doc.text(badgeText, margin + 50, yPos + 22);
+
+            // Reset to black for remaining fields
+            doc.setTextColor(0, 0, 0);
+            doc.setFont(undefined, 'normal');
+            doc.text('Employee: ' + savedReportData.employeeName, margin + 10, yPos + 32);
+            doc.text('Date: ' + savedReportData.incidentDate, margin + 10, yPos + 42);
+            doc.text('Type: ' + savedReportData.injuryType, margin + 10, yPos + 52);
+
+            doc.setFillColor(30, 58, 95);
+            doc.rect(0, pageHeight - 20, pageWidth, 20, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(9);
+            doc.text('CUSTOM WORKFORCE SOLUTIONS LLC', pageWidth / 2, pageHeight - 12, { align: 'center' });
+            doc.setFontSize(7);
+            doc.text('Engineered by Jufipai • Confidential Document', pageWidth / 2, pageHeight - 6, { align: 'center' });
+
+            // PAGE 2: EMPLOYEE & INCIDENT
+            doc.addPage();
+            addPageHeaderFooter(2, 'EMPLOYEE & INCIDENT INFORMATION');
+            yPos = 45;
+
+            doc.setFillColor(30, 58, 95);
+            doc.rect(margin, yPos, 4, 10, 'F');
+            doc.setTextColor(30, 58, 95);
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'bold');
+            doc.text('EMPLOYEE INFORMATION', margin + 8, yPos + 7);
+            yPos += 18;
+
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'bold');
+            doc.text('Name:', margin, yPos);
+            doc.setFont(undefined, 'normal');
+            doc.text(savedReportData.employeeName, margin + 35, yPos);
+            doc.setFont(undefined, 'bold');
+            doc.text('Employee ID:', pageWidth / 2, yPos);
+            doc.setFont(undefined, 'normal');
+            doc.text(savedReportData.employeeId, pageWidth / 2 + 35, yPos);
+            yPos += 10;
+            doc.setFont(undefined, 'bold');
+            doc.text('Affiliate:', margin, yPos);
+            doc.setFont(undefined, 'normal');
+            doc.text(savedReportData.affiliate, margin + 35, yPos);
+            doc.setFont(undefined, 'bold');
+            doc.text('Client:', pageWidth / 2, yPos);
+            doc.setFont(undefined, 'normal');
+            doc.text(savedReportData.client, pageWidth / 2 + 35, yPos);
+            yPos += 25;
+
+            doc.setFillColor(30, 58, 95);
+            doc.rect(margin, yPos, 4, 10, 'F');
+            doc.setTextColor(30, 58, 95);
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'bold');
+            doc.text('INCIDENT DETAILS', margin + 8, yPos + 7);
+            yPos += 18;
+
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'bold');
+            doc.text('Incident Date:', margin, yPos);
+            doc.setFont(undefined, 'normal');
+            doc.text(savedReportData.incidentDate, margin + 35, yPos);
+            doc.setFont(undefined, 'bold');
+            doc.text('Time:', pageWidth / 2, yPos);
+            doc.setFont(undefined, 'normal');
+            doc.text(savedReportData.incidentTime, pageWidth / 2 + 20, yPos);
+            yPos += 10;
+            doc.setFont(undefined, 'bold');
+            doc.text('Reported Date:', margin, yPos);
+            doc.setFont(undefined, 'normal');
+            doc.text(savedReportData.reportedDate, margin + 35, yPos);
+            doc.setFont(undefined, 'bold');
+            doc.text('Time:', pageWidth / 2, yPos);
+            doc.setFont(undefined, 'normal');
+            doc.text(savedReportData.reportedTime, pageWidth / 2 + 20, yPos);
+            yPos += 10;
+            doc.setFont(undefined, 'bold');
+            doc.text('Injury Type:', margin, yPos);
+            doc.setFont(undefined, 'normal');
+            doc.text(savedReportData.injuryType, margin + 35, yPos);
+            yPos += 10;
+            doc.setFont(undefined, 'bold');
+            doc.text('Location:', margin, yPos);
+            doc.setFont(undefined, 'normal');
+            doc.text(savedReportData.location, margin + 35, yPos);
+            yPos += 20;
+
+            doc.setFillColor(30, 58, 95);
+            doc.rect(margin, yPos, 4, 10, 'F');
+            doc.setTextColor(30, 58, 95);
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'bold');
+            doc.text('INCIDENT DESCRIPTION', margin + 8, yPos + 7);
+            yPos += 18;
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            const descLines = doc.splitTextToSize(savedReportData.description, contentWidth);
+            doc.text(descLines, margin, yPos);
+
+            // PAGE 3: BODY DIAGRAM
+            doc.addPage();
+            addPageHeaderFooter(3, 'INJURED BODY PARTS & DIAGRAM');
+            yPos = 50;
+
+            if (bodyDiagramImage && savedReportData.bodyParts && savedReportData.bodyParts.length > 0) {
+                const diagramWidth = 70;
+                const diagramHeight = 170;
+                const diagramX = (pageWidth - diagramWidth) / 2;
+                doc.addImage(bodyDiagramImage, 'PNG', diagramX, yPos, diagramWidth, diagramHeight);
+                yPos += diagramHeight + 15;
+
+                doc.setTextColor(30, 58, 95);
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'bold');
+                doc.text('SELECTED INJURIES', pageWidth / 2, yPos, { align: 'center' });
+                yPos += 12;
+                doc.setTextColor(185, 28, 28);
+                doc.setFontSize(11);
+                doc.setFont(undefined, 'normal');
+                savedReportData.bodyParts.forEach(part => {
+                    doc.text('• ' + part, pageWidth / 2, yPos, { align: 'center' });
+                    yPos += 7;
+                });
+            } else {
+                doc.setTextColor(100, 100, 100);
+                doc.setFontSize(12);
+                doc.setFont(undefined, 'italic');
+                doc.text('No body parts selected for this report', pageWidth / 2, pageHeight / 2, { align: 'center' });
+            }
+
+            // PAGE 4: PHOTO (if exists)
+            if (savedReportData.injuryPhoto) {
+                doc.addPage();
+                addPageHeaderFooter(4, 'INJURY PHOTO');
+                yPos = 60;
+                try {
+                    const imgWidth = 140;
+                    const imgHeight = 105;
+                    const imgX = (pageWidth - imgWidth) / 2;
+                    doc.addImage(savedReportData.injuryPhoto, 'JPEG', imgX, yPos, imgWidth, imgHeight);
+                    doc.setTextColor(100, 100, 100);
+                    doc.setFontSize(9);
+                    doc.setFont(undefined, 'italic');
+                    doc.text('Photo captured: ' + new Date(savedReportData.timestamp).toLocaleString(), pageWidth / 2, yPos + imgHeight + 10, { align: 'center' });
+                } catch (error) {
+                    console.error('Error adding photo:', error);
+                }
+            }
+
+            // PAGE 5: SIGNATURE
+            doc.addPage();
+            const finalPage = savedReportData.injuryPhoto ? 5 : 4;
+            addPageHeaderFooter(finalPage, 'SIGNATURE & CERTIFICATION');
+            yPos = 60;
+
+            doc.setTextColor(30, 58, 95);
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'bold');
+            doc.text('EMPLOYEE SIGNATURE', pageWidth / 2, yPos, { align: 'center' });
+            yPos += 15;
+
+            if (savedReportData.signature) {
+                const sigWidth = 120;
+                const sigHeight = 40;
+                const sigX = (pageWidth - sigWidth) / 2;
+                doc.setDrawColor(200, 200, 200);
+                doc.setLineWidth(1);
+                doc.rect(sigX, yPos, sigWidth, sigHeight);
+                doc.addImage(savedReportData.signature, 'PNG', sigX + 3, yPos + 3, sigWidth - 6, sigHeight - 6);
+                yPos += sigHeight + 10;
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(9);
+                doc.setFont(undefined, 'normal');
+                doc.text('Electronically signed', pageWidth / 2, yPos, { align: 'center' });
+            }
+
+            yPos += 30;
+            doc.setTextColor(30, 58, 95);
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'bold');
+            doc.text('REPORT SUBMITTED BY', pageWidth / 2, yPos, { align: 'center' });
+            yPos += 12;
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(11);
+            doc.setFont(undefined, 'normal');
+            doc.text(savedReportData.reporterName, pageWidth / 2, yPos, { align: 'center' });
+            yPos += 8;
+            doc.setFontSize(10);
+            doc.setTextColor(100, 100, 100);
+            doc.text(savedReportData.reporterPosition, pageWidth / 2, yPos, { align: 'center' });
+
+            yPos += 25;
+            doc.setFillColor(248, 250, 252);
+            doc.setDrawColor(226, 232, 240);
+            doc.roundedRect(margin, yPos, contentWidth, 40, 2, 2, 'FD');
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(9);
+            doc.setFont(undefined, 'italic');
+            const certText = 'This report is a true and accurate account of the workplace injury incident described herein. All information has been reviewed and verified for accuracy. This document is confidential and should be maintained in accordance with company safety protocols and applicable regulations.';
+            const certLines = doc.splitTextToSize(certText, contentWidth - 10);
+            doc.text(certLines, margin + 5, yPos + 8);
+
+            doc.save('Injury_Report_' + savedReportData.reportId + '.pdf');
+            showNotification('Professional multi-page PDF downloaded successfully!', 'success');
+        }
+
+        function submitAnother() {
+            location.reload();
+        }
+
+        function viewReportData() {
+            if (!savedReportData) {
+                showNotification('No report data available', 'error');
+                return;
+            }
+
+            // Create a formatted view of the data
+            const dataWindow = window.open('', 'Report Data', 'width=800,height=600');
+            dataWindow.document.write(`
+                <html>
+                <head>
+                    <title>Injury Report Data - ${savedReportData.reportId}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+                        h1 { color: #1e3a5f; }
+                        .section { background: white; padding: 15px; margin: 15px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+                        .field { margin: 10px 0; }
+                        .label { font-weight: bold; color: #666; }
+                        img { max-width: 400px; border-radius: 8px; margin: 10px 0; }
+                    </style>
+                </head>
+                <body>
+                    <h1>Injury Report: ${savedReportData.reportId}</h1>
+
+                    <div class="section">
+                        <h2>Employee Information</h2>
+                        <div class="field"><span class="label">Name:</span> ${savedReportData.employeeName}</div>
+                        <div class="field"><span class="label">Employee ID:</span> ${savedReportData.employeeId}</div>
+                        <div class="field"><span class="label">Affiliate:</span> ${savedReportData.affiliate}</div>
+                        <div class="field"><span class="label">Client:</span> ${savedReportData.client}</div>
+                    </div>
+
+                    <div class="section">
+                        <h2>Incident Details</h2>
+                        <div class="field"><span class="label">Incident Date:</span> ${savedReportData.incidentDate}</div>
+                        <div class="field"><span class="label">Incident Time:</span> ${savedReportData.incidentTime}</div>
+                        <div class="field"><span class="label">Date Reported:</span> ${savedReportData.reportedDate}</div>
+                        <div class="field"><span class="label">Time Reported:</span> ${savedReportData.reportedTime}</div>
+                        <div class="field"><span class="label">Complete Address:</span> ${savedReportData.location}</div>
+                        <div class="field"><span class="label">Injury Type:</span> ${savedReportData.injuryType}</div>
+                        <div class="field"><span class="label">Description:</span> ${savedReportData.description}</div>
+                    </div>
+
+                    <div class="section">
+                        <h2>Injured Body Parts</h2>
+                        <div class="field">${savedReportData.bodyParts.join(', ')}</div>
+                    </div>
+
+                    <div class="section">
+                        <h2>Injury Photo</h2>
+                        <img src="${savedReportData.injuryPhoto}" alt="Injury photo">
+                    </div>
+
+                    <div class="section">
+                        <h2>Employee Signature</h2>
+                        <img src="${savedReportData.signature}" alt="Signature">
+                    </div>
+
+                    <div class="section">
+                        <h2>Reporter Information</h2>
+                        <div class="field"><span class="label">Name:</span> ${savedReportData.reporterName}</div>
+                        <div class="field"><span class="label">Position:</span> ${savedReportData.reporterPosition}</div>
+                    </div>
+
+                    ${savedReportData.latitude ? `
+                    <div class="section">
+                        <h2>Location Data</h2>
+                        <div class="field"><span class="label">Latitude:</span> ${savedReportData.latitude}</div>
+                        <div class="field"><span class="label">Longitude:</span> ${savedReportData.longitude}</div>
+                    </div>
+                    ` : ''}
+                </body>
+                </html>
+            `);
+            dataWindow.document.close();
+        }
+
+        // Body diagram functions
+        function switchView(view) {
+            currentView = view;
+
+            // Update button states
+            document.getElementById('frontBtn').classList.toggle('active', view === 'front');
+            document.getElementById('backBtn').classList.toggle('active', view === 'back');
+
+            // Update diagram visibility
+            document.getElementById('bodyDiagramFront').classList.toggle('active', view === 'front');
+            document.getElementById('bodyDiagramBack').classList.toggle('active', view === 'back');
+        }
+
+        function selectBodyPart(part) {
+            const index = selectedBodyParts.indexOf(part);
+
+            if (index > -1) {
+                // Remove if already selected
+                selectedBodyParts.splice(index, 1);
+                unhighlightBodyPart(part);
+            } else {
+                // Add if not selected
+                selectedBodyParts.push(part);
+                highlightBodyPart(part);
+            }
+
+            updateSelectedPartsList();
+        }
+
+        function highlightBodyPart(part) {
+            // Find and highlight the SVG element
+            const elements = document.querySelectorAll(`.body-part[data-part="${part}"]`);
+            elements.forEach(el => el.classList.add('selected'));
+        }
+
+        function unhighlightBodyPart(part) {
+            // Find and unhighlight the SVG element
+            const elements = document.querySelectorAll(`.body-part[data-part="${part}"]`);
+            elements.forEach(el => el.classList.remove('selected'));
+        }
+
+        function removeBodyPart(part) {
+            const index = selectedBodyParts.indexOf(part);
+            if (index > -1) {
+                selectedBodyParts.splice(index, 1);
+                unhighlightBodyPart(part);
+                updateSelectedPartsList();
+            }
+        }
+
+        function updateSelectedPartsList() {
+            const listElement = document.getElementById('selectedPartsList');
+
+            if (selectedBodyParts.length === 0) {
+                listElement.innerHTML = '<span class="no-selection">No body parts selected yet</span>';
+            } else {
+                listElement.innerHTML = selectedBodyParts.map(part => `
+                    <div class="selected-part-tag">
+                        <i class="fas fa-user-injured"></i>
+                        ${part}
+                        <button type="button" class="remove-part-btn" onclick="removeBodyPart('${part}')">
+                            ×
+                        </button>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Notification system
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            `;
+
+            document.body.appendChild(notification);
+
+            // Show notification
+            setTimeout(() => notification.classList.add('show'), 100);
+
+            // Remove after 5 seconds
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300);
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
