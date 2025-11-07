@@ -2466,11 +2466,15 @@
 
                 // Generate PDF and add to report data
                 console.log('Generating PDF for email attachment...');
-                const pdfBlob = await generatePdfDocument();
+                const pdfDoc = await generatePdfDocument();
 
-                // Convert PDF blob to data URL
+                // Convert jsPDF document to blob and then to data URL
                 let pdfDataUrl = null;
-                if (pdfBlob) {
+                if (pdfDoc) {
+                    // Get PDF as blob from jsPDF
+                    const pdfBlob = pdfDoc.output('blob');
+
+                    // Convert blob to data URL
                     pdfDataUrl = await new Promise((resolve) => {
                         const reader = new FileReader();
                         reader.onloadend = () => resolve(reader.result);
