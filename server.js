@@ -207,7 +207,7 @@ app.post('/api/send-email', async (req, res) => {
                 ${reportData.bodyDiagramImage ? `
                     <div class="field">
                         <span class="label">Body Diagram:</span><br>
-                        <img src="${reportData.bodyDiagramImage}" alt="Body Diagram" style="max-width: 300px;">
+                        <img src="cid:bodyDiagram" alt="Body Diagram" style="max-width: 300px; border: 1px solid #e2e8f0; border-radius: 8px;">
                     </div>
                 ` : ''}
             </div>
@@ -231,14 +231,14 @@ app.post('/api/send-email', async (req, res) => {
             ${reportData.injuryPhoto ? `
             <div class="section">
                 <h2>📸 Injury Photo</h2>
-                <img src="${reportData.injuryPhoto}" alt="Injury Photo">
+                <img src="cid:injuryPhoto" alt="Injury Photo" style="border: 1px solid #e2e8f0; border-radius: 8px;">
             </div>
             ` : ''}
 
             ${reportData.employeeSignature ? `
             <div class="section">
                 <h2>✍️ Employee Signature</h2>
-                <img src="${reportData.employeeSignature}" alt="Employee Signature" style="max-width: 300px;">
+                <img src="cid:employeeSignature" alt="Employee Signature" style="max-width: 300px; border: 1px solid #e2e8f0; border-radius: 8px;">
             </div>
             ` : ''}
 
@@ -272,6 +272,44 @@ app.post('/api/send-email', async (req, res) => {
 </html>
         `;
 
+        // Prepare attachments
+        const attachments = [];
+
+        // Add body diagram as attachment if present
+        if (reportData.bodyDiagramImage && reportData.bodyDiagramImage.startsWith('data:')) {
+            attachments.push({
+                filename: `body-diagram-${reportData.reportId}.png`,
+                path: reportData.bodyDiagramImage,
+                cid: 'bodyDiagram' // Content ID for inline embedding
+            });
+        }
+
+        // Add injury photo as attachment if present
+        if (reportData.injuryPhoto && reportData.injuryPhoto.startsWith('data:')) {
+            attachments.push({
+                filename: `injury-photo-${reportData.reportId}.jpg`,
+                path: reportData.injuryPhoto,
+                cid: 'injuryPhoto'
+            });
+        }
+
+        // Add employee signature as attachment if present
+        if (reportData.employeeSignature && reportData.employeeSignature.startsWith('data:')) {
+            attachments.push({
+                filename: `signature-${reportData.reportId}.png`,
+                path: reportData.employeeSignature,
+                cid: 'employeeSignature'
+            });
+        }
+
+        // Add PDF attachment if present
+        if (reportData.pdfData && reportData.pdfData.startsWith('data:')) {
+            attachments.push({
+                filename: `injury-report-${reportData.reportId}.pdf`,
+                path: reportData.pdfData
+            });
+        }
+
         // Email configuration
         const mailOptions = {
             from: `"CWS Safety Reports" <${process.env.EMAIL_USER}>`,
@@ -279,7 +317,8 @@ app.post('/api/send-email', async (req, res) => {
             subject: `[URGENT] ${(reportData.reportClassification || 'ACCIDENT').toUpperCase()} Report - ${reportData.employeeName} - ${reportData.reportId}`,
             html: emailHTML,
             cc: process.env.CC_EMAILS || undefined,
-            bcc: process.env.BCC_EMAILS || undefined
+            bcc: process.env.BCC_EMAILS || undefined,
+            attachments: attachments.length > 0 ? attachments : undefined
         };
 
         // Send email
