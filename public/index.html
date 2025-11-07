@@ -1200,7 +1200,7 @@
                 </div>
 
                 <div class="classification-container">
-                    <div class="classification-card" onclick="selectClassification('incident')" id="incidentCard">
+                    <div class="classification-card" id="incidentCard">
                         <div class="classification-checkmark">
                             <i class="fas fa-check"></i>
                         </div>
@@ -1211,7 +1211,7 @@
                         </div>
                     </div>
 
-                    <div class="classification-card" onclick="selectClassification('accident')" id="accidentCard">
+                    <div class="classification-card" id="accidentCard">
                         <div class="classification-checkmark">
                             <i class="fas fa-check"></i>
                         </div>
@@ -1225,7 +1225,7 @@
 
                 <input type="hidden" id="reportClassification" required>
 
-                <button type="button" class="btn btn-primary btn-next" onclick="nextStep(1)" id="classificationNextBtn" disabled>
+                <button type="button" class="btn btn-primary btn-next" id="classificationNextBtn" disabled>
                     Continue <i class="fas fa-arrow-right"></i>
                 </button>
             </div>
@@ -1921,36 +1921,62 @@
 
         // Initialize touch-friendly event handlers for mobile devices
         function initializeMobileTouchHandlers() {
-            // Add touch event listeners to classification cards
+            // Add both click and touch event listeners to classification cards
             const incidentCard = document.getElementById('incidentCard');
             const accidentCard = document.getElementById('accidentCard');
 
             if (incidentCard) {
+                // Regular click for desktop
+                incidentCard.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    selectClassification('incident');
+                });
+
+                // Touch for mobile (with preventDefault to avoid double-firing)
                 incidentCard.addEventListener('touchend', function(e) {
                     e.preventDefault();
+                    e.stopPropagation();
                     selectClassification('incident');
                 }, { passive: false });
             }
 
             if (accidentCard) {
+                // Regular click for desktop
+                accidentCard.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    selectClassification('accident');
+                });
+
+                // Touch for mobile
                 accidentCard.addEventListener('touchend', function(e) {
                     e.preventDefault();
+                    e.stopPropagation();
                     selectClassification('accident');
                 }, { passive: false });
             }
 
-            // Add touch event listener to Continue button
+            // Add both click and touch to Continue button
             const classificationNextBtn = document.getElementById('classificationNextBtn');
             if (classificationNextBtn) {
+                // Regular click for desktop
+                classificationNextBtn.addEventListener('click', function(e) {
+                    if (!this.disabled) {
+                        e.stopPropagation();
+                        nextStep(1);
+                    }
+                });
+
+                // Touch for mobile
                 classificationNextBtn.addEventListener('touchend', function(e) {
                     if (!this.disabled) {
                         e.preventDefault();
+                        e.stopPropagation();
                         nextStep(1);
                     }
                 }, { passive: false });
             }
 
-            console.log('Mobile touch handlers initialized');
+            console.log('Desktop click and mobile touch handlers initialized');
         }
 
         // Initialize signature pad
