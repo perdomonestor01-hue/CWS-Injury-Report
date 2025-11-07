@@ -2463,12 +2463,34 @@
         async function sendReportEmail() {
             try {
                 console.log('Attempting to send email notification...');
+
+                // Generate PDF and add to report data
+                console.log('Generating PDF for email attachment...');
+                const pdfBlob = await generatePdfDocument();
+
+                // Convert PDF blob to data URL
+                let pdfDataUrl = null;
+                if (pdfBlob) {
+                    pdfDataUrl = await new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve(reader.result);
+                        reader.readAsDataURL(pdfBlob);
+                    });
+                    console.log('PDF generated successfully for email attachment');
+                }
+
+                // Prepare email data with PDF
+                const emailData = {
+                    ...savedReportData,
+                    pdfData: pdfDataUrl
+                };
+
                 const response = await fetch('https://cws-injury-report-production.up.railway.app/api/send-email', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(savedReportData)
+                    body: JSON.stringify(emailData)
                 });
 
                 console.log('Response status:', response.status);
@@ -2483,7 +2505,7 @@
 
                 if (result.success) {
                     console.log('Email sent successfully:', result.messageId);
-                    showNotification('Email notification sent to safety team!', 'success');
+                    showNotification('Email notification sent to safety team with PDF attachment!', 'success');
                 } else {
                     console.error('Email sending failed:', result.error);
                     showNotification('Report saved but email notification failed: ' + (result.error || 'Unknown error'), 'warning');
