@@ -1200,7 +1200,7 @@
                 </div>
 
                 <div class="classification-container">
-                    <div class="classification-card" id="incidentCard">
+                    <div class="classification-card" onclick="selectClassification('incident')" id="incidentCard">
                         <div class="classification-checkmark">
                             <i class="fas fa-check"></i>
                         </div>
@@ -1211,7 +1211,7 @@
                         </div>
                     </div>
 
-                    <div class="classification-card" id="accidentCard">
+                    <div class="classification-card" onclick="selectClassification('accident')" id="accidentCard">
                         <div class="classification-checkmark">
                             <i class="fas fa-check"></i>
                         </div>
@@ -1225,7 +1225,7 @@
 
                 <input type="hidden" id="reportClassification" required>
 
-                <button type="button" class="btn btn-primary btn-next" id="classificationNextBtn" disabled>
+                <button type="button" class="btn btn-primary btn-next" onclick="nextStep(1)" id="classificationNextBtn" disabled>
                     Continue <i class="fas fa-arrow-right"></i>
                 </button>
             </div>
