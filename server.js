@@ -19,7 +19,7 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
 app.use(cors({
     origin: function(origin, callback) {
         // Allow requests with no origin (mobile apps, curl, file://, etc.)
-        if (!origin) return callback(null, true);
+        if (!origin || origin === 'null') return callback(null, true);
 
         // Check if wildcard '*' is in allowed origins
         if (allowedOrigins.includes('*')) {
