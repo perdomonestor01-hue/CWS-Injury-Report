@@ -18,9 +18,15 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
 
 app.use(cors({
     origin: function(origin, callback) {
-        // Allow requests with no origin (mobile apps, curl, etc.)
+        // Allow requests with no origin (mobile apps, curl, file://, etc.)
         if (!origin) return callback(null, true);
 
+        // Check if wildcard '*' is in allowed origins
+        if (allowedOrigins.includes('*')) {
+            return callback(null, true);
+        }
+
+        // Check if specific origin is allowed
         if (allowedOrigins.indexOf(origin) === -1) {
             return callback(new Error('CORS policy: Origin not allowed'), false);
         }
