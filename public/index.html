@@ -990,10 +990,47 @@
 
         /* Touch-friendly adjustments */
         @media (hover: none) and (pointer: coarse) {
+            /* Touch-friendly sizing for mobile devices */
             .btn,
             .form-input,
             .body-part {
                 min-height: 44px;
+            }
+
+            /* Make classification cards more touch-friendly */
+            .classification-card {
+                min-height: 200px;
+                padding: 2.5rem 1.5rem;
+                touch-action: manipulation;
+                -webkit-tap-highlight-color: transparent;
+            }
+
+            /* Remove hover effects on touch devices */
+            .classification-card:hover {
+                transform: none;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            }
+
+            /* Add active state for touch feedback */
+            .classification-card:active {
+                transform: scale(0.98);
+                opacity: 0.9;
+            }
+
+            /* Ensure buttons are touch-friendly */
+            .btn-primary,
+            .btn-next {
+                min-height: 50px;
+                padding: 15px 30px;
+                touch-action: manipulation;
+                -webkit-tap-highlight-color: transparent;
+            }
+
+            /* Active state for buttons */
+            .btn-primary:active,
+            .btn-next:active {
+                transform: scale(0.98);
+                opacity: 0.9;
             }
         }
 
@@ -1878,8 +1915,43 @@
             setDefaultDateTime();
             captureGeolocation();
             initializeDragAndDrop();
+            initializeMobileTouchHandlers();
             showNotification('Local demo mode - data will be saved to browser storage', 'info');
         });
+
+        // Initialize touch-friendly event handlers for mobile devices
+        function initializeMobileTouchHandlers() {
+            // Add touch event listeners to classification cards
+            const incidentCard = document.getElementById('incidentCard');
+            const accidentCard = document.getElementById('accidentCard');
+
+            if (incidentCard) {
+                incidentCard.addEventListener('touchend', function(e) {
+                    e.preventDefault();
+                    selectClassification('incident');
+                }, { passive: false });
+            }
+
+            if (accidentCard) {
+                accidentCard.addEventListener('touchend', function(e) {
+                    e.preventDefault();
+                    selectClassification('accident');
+                }, { passive: false });
+            }
+
+            // Add touch event listener to Continue button
+            const classificationNextBtn = document.getElementById('classificationNextBtn');
+            if (classificationNextBtn) {
+                classificationNextBtn.addEventListener('touchend', function(e) {
+                    if (!this.disabled) {
+                        e.preventDefault();
+                        nextStep(1);
+                    }
+                }, { passive: false });
+            }
+
+            console.log('Mobile touch handlers initialized');
+        }
 
         // Initialize signature pad
         function initializeSignaturePad() {
