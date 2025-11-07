@@ -13,7 +13,7 @@ app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-inline'"], // Allow inline scripts for onclick handlers
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"], // Allow inline scripts and CDN libraries
             scriptSrcAttr: ["'unsafe-inline'"], // Allow inline event handlers (onclick, etc.)
             styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
             fontSrc: ["'self'", "https://cdnjs.cloudflare.com"],
