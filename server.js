@@ -8,8 +8,24 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Security middleware
-app.use(helmet());
+// Security middleware with CSP configuration
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'"], // Allow inline scripts for onclick handlers
+            scriptSrcAttr: ["'unsafe-inline'"], // Allow inline event handlers (onclick, etc.)
+            styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
+            fontSrc: ["'self'", "https://cdnjs.cloudflare.com"],
+            imgSrc: ["'self'", "data:", "blob:"],
+            connectSrc: ["'self'"],
+            frameSrc: ["'none'"],
+            objectSrc: ["'none'"],
+            baseUri: ["'self'"],
+            formAction: ["'self'"]
+        }
+    }
+}));
 
 // CORS configuration
 const allowedOrigins = process.env.ALLOWED_ORIGINS
