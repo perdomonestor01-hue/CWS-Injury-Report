@@ -1,78 +1,113 @@
-# JufipAI Website 🤖
+# CWS Injury Report Email Service
 
-Automated AI & Automation Services Website with bilingual support (English/Spanish).
+Backend service for sending injury report emails via Google Workspace SMTP.
 
-## 🚀 Features
+## Quick Start
 
-- **Bilingual Support**: ENG/ESP language toggle with complete translations
-- **Interactive UI**: Blue metallic theme with animations and sound effects
-- **Contact Form**: Direct integration with Google Sheets for lead capture
-- **Welcome Overlays**: Spectacular customer onboarding experience
-- **Automated Deployment**: GitHub Actions for continuous deployment
-- **Responsive Design**: Mobile-optimized layout
-- **Audio Integration**: Interactive sound feedback system
-
-## 🔧 Automated Deployment
-
-This website uses GitHub Actions for automated deployment to GitHub Pages.
-
-### Setup Instructions:
-
-1. **Push to GitHub**:
-   ```bash
-   git add .
-   git commit -m "Initial commit with automated deployment"
-   git remote add origin https://github.com/[your-username]/[your-repo-name].git
-   git push -u origin main
-   ```
-
-2. **Enable GitHub Pages**:
-   - Go to your repository settings
-   - Navigate to "Pages" section
-   - Set Source to "GitHub Actions"
-
-3. **Automatic Updates**:
-   - Every push to `main` branch triggers automatic deployment
-   - Website updates live in ~2-3 minutes
-   - No manual intervention required
-
-## 📝 Adding New Features
-
-Simply edit `index.html` and push changes:
-
+### 1. Install Dependencies
 ```bash
-git add index.html
-git commit -m "Add new feature: [description]"
-git push
+npm install
 ```
 
-The website will automatically update at: `https://[your-username].github.io/[your-repo-name]`
+### 2. Configure Environment
+```bash
+cp .env.example .env
+```
 
-## 🌍 Language System
+Edit `.env` and add your Google Workspace App Password:
+```env
+EMAIL_USER=safety@customworkforcesolutionsllc.com
+EMAIL_PASS=your_16_character_app_password
+```
 
-The website supports English and Spanish with:
-- Persistent language preference (localStorage)
-- Complete translation coverage
-- Form field localization
-- Dynamic content switching
+### 3. Run Locally
+```bash
+npm start
+```
 
-## 📊 Google Sheets Integration
+Server will run on http://localhost:3000
 
-Contact form automatically sends data to Google Spreadsheet:
-- Column A: Full Name
-- Column B: Email Address
-- Column C: Company Name
-- Column D: Project Description  
-- Column E: Timestamp
+### 4. Test
+```bash
+curl http://localhost:3000/api/health
+```
 
-## 🎵 Interactive Features
+## Deployment Options
 
-- Welcome animations with particle effects
-- Customer success overlays
-- Service card tooltips
-- Audio feedback system
-- Smooth scrolling navigation
+### Railway (Recommended)
 
----
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template)
 
-**Built with automation in mind** ⚡
+1. Click button above
+2. Connect your GitHub account
+3. Add environment variables in Railway dashboard
+4. Deploy!
+
+### Render
+
+1. Create new Web Service on Render.com
+2. Connect this repository
+3. Set environment variables
+4. Deploy
+
+### Vercel
+
+1. Install Vercel CLI: `npm i -g vercel`
+2. Run: `vercel`
+3. Follow prompts
+4. Set environment variables in dashboard
+
+## API Endpoints
+
+### Health Check
+```
+GET /api/health
+```
+
+Returns server status.
+
+### Send Email
+```
+POST /api/send-email
+Content-Type: application/json
+
+{
+  "reportId": "CWS-1001-2025-11-06",
+  "employeeName": "John Doe",
+  "reportClassification": "accident",
+  ...
+}
+```
+
+Returns:
+```json
+{
+  "success": true,
+  "message": "Email sent successfully",
+  "messageId": "...",
+  "reportId": "CWS-1001-2025-11-06"
+}
+```
+
+## Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `EMAIL_USER` | Google Workspace email | Yes |
+| `EMAIL_PASS` | Google App Password | Yes |
+| `PORT` | Server port | No (default: 3000) |
+| `ALLOWED_ORIGINS` | CORS origins (comma-separated) | No |
+| `CC_EMAILS` | CC recipients (comma-separated) | No |
+| `BCC_EMAILS` | BCC recipients (comma-separated) | No |
+
+## Security
+
+- Rate limiting: 10 requests/hour per IP
+- Helmet.js for security headers
+- CORS protection
+- Input validation
+- No credentials in code
+
+## Support
+
+Engineered by Jufipai
