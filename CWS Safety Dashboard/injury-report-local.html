@@ -1118,7 +1118,7 @@
             <span id="headerTitle">Injury Report System</span>
         </div>
         <div class="header-info">
-            <span class="report-id" id="reportIdDisplay">Local Demo Mode</span>
+            <span class="report-id" id="reportIdDisplay"></span>
         </div>
     </header>
 
@@ -1210,30 +1210,20 @@
 
                 <div class="form-group">
                     <label class="form-label" for="employeeId">
-                        Employee ID <span class="required">*</span>
+                        Employee ID
                     </label>
-                    <input type="text" id="employeeId" class="form-input" required
+                    <input type="text" id="employeeId" class="form-input"
                            placeholder="Enter employee ID">
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" for="affiliate">
-                        Affiliate <span class="required">*</span>
+                    <label class="form-label" for="employeePhone">
+                        Cellphone Number <span class="required">*</span>
                     </label>
-                    <select id="affiliate" class="form-input" required>
-                        <option value="">Select affiliate...</option>
-                        <option value="Arlington">Arlington</option>
-                        <option value="San Antonio">San Antonio</option>
-                        <option value="Houston">Houston</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="client">
-                        Client Company <span class="required">*</span>
-                    </label>
-                    <input type="text" id="client" class="form-input" required
-                           placeholder="Enter client company name">
+                    <input type="tel" id="employeePhone" class="form-input" required
+                           placeholder="321-123-4545"
+                           pattern="[0-9\-\(\)\s\+]*">
+                    <small class="form-hint">To be contacted regarding this incident</small>
                 </div>
 
                 <button type="button" class="btn btn-primary btn-next" onclick="nextStep(2)">
@@ -1247,6 +1237,23 @@
                     <i class="fas fa-clock"></i>
                     <span id="step2Title">Incident Details</span>
                 </h2>
+
+                <div class="form-group">
+                    <label class="form-label" for="client">
+                        Client Company <span class="required">*</span>
+                    </label>
+                    <input type="text" id="client" class="form-input" required
+                           placeholder="Enter client company name">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="location">
+                        Complete Address <span class="required">*</span>
+                    </label>
+                    <input type="text" id="location" class="form-input" required
+                           placeholder="Enter full street address, city, state, zip code">
+                    <small class="form-hint" id="locationHint">Where the incident/accident happened</small>
+                </div>
 
                 <div class="form-row">
                     <div class="form-group">
@@ -1282,15 +1289,6 @@
                         <input type="time" id="reportedTime" class="form-input" required>
                         <small class="form-hint">Time this report is being submitted</small>
                     </div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="location">
-                        Complete Address <span class="required">*</span>
-                    </label>
-                    <input type="text" id="location" class="form-input" required
-                           placeholder="Enter full street address, city, state, zip code">
-                    <small class="form-hint" id="locationHint">Where the incident/accident happened</small>
                 </div>
 
                 <div class="form-group">
@@ -1878,7 +1876,6 @@
             setDefaultDateTime();
             captureGeolocation();
             initializeDragAndDrop();
-            showNotification('Local demo mode - data will be saved to browser storage', 'info');
         });
 
         // Initialize signature pad
@@ -2402,7 +2399,7 @@
                 reportClassification: reportClassification,
                 employeeName: document.getElementById('employeeName').value,
                 employeeId: document.getElementById('employeeId').value,
-                affiliate: document.getElementById('affiliate').value,
+                employeePhone: document.getElementById('employeePhone').value,
                 client: document.getElementById('client').value,
                 incidentDate: document.getElementById('incidentDate').value,
                 incidentTime: document.getElementById('incidentTime').value,
@@ -2594,13 +2591,14 @@
             doc.text(savedReportData.employeeId, pageWidth / 2 + 40, yPos);
             yPos += 7;
             doc.setFont(undefined, 'bold');
-            doc.text('Affiliate:', margin, yPos);
+            doc.text('Cellphone:', margin, yPos);
             doc.setFont(undefined, 'normal');
-            doc.text(savedReportData.affiliate, margin + 40, yPos);
+            doc.text(savedReportData.employeePhone, margin + 40, yPos);
+            yPos += 7;
             doc.setFont(undefined, 'bold');
-            doc.text('Client:', pageWidth / 2 + 10, yPos);
+            doc.text('Client:', margin, yPos);
             doc.setFont(undefined, 'normal');
-            doc.text(savedReportData.client, pageWidth / 2 + 40, yPos);
+            doc.text(savedReportData.client, margin + 40, yPos);
             yPos += 15;
 
             // ===== INCIDENT DETAILS SECTION =====
@@ -2853,7 +2851,7 @@
                 `WORKPLACE INJURY REPORT\n\n` +
                 `Report ID: ${savedReportData.reportId}\n` +
                 `Employee: ${savedReportData.employeeName} (ID: ${savedReportData.employeeId})\n` +
-                `Affiliate: ${savedReportData.affiliate}\n` +
+                `Cellphone: ${savedReportData.employeePhone}\n` +
                 `Client: ${savedReportData.client}\n` +
                 `Incident Date: ${savedReportData.incidentDate} at ${savedReportData.incidentTime}\n` +
                 `Injury Type: ${savedReportData.injuryType}\n` +
@@ -3114,14 +3112,15 @@
             yPos += 7;
 
             doc.setFont(undefined, 'bold');
-            doc.text('Affiliate:', margin, yPos);
+            doc.text('Cellphone:', margin, yPos);
             doc.setFont(undefined, 'normal');
-            doc.text(savedReportData.affiliate, margin + 40, yPos);
+            doc.text(savedReportData.employeePhone, margin + 40, yPos);
+            yPos += 7;
 
             doc.setFont(undefined, 'bold');
-            doc.text('Client:', pageWidth / 2 + 10, yPos);
+            doc.text('Client:', margin, yPos);
             doc.setFont(undefined, 'normal');
-            doc.text(savedReportData.client, pageWidth / 2 + 40, yPos);
+            doc.text(savedReportData.client, margin + 40, yPos);
             yPos += 15;
 
             // ===== INCIDENT DETAILS SECTION =====
@@ -3508,8 +3507,9 @@
             doc.setTextColor(0, 0, 0);
             doc.setFont(undefined, 'normal');
             doc.text('Employee: ' + savedReportData.employeeName, margin + 10, yPos + 32);
-            doc.text('Date: ' + savedReportData.incidentDate, margin + 10, yPos + 42);
-            doc.text('Type: ' + savedReportData.injuryType, margin + 10, yPos + 52);
+            doc.text('Phone: ' + savedReportData.employeePhone, margin + 10, yPos + 42);
+            doc.text('Date: ' + savedReportData.incidentDate, margin + 10, yPos + 52);
+            doc.text('Type: ' + savedReportData.injuryType, margin + 10, yPos + 62);
 
             doc.setFillColor(30, 58, 95);
             doc.rect(0, pageHeight - 20, pageWidth, 20, 'F');
@@ -3544,13 +3544,14 @@
             doc.text(savedReportData.employeeId, pageWidth / 2 + 35, yPos);
             yPos += 10;
             doc.setFont(undefined, 'bold');
-            doc.text('Affiliate:', margin, yPos);
+            doc.text('Cellphone:', margin, yPos);
             doc.setFont(undefined, 'normal');
-            doc.text(savedReportData.affiliate, margin + 35, yPos);
+            doc.text(savedReportData.employeePhone, margin + 35, yPos);
+            yPos += 10;
             doc.setFont(undefined, 'bold');
-            doc.text('Client:', pageWidth / 2, yPos);
+            doc.text('Client:', margin, yPos);
             doc.setFont(undefined, 'normal');
-            doc.text(savedReportData.client, pageWidth / 2 + 35, yPos);
+            doc.text(savedReportData.client, margin + 35, yPos);
             yPos += 25;
 
             doc.setFillColor(30, 58, 95);
@@ -3744,7 +3745,7 @@
                         <h2>Employee Information</h2>
                         <div class="field"><span class="label">Name:</span> ${savedReportData.employeeName}</div>
                         <div class="field"><span class="label">Employee ID:</span> ${savedReportData.employeeId}</div>
-                        <div class="field"><span class="label">Affiliate:</span> ${savedReportData.affiliate}</div>
+                        <div class="field"><span class="label">Cellphone:</span> ${savedReportData.employeePhone}</div>
                         <div class="field"><span class="label">Client:</span> ${savedReportData.client}</div>
                     </div>
 
@@ -3804,6 +3805,11 @@
             // Update diagram visibility
             document.getElementById('bodyDiagramFront').classList.toggle('active', view === 'front');
             document.getElementById('bodyDiagramBack').classList.toggle('active', view === 'back');
+
+            // Re-apply all selections to ensure they show on the newly visible diagram
+            selectedBodyParts.forEach(part => {
+                highlightBodyPart(part);
+            });
         }
 
         function selectBodyPart(part) {
@@ -3823,14 +3829,14 @@
         }
 
         function highlightBodyPart(part) {
-            // Find and highlight the SVG element
-            const elements = document.querySelectorAll(`.body-part[data-part="${part}"]`);
+            // Find and highlight the SVG element (both body-part and joint classes)
+            const elements = document.querySelectorAll(`.body-part[data-part="${part}"], .joint[data-part="${part}"]`);
             elements.forEach(el => el.classList.add('selected'));
         }
 
         function unhighlightBodyPart(part) {
-            // Find and unhighlight the SVG element
-            const elements = document.querySelectorAll(`.body-part[data-part="${part}"]`);
+            // Find and unhighlight the SVG element (both body-part and joint classes)
+            const elements = document.querySelectorAll(`.body-part[data-part="${part}"], .joint[data-part="${part}"]`);
             elements.forEach(el => el.classList.remove('selected'));
         }
 
