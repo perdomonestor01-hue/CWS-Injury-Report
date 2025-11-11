@@ -1,0 +1,328 @@
+<!-- Manager Detail Header -->
+<div class="flex items-center justify-between mb-8">
+    <div>
+        <div class="flex items-center mb-2">
+            <a href="/managers" class="text-blue-600 hover:text-blue-800 mr-3">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <h2 class="text-2xl font-bold text-gray-800">{{managerName}}</h2>
+        </div>
+        <p class="text-gray-600">Property Manager Portfolio Overview</p>
+    </div>
+    <div class="flex space-x-4">
+        <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center">
+            <i class="fas fa-envelope mr-2"></i>
+            Contact Manager
+        </button>
+        <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center">
+            <i class="fas fa-chart-bar mr-2"></i>
+            Generate Report
+        </button>
+    </div>
+</div>
+
+<!-- Manager Performance Summary -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-blue-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-600 text-sm">Total Properties</p>
+                <p class="text-3xl font-bold text-blue-600">{{metrics.totalProperties}}</p>
+            </div>
+            <i class="fas fa-home text-blue-500 text-2xl"></i>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-green-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-600 text-sm">Total Revenue</p>
+                <p class="text-3xl font-bold text-green-600">{{formatCurrency metrics.totalRentIncome}}</p>
+            </div>
+            <i class="fas fa-dollar-sign text-green-500 text-2xl"></i>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-{{#if (gt metrics.totalNetIncome 0)}}green{{else}}red{{/if}}-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-600 text-sm">Net Income</p>
+                <p class="text-3xl font-bold text-{{#if (gt metrics.totalNetIncome 0)}}green{{else}}red{{/if}}-600">
+                    {{formatCurrency metrics.totalNetIncome}}
+                </p>
+            </div>
+            <i class="fas fa-chart-line text-{{#if (gt metrics.totalNetIncome 0)}}green{{else}}red{{/if}}-500 text-2xl"></i>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-purple-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-600 text-sm">Average ROI</p>
+                <p class="text-3xl font-bold text-purple-600">{{formatPercent metrics.averageROI}}</p>
+            </div>
+            <i class="fas fa-percentage text-purple-500 text-2xl"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Properties List -->
+<div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="flex items-center justify-between mb-6">
+        <h3 class="text-xl font-semibold text-gray-800">Managed Properties</h3>
+        <div class="flex space-x-2">
+            <input type="text" id="search-properties" placeholder="Search properties..."
+                   class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select id="sort-properties" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="address">Sort by Address</option>
+                <option value="income">Sort by Income</option>
+                <option value="roi">Sort by ROI</option>
+                <option value="expenses">Sort by Expenses</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Property</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monthly Rent</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Expenses</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Net Income</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ROI</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200" id="properties-table-body">
+                {{#each properties}}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div>
+                            <div class="text-sm font-medium text-gray-900">{{address}}</div>
+                            <div class="text-sm text-gray-500">{{city}}, {{state}}</div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {{property_type}}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {{formatCurrency (divide rent_income 12)}}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {{formatCurrency total_expenses}}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm {{#if (gt net_income 0)}}text-green-600{{else}}text-red-600{{/if}}">
+                        {{formatCurrency net_income}}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm {{#if (gt roi 0)}}text-green-600{{else}}text-red-600{{/if}}">
+                        {{formatPercent roi}}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{#if (eq status 'Active')}}bg-green-100 text-green-800{{else}}bg-red-100 text-red-800{{/if}}">
+                            {{status}}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div class="flex space-x-2">
+                            <button class="text-blue-600 hover:text-blue-900">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="text-gray-600 hover:text-gray-900">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="text-purple-600 hover:text-purple-900">
+                                <i class="fas fa-chart-bar"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Performance Charts -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+    <!-- Property Performance Chart -->
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <h3 class="text-xl font-semibold text-gray-800 mb-6">Property Performance</h3>
+        <div class="h-64">
+            <canvas id="propertyPerformanceChart"></canvas>
+        </div>
+    </div>
+
+    <!-- ROI Distribution -->
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <h3 class="text-xl font-semibold text-gray-800 mb-6">ROI Distribution</h3>
+        <div class="h-64">
+            <canvas id="roiDistributionChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const properties = {{{json properties}}};
+
+    // Property Performance Chart
+    const ctx1 = document.getElementById('propertyPerformanceChart').getContext('2d');
+    const propertyNames = properties.map(p => p.address.length > 20 ? p.address.substring(0, 20) + '...' : p.address);
+    const netIncomes = properties.map(p => p.net_income || 0);
+
+    new Chart(ctx1, {
+        type: 'bar',
+        data: {
+            labels: propertyNames,
+            datasets: [{
+                label: 'Net Income ($)',
+                data: netIncomes,
+                backgroundColor: netIncomes.map(income => income > 0 ? 'rgba(16, 185, 129, 0.8)' : 'rgba(239, 68, 68, 0.8)'),
+                borderColor: netIncomes.map(income => income > 0 ? 'rgba(16, 185, 129, 1)' : 'rgba(239, 68, 68, 1)'),
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // ROI Distribution Chart
+    const ctx2 = document.getElementById('roiDistributionChart').getContext('2d');
+    const roiRanges = ['< 0%', '0-2%', '2-5%', '5-10%', '> 10%'];
+    const roiCounts = [
+        properties.filter(p => p.roi < 0).length,
+        properties.filter(p => p.roi >= 0 && p.roi < 2).length,
+        properties.filter(p => p.roi >= 2 && p.roi < 5).length,
+        properties.filter(p => p.roi >= 5 && p.roi < 10).length,
+        properties.filter(p => p.roi >= 10).length
+    ];
+
+    new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+            labels: roiRanges,
+            datasets: [{
+                data: roiCounts,
+                backgroundColor: [
+                    'rgba(239, 68, 68, 0.8)',
+                    'rgba(245, 158, 11, 0.8)',
+                    'rgba(59, 130, 246, 0.8)',
+                    'rgba(16, 185, 129, 0.8)',
+                    'rgba(34, 197, 94, 0.8)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Search and sort functionality
+    const searchInput = document.getElementById('search-properties');
+    const sortSelect = document.getElementById('sort-properties');
+    const tableBody = document.getElementById('properties-table-body');
+
+    searchInput.addEventListener('input', filterAndSortProperties);
+    sortSelect.addEventListener('change', filterAndSortProperties);
+
+    function filterAndSortProperties() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const sortBy = sortSelect.value;
+
+        let filteredProperties = properties.filter(property =>
+            property.address.toLowerCase().includes(searchTerm)
+        );
+
+        // Sort properties
+        filteredProperties.sort((a, b) => {
+            switch(sortBy) {
+                case 'address':
+                    return a.address.localeCompare(b.address);
+                case 'income':
+                    return (b.net_income || 0) - (a.net_income || 0);
+                case 'roi':
+                    return (b.roi || 0) - (a.roi || 0);
+                case 'expenses':
+                    return (b.total_expenses || 0) - (a.total_expenses || 0);
+                default:
+                    return 0;
+            }
+        });
+
+        // Re-render table
+        renderTable(filteredProperties);
+    }
+
+    function renderTable(propertiesToShow) {
+        tableBody.innerHTML = propertiesToShow.map(property => `
+            <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div>
+                        <div class="text-sm font-medium text-gray-900">${property.address}</div>
+                        <div class="text-sm text-gray-500">${property.city || 'Unknown'}, ${property.state || 'TX'}</div>
+                    </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    ${property.property_type || 'Unknown'}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    ${formatCurrency((property.rent_income || 0) / 12)}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    ${formatCurrency(property.total_expenses || 0)}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm ${(property.net_income || 0) > 0 ? 'text-green-600' : 'text-red-600'}">
+                    ${formatCurrency(property.net_income || 0)}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm ${(property.roi || 0) > 0 ? 'text-green-600' : 'text-red-600'}">
+                    ${(property.roi || 0).toFixed(1)}%
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${property.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                        ${property.status || 'Active'}
+                    </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <div class="flex space-x-2">
+                        <button class="text-blue-600 hover:text-blue-900">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="text-gray-600 hover:text-gray-900">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="text-purple-600 hover:text-purple-900">
+                            <i class="fas fa-chart-bar"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    }
+});
+</script>

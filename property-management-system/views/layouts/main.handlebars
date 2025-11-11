@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}} - Ben Zen Properties LLC</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .priority-high {
+            background-color: #fee2e2;
+            color: #dc2626;
+            border-left: 4px solid #dc2626;
+        }
+        .priority-medium {
+            background-color: #fef3c7;
+            color: #d97706;
+            border-left: 4px solid #d97706;
+        }
+        .priority-low {
+            background-color: #dcfce7;
+            color: #16a34a;
+            border-left: 4px solid #16a34a;
+        }
+        .sidebar-nav {
+            background: linear-gradient(180deg, #1f2937 0%, #111827 100%);
+        }
+        .nav-item {
+            transition: all 0.2s ease;
+        }
+        .nav-item:hover {
+            background-color: rgba(75, 85, 99, 0.5);
+        }
+        .nav-item.active {
+            background-color: #3b82f6;
+        }
+        .metric-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid;
+        }
+        .metric-positive { border-left-color: #10b981; }
+        .metric-negative { border-left-color: #ef4444; }
+        .metric-neutral { border-left-color: #6b7280; }
+        .metric-warning { border-left-color: #f59e0b; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="w-64 sidebar-nav text-white">
+            <div class="p-6 border-b border-gray-700">
+                <h1 class="text-xl font-bold">
+                    <i class="fas fa-building mr-2"></i>
+                    Ben Zen Properties LLC
+                </h1>
+                <p class="text-gray-400 text-sm mt-1">Portfolio Management System</p>
+            </div>
+
+            <nav class="mt-6">
+                <a href="/" class="nav-item flex items-center px-6 py-3 text-gray-300 hover:text-white {{#if (eq title 'Property Management Dashboard')}}active{{/if}}">
+                    <i class="fas fa-chart-pie mr-3"></i>
+                    Dashboard
+                </a>
+                <a href="/properties" class="nav-item flex items-center px-6 py-3 text-gray-300 hover:text-white {{#if (eq title 'Properties')}}active{{/if}}">
+                    <i class="fas fa-home mr-3"></i>
+                    Properties
+                </a>
+                <a href="/managers" class="nav-item flex items-center px-6 py-3 text-gray-300 hover:text-white {{#if (eq title 'Property Managers')}}active{{/if}}">
+                    <i class="fas fa-users mr-3"></i>
+                    Managers
+                </a>
+                <a href="/alerts" class="nav-item flex items-center px-6 py-3 text-gray-300 hover:text-white {{#if (eq title 'Alerts & Notifications')}}active{{/if}}">
+                    <i class="fas fa-bell mr-3"></i>
+                    Alerts
+                    {{#if totalAlerts}}
+                    <span class="ml-auto bg-red-500 text-xs px-2 py-1 rounded-full">{{totalAlerts}}</span>
+                    {{/if}}
+                </a>
+                <a href="/map" class="nav-item flex items-center px-6 py-3 text-gray-300 hover:text-white {{#if (eq title 'Property Map')}}active{{/if}}">
+                    <i class="fas fa-map-marked-alt mr-3"></i>
+                    Property Map
+                </a>
+                <a href="/analytics" class="nav-item flex items-center px-6 py-3 text-gray-300 hover:text-white {{#if (eq title 'Analytics & Insights')}}active{{/if}}">
+                    <i class="fas fa-chart-bar mr-3"></i>
+                    Analytics
+                </a>
+                <a href="/reports" class="nav-item flex items-center px-6 py-3 text-gray-300 hover:text-white {{#if (eq title 'Business Reports')}}active{{/if}}">
+                    <i class="fas fa-file-alt mr-3"></i>
+                    Reports
+                </a>
+                <a href="/settings" class="nav-item flex items-center px-6 py-3 text-gray-300 hover:text-white {{#if (eq title 'System Settings')}}active{{/if}}">
+                    <i class="fas fa-cog mr-3"></i>
+                    Settings
+                </a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Header -->
+            <header class="bg-white shadow-sm border-b border-gray-200">
+                <div class="flex items-center justify-between px-6 py-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800">{{title}}</h2>
+                        <p class="text-gray-600 text-sm">Ben Zen Properties LLC - Real-time portfolio management</p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="text-right">
+                            <p class="text-sm text-gray-600">Last Updated</p>
+                            <p class="text-sm font-medium" id="last-updated">Loading...</p>
+                        </div>
+                        <div class="bg-blue-100 p-2 rounded-full">
+                            <i class="fas fa-user text-blue-600"></i>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="flex-1 overflow-y-auto p-6">
+                {{{body}}}
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Global utility functions
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(value);
+        }
+
+        function formatPercent(value) {
+            return value.toFixed(1) + '%';
+        }
+
+        // Update last updated time
+        document.addEventListener('DOMContentLoaded', function() {
+            const lastUpdatedElement = document.getElementById('last-updated');
+            if (lastUpdatedElement) {
+                lastUpdatedElement.textContent = new Date().toLocaleString();
+            }
+        });
+
+        // Auto-refresh alerts every 5 minutes
+        setInterval(() => {
+            if (window.location.pathname === '/alerts') {
+                window.location.reload();
+            }
+        }, 300000);
+    </script>
+</body>
+</html>

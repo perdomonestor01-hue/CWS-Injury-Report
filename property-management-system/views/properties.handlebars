@@ -1,0 +1,245 @@
+<!-- Properties Header -->
+<div class="flex items-center justify-between mb-8">
+    <div>
+        <h2 class="text-2xl font-bold text-gray-800">Property Portfolio</h2>
+        <p class="text-gray-600">Manage and monitor all your rental properties</p>
+    </div>
+    <div class="flex space-x-4">
+        <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center">
+            <i class="fas fa-plus mr-2"></i>
+            Add Property
+        </button>
+        <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center">
+            <i class="fas fa-download mr-2"></i>
+            Export Data
+        </button>
+    </div>
+</div>
+
+<!-- Filters and Search -->
+<div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Search Properties</label>
+            <input type="text" id="property-search" placeholder="Search by address..."
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Manager</label>
+            <select id="manager-filter" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">All Managers</option>
+                {{#each managers}}
+                <option value="{{name}}">{{name}}</option>
+                {{/each}}
+            </select>
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Property Type</label>
+            <select id="type-filter" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">All Types</option>
+                <option value="Single Family">Single Family</option>
+                <option value="Multi-Family">Multi-Family</option>
+                <option value="Townhouse">Townhouse</option>
+            </select>
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Performance</label>
+            <select id="performance-filter" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">All Properties</option>
+                <option value="profitable">Profitable</option>
+                <option value="break-even">Break Even</option>
+                <option value="loss">Loss Making</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- Properties Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="properties-grid">
+    {{#each properties}}
+    <div class="property-card bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-200"
+         data-manager="{{manager}}" data-type="{{property_type}}" data-performance="{{#if (gt net_income 0)}}profitable{{else if (eq net_income 0)}}break-even{{else}}loss{{/if}}">
+
+        <!-- Property Header -->
+        <div class="p-6 border-b border-gray-100">
+            <div class="flex items-start justify-between mb-3">
+                <h3 class="font-semibold text-gray-800 text-lg">{{address}}</h3>
+                <span class="px-2 py-1 text-xs rounded-full {{#if (eq status 'Active')}}bg-green-100 text-green-800{{else}}bg-red-100 text-red-800{{/if}}">
+                    {{status}}
+                </span>
+            </div>
+
+            <div class="flex items-center text-sm text-gray-600 mb-2">
+                <i class="fas fa-user mr-2"></i>
+                <span>{{manager}}</span>
+            </div>
+
+            <div class="flex items-center text-sm text-gray-600">
+                <i class="fas fa-home mr-2"></i>
+                <span>{{property_type}}</span>
+            </div>
+        </div>
+
+        <!-- Financial Metrics -->
+        <div class="p-6">
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                    <p class="text-xs text-gray-500 uppercase tracking-wide">Monthly Rent</p>
+                    <p class="text-lg font-bold text-green-600">{{formatCurrency (divide rent_income 12)}}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500 uppercase tracking-wide">Net Income</p>
+                    <p class="text-lg font-bold {{#if (gt net_income 0)}}text-green-600{{else}}text-red-600{{/if}}">
+                        {{formatCurrency net_income}}
+                    </p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                    <p class="text-xs text-gray-500 uppercase tracking-wide">Total Expenses</p>
+                    <p class="text-sm font-medium text-gray-800">{{formatCurrency total_expenses}}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500 uppercase tracking-wide">ROI</p>
+                    <p class="text-sm font-medium {{#if (gt roi 0)}}text-green-600{{else}}text-red-600{{/if}}">
+                        {{formatPercent roi}}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Mortgage Balance -->
+            {{#if mortgage_balance}}
+            <div class="mb-4">
+                <p class="text-xs text-gray-500 uppercase tracking-wide">Mortgage Balance</p>
+                <p class="text-sm font-medium text-purple-600">{{formatCurrency mortgage_balance}}</p>
+            </div>
+            {{/if}}
+
+            <!-- Performance Indicator -->
+            <div class="w-full bg-gray-200 rounded-full h-2 mb-4">
+                <div class="h-2 rounded-full {{#if (gt roi 5)}}bg-green-500{{else if (gt roi 0)}}bg-yellow-500{{else}}bg-red-500{{/if}}"
+                     style="width: {{#if (gt roi 0)}}{{roi}}%{{else}}10%{{/if}}"></div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex space-x-2">
+                <button class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 px-3 rounded-md transition">
+                    View Details
+                </button>
+                <button class="bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm py-2 px-3 rounded-md transition">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm py-2 px-3 rounded-md transition">
+                    <i class="fas fa-chart-bar"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    {{/each}}
+</div>
+
+<!-- Empty State -->
+<div id="no-results" class="hidden text-center py-12">
+    <i class="fas fa-search text-4xl text-gray-400 mb-4"></i>
+    <h3 class="text-lg font-medium text-gray-600 mb-2">No properties found</h3>
+    <p class="text-gray-500">Try adjusting your search criteria or filters</p>
+</div>
+
+<!-- Summary Statistics -->
+<div class="mt-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-8 text-white">
+    <h3 class="text-2xl font-bold mb-6">Portfolio Summary</h3>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="text-center">
+            <p class="text-3xl font-bold">{{properties.length}}</p>
+            <p class="text-blue-100">Total Properties</p>
+        </div>
+        <div class="text-center">
+            <p class="text-3xl font-bold" id="profitable-count">
+                {{#each properties}}{{#if (gt net_income 0)}}1{{else}}0{{/if}}{{/each}}
+            </p>
+            <p class="text-blue-100">Profitable</p>
+        </div>
+        <div class="text-center">
+            <p class="text-3xl font-bold" id="avg-roi">
+                {{#each properties}}{{roi}}{{/each}}%
+            </p>
+            <p class="text-blue-100">Avg ROI</p>
+        </div>
+        <div class="text-center">
+            <p class="text-3xl font-bold">
+                {{#each managers}}1{{/each}}
+            </p>
+            <p class="text-blue-100">Active Managers</p>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('property-search');
+    const managerFilter = document.getElementById('manager-filter');
+    const typeFilter = document.getElementById('type-filter');
+    const performanceFilter = document.getElementById('performance-filter');
+    const propertiesGrid = document.getElementById('properties-grid');
+    const noResults = document.getElementById('no-results');
+
+    function filterProperties() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const selectedManager = managerFilter.value;
+        const selectedType = typeFilter.value;
+        const selectedPerformance = performanceFilter.value;
+
+        const propertyCards = propertiesGrid.querySelectorAll('.property-card');
+        let visibleCount = 0;
+
+        propertyCards.forEach(card => {
+            const address = card.querySelector('h3').textContent.toLowerCase();
+            const manager = card.dataset.manager;
+            const type = card.dataset.type;
+            const performance = card.dataset.performance;
+
+            const matchesSearch = address.includes(searchTerm);
+            const matchesManager = !selectedManager || manager === selectedManager;
+            const matchesType = !selectedType || type === selectedType;
+            const matchesPerformance = !selectedPerformance || performance === selectedPerformance;
+
+            if (matchesSearch && matchesManager && matchesType && matchesPerformance) {
+                card.style.display = 'block';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        // Toggle no results message
+        if (visibleCount === 0) {
+            propertiesGrid.style.display = 'none';
+            noResults.style.display = 'block';
+        } else {
+            propertiesGrid.style.display = 'grid';
+            noResults.style.display = 'none';
+        }
+    }
+
+    // Add event listeners
+    searchInput.addEventListener('input', filterProperties);
+    managerFilter.addEventListener('change', filterProperties);
+    typeFilter.addEventListener('change', filterProperties);
+    performanceFilter.addEventListener('change', filterProperties);
+});
+</script>
+
+<style>
+.property-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.property-card:hover {
+    transform: translateY(-2px);
+}
+
+#profitable-count {
+    /* Calculate profitable properties count */
+}
+</style>

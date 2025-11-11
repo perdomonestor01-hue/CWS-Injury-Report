@@ -1,0 +1,2587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workers' Compensation Safety Dashboard | Enterprise Safety Analytics</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --safety-yellow: #FFD700;
+            --safety-green: #00B050;
+            --alert-red: #DC3545;
+            --corporate-navy: #003366;
+            --professional-gray: #4A4A4A;
+            --light-gray: #F8F9FA;
+            --border-gray: #E1E5E9;
+            --text-primary: #1A1A1A;
+            --text-secondary: #666666;
+            --shadow: 0 2px 8px rgba(0,0,0,0.1);
+            --card-shadow: 0 4px 16px rgba(0,0,0,0.08);
+        }
+
+        [data-theme="dark"] {
+            --light-gray: #1A1A1A;
+            --border-gray: #333333;
+            --text-primary: #FFFFFF;
+            --text-secondary: #CCCCCC;
+            --shadow: 0 2px 8px rgba(255,255,255,0.1);
+            --card-shadow: 0 4px 16px rgba(255,255,255,0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--light-gray);
+            color: var(--text-primary);
+            line-height: 1.6;
+            transition: all 0.3s ease;
+        }
+
+        .header {
+            background: var(--corporate-navy);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .logo svg {
+            margin-right: 1rem;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            background: var(--safety-yellow);
+            color: var(--corporate-navy);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            background: #E6C200;
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background: var(--alert-red);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #B02A3A;
+        }
+
+        .btn-success {
+            background: var(--safety-green);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #009440;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: 2px solid white;
+            color: white;
+            padding: 0.5rem;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            background: white;
+            color: var(--corporate-navy);
+        }
+
+        .main-content {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-gray);
+            transition: all 0.3s ease;
+        }
+
+        [data-theme="dark"] .card {
+            background: #2A2A2A;
+            border-color: #333333;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border-gray);
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--corporate-navy);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        [data-theme="dark"] .card-title {
+            color: white;
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 0.5rem 0;
+        }
+
+        .metric-change {
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .metric-change.positive {
+            color: var(--safety-green);
+        }
+
+        .metric-change.negative {
+            color: var(--alert-red);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 1rem;
+        }
+
+        .large-chart {
+            height: 400px;
+        }
+
+        .executive-summary {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, var(--corporate-navy), #004080);
+            color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+
+        .summary-item {
+            text-align: center;
+        }
+
+        .summary-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--safety-yellow);
+        }
+
+        .summary-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .risk-indicator {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .risk-low {
+            background: var(--safety-green);
+            color: white;
+        }
+
+        .risk-medium {
+            background: var(--safety-yellow);
+            color: var(--corporate-navy);
+        }
+
+        .risk-high {
+            background: var(--alert-red);
+            color: white;
+        }
+
+        .department-list {
+            list-style: none;
+            margin-top: 1rem;
+        }
+
+        .department-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: var(--light-gray);
+            border-radius: 4px;
+            border-left: 4px solid var(--safety-green);
+        }
+
+        [data-theme="dark"] .department-item {
+            background: #333333;
+        }
+
+        .department-item.medium-risk {
+            border-left-color: var(--safety-yellow);
+        }
+
+        .department-item.high-risk {
+            border-left-color: var(--alert-red);
+        }
+
+        .compliance-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .compliance-item {
+            text-align: center;
+            padding: 1rem;
+            background: var(--light-gray);
+            border-radius: 4px;
+        }
+
+        [data-theme="dark"] .compliance-item {
+            background: #333333;
+        }
+
+        .compliance-percentage {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .emergency-contacts {
+            background: var(--alert-red);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-top: 2rem;
+        }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .contact-item {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+        }
+
+        .notification {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            background: var(--safety-green);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 4px;
+            box-shadow: var(--shadow);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1001;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.alert {
+            background: var(--alert-red);
+        }
+
+        .heatmap {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+            margin-top: 1rem;
+        }
+
+        .heatmap-cell {
+            aspect-ratio: 1;
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .heatmap-cell:hover {
+            transform: scale(1.1);
+        }
+
+        .heat-0 { background: #E8F5E8; color: var(--text-primary); }
+        .heat-1 { background: var(--safety-green); color: white; }
+        .heat-2 { background: var(--safety-yellow); color: var(--corporate-navy); }
+        .heat-3 { background: #FF8C00; color: white; }
+        .heat-4 { background: var(--alert-red); color: white; }
+
+        .trend-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            background: var(--light-gray);
+        }
+
+        [data-theme="dark"] .trend-indicator {
+            background: #333333;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--border-gray);
+            border-radius: 50%;
+            border-top-color: var(--corporate-navy);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media print {
+            .header-controls, .btn { display: none; }
+            .card { break-inside: avoid; }
+            body { background: white; }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .executive-summary {
+                padding: 1rem;
+            }
+
+            .summary-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        [data-theme="dark"] .modal-content {
+            background-color: #2A2A2A;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: var(--alert-red);
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        /* Priority Analysis Section Styles */
+        .priority-analysis-section {
+            background: linear-gradient(135deg, #DC3545, #B02A3A);
+            color: white;
+            padding: 2rem;
+            margin: 2rem 0;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(220, 53, 69, 0.3);
+            border: 3px solid var(--alert-red);
+        }
+
+        .priority-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .priority-header h2 {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            animation: pulse 2s infinite;
+        }
+
+        .priority-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-top: 0.5rem;
+        }
+
+        .priority-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        /* Executive Action Cards */
+        .executive-action-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .action-card {
+            background: white;
+            color: var(--text-primary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            border-left: 6px solid;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, currentColor, transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .action-card.critical {
+            border-left-color: var(--alert-red);
+        }
+
+        .action-card.warning {
+            border-left-color: var(--safety-yellow);
+        }
+
+        .action-card.moderate {
+            border-left-color: #FF8C00;
+        }
+
+        .action-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.2);
+        }
+
+        .action-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border-gray);
+        }
+
+        .action-icon {
+            font-size: 1.5rem;
+        }
+
+        .action-title {
+            font-weight: 600;
+            color: var(--professional-gray);
+        }
+
+        .company-name, .location-name {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--corporate-navy);
+            margin-bottom: 0.5rem;
+        }
+
+        .risk-metrics {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .metric {
+            background: var(--light-gray);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .metric.critical {
+            background: var(--alert-red);
+            color: white;
+        }
+
+        .metric.warning {
+            background: var(--safety-yellow);
+            color: var(--corporate-navy);
+        }
+
+        .action-required {
+            background: var(--corporate-navy);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-weight: 600;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        /* Priority Cards Layout */
+        .priority-card {
+            background: white;
+            color: var(--text-primary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+        }
+
+        [data-theme="dark"] .priority-card {
+            background: #2A2A2A;
+            color: var(--text-primary);
+        }
+
+        .priority-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.2);
+        }
+
+        /* Risk Matrix Styles */
+        .risk-matrix-card {
+            grid-column: span 2;
+        }
+
+        .matrix-legend {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .legend-item.high {
+            background: var(--alert-red);
+            color: white;
+        }
+
+        .legend-item.medium {
+            background: var(--safety-yellow);
+            color: var(--corporate-navy);
+        }
+
+        .legend-item.low {
+            background: var(--safety-green);
+            color: white;
+        }
+
+        .risk-matrix-container {
+            position: relative;
+            margin-top: 1rem;
+        }
+
+        .matrix-axis-labels {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+        }
+
+        .y-axis-label {
+            position: absolute;
+            top: 50%;
+            left: -15px;
+            transform: rotate(-90deg) translateX(-50%);
+            transform-origin: left center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .x-axis-label {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .risk-matrix {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(5, 60px);
+            gap: 4px;
+            margin: 30px 20px;
+            position: relative;
+        }
+
+        .matrix-cell {
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            padding: 0.25rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .matrix-cell:hover {
+            transform: scale(1.05);
+            z-index: 10;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .matrix-cell.high-risk {
+            background: var(--alert-red);
+            color: white;
+        }
+
+        .matrix-cell.medium-risk {
+            background: var(--safety-yellow);
+            color: var(--corporate-navy);
+        }
+
+        .matrix-cell.low-risk {
+            background: var(--safety-green);
+            color: white;
+        }
+
+        .matrix-cell.empty {
+            background: var(--light-gray);
+            color: var(--text-secondary);
+            opacity: 0.3;
+        }
+
+        /* Location Hotspots */
+        .location-hotspots {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .location-bubble {
+            background: linear-gradient(135deg, var(--corporate-navy), #004080);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .location-bubble::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1), transparent);
+            transition: all 0.3s ease;
+            transform: scale(0);
+        }
+
+        .location-bubble:hover::before {
+            transform: scale(1);
+        }
+
+        .location-bubble:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        }
+
+        .location-bubble.critical {
+            background: linear-gradient(135deg, var(--alert-red), #B02A3A);
+        }
+
+        .location-bubble.warning {
+            background: linear-gradient(135deg, var(--safety-yellow), #E6C200);
+            color: var(--corporate-navy);
+        }
+
+        .location-bubble.moderate {
+            background: linear-gradient(135deg, #FF8C00, #E07B00);
+        }
+
+        .location-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .location-stats {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .location-percentage {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-top: 0.5rem;
+        }
+
+        /* Priority Rankings */
+        .priority-rankings {
+            margin-top: 1rem;
+        }
+
+        .ranking-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            background: var(--light-gray);
+            border-radius: 8px;
+            border-left: 4px solid;
+            transition: all 0.3s ease;
+        }
+
+        [data-theme="dark"] .ranking-item {
+            background: #333333;
+        }
+
+        .ranking-item:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .ranking-item.rank-1 {
+            border-left-color: var(--alert-red);
+            background: linear-gradient(90deg, rgba(220,53,69,0.1), var(--light-gray));
+        }
+
+        .ranking-item.rank-2 {
+            border-left-color: var(--safety-yellow);
+            background: linear-gradient(90deg, rgba(255,215,0,0.1), var(--light-gray));
+        }
+
+        .ranking-item.rank-3 {
+            border-left-color: #FF8C00;
+            background: linear-gradient(90deg, rgba(255,140,0,0.1), var(--light-gray));
+        }
+
+        .ranking-company {
+            flex: 1;
+        }
+
+        .company-rank {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--corporate-navy);
+            margin-right: 1rem;
+        }
+
+        .company-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .company-metrics {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .ranking-indicators {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .trend-arrow {
+            font-size: 1.2rem;
+        }
+
+        .trend-up {
+            color: var(--alert-red);
+        }
+
+        .trend-down {
+            color: var(--safety-green);
+        }
+
+        .view-all-btn {
+            padding: 0.25rem 0.75rem;
+            font-size: 0.8rem;
+        }
+
+        /* Responsive Design for Priority Section */
+        @media (min-width: 768px) {
+            .priority-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 2rem;
+            }
+
+            .executive-action-cards {
+                grid-column: 1 / -1;
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .priority-grid {
+                grid-template-columns: 1fr 1fr 1fr;
+            }
+
+            .risk-matrix-card {
+                grid-column: span 2;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .priority-analysis-section {
+                padding: 1rem;
+                margin: 1rem 0;
+            }
+
+            .priority-header h2 {
+                font-size: 1.5rem;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .executive-action-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .risk-matrix {
+                grid-template-columns: repeat(3, 1fr);
+                grid-template-rows: repeat(3, 50px);
+                margin: 20px 10px;
+            }
+
+            .location-hotspots {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                <circle cx="20" cy="20" r="18" stroke="currentColor" stroke-width="2"/>
+                <path d="M14 20l6 6 10-10" stroke="currentColor" stroke-width="2" fill="none"/>
+                <circle cx="20" cy="10" r="2" fill="currentColor"/>
+                <circle cx="30" cy="20" r="2" fill="currentColor"/>
+                <circle cx="20" cy="30" r="2" fill="currentColor"/>
+                <circle cx="10" cy="20" r="2" fill="currentColor"/>
+            </svg>
+            Enterprise Safety Analytics
+        </div>
+        <div class="header-controls">
+            <button class="btn" onclick="exportToPDF()">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M4 0h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2z"/>
+                    <path d="M5 4h6v1H5V4zm0 2h6v1H5V6zm0 2h6v1H5V8z" fill="white"/>
+                </svg>
+                Export PDF
+            </button>
+            <button class="btn btn-success" onclick="exportToExcel()">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M1.5 0A1.5 1.5 0 0 0 0 1.5v13A1.5 1.5 0 0 0 1.5 16h13a1.5 1.5 0 0 0 1.5-1.5v-13A1.5 1.5 0 0 0 14.5 0h-13z"/>
+                    <path d="M3 3h10v1H3V3zm0 2h10v1H3V5zm0 2h10v1H3V7zm0 2h10v1H3V9z" fill="white"/>
+                </svg>
+                Export Excel
+            </button>
+            <button class="theme-toggle" onclick="toggleTheme()">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13z"/>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="executive-summary">
+            <h1>Executive Safety Summary - Q4 2024</h1>
+            <p>Real-time workers' compensation analytics and safety performance metrics</p>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <div class="summary-number" id="totalClaims">248</div>
+                    <div class="summary-label">Total Claims YTD</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-number" id="totalCost">$1.2M</div>
+                    <div class="summary-label">Total Cost YTD</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-number" id="avgCost">$4,839</div>
+                    <div class="summary-label">Average Claim Cost</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-number" id="incidentRate">2.1</div>
+                    <div class="summary-label">Incident Rate per 100 Workers</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-number" id="roiSavings">18%</div>
+                    <div class="summary-label">Safety ROI Improvement</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TOP PRIORITY ANALYSIS SECTION -->
+        <div class="priority-analysis-section">
+            <div class="priority-header">
+                <h2>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/>
+                        <path d="M12 8v4l3 3-1.5 1.5L12 15V8z" fill="#FFD700"/>
+                    </svg>
+                    IMMEDIATE ATTENTION REQUIRED
+                </h2>
+                <div class="priority-subtitle">Companies and locations requiring urgent intervention</div>
+            </div>
+
+            <div class="priority-grid">
+                <!-- Executive Action Cards -->
+                <div class="executive-action-cards">
+                    <div class="action-card critical">
+                        <div class="action-header">
+                            <span class="action-icon">🚨</span>
+                            <span class="action-title">Most Problematic Client</span>
+                        </div>
+                        <div class="action-content">
+                            <div class="company-name" id="topRiskCompany">Universal Air Conditioner</div>
+                            <div class="risk-metrics">
+                                <span class="metric">13 injuries</span>
+                                <span class="metric">$2,486 total cost</span>
+                                <span class="metric critical">$191 avg/injury</span>
+                            </div>
+                            <div class="action-required">Schedule immediate safety audit</div>
+                        </div>
+                    </div>
+
+                    <div class="action-card warning">
+                        <div class="action-header">
+                            <span class="action-icon">📍</span>
+                            <span class="action-title">Highest Risk Location</span>
+                        </div>
+                        <div class="action-content">
+                            <div class="location-name" id="topRiskLocation">DFW</div>
+                            <div class="risk-metrics">
+                                <span class="metric">44 injuries</span>
+                                <span class="metric">$295 total cost</span>
+                                <span class="metric warning">High frequency, low cost</span>
+                            </div>
+                            <div class="action-required">Implement prevention protocols</div>
+                        </div>
+                    </div>
+
+                    <div class="action-card moderate">
+                        <div class="action-header">
+                            <span class="action-icon">💰</span>
+                            <span class="action-title">Costliest Per Injury</span>
+                        </div>
+                        <div class="action-content">
+                            <div class="company-name" id="costliestCompany">BANA BOX</div>
+                            <div class="risk-metrics">
+                                <span class="metric">9 injuries</span>
+                                <span class="metric">$2,478 total cost</span>
+                                <span class="metric critical">$275 avg/injury</span>
+                            </div>
+                            <div class="action-required">Review safety equipment</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Risk Matrix -->
+                <div class="priority-card risk-matrix-card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M2 2h16v16H2V2zm2 2v12h12V4H4z"/>
+                                <circle cx="7" cy="7" r="2" fill="#DC3545"/>
+                                <circle cx="13" cy="13" r="2" fill="#FFD700"/>
+                                <circle cx="13" cy="7" r="2" fill="#00B050"/>
+                            </svg>
+                            Company Risk Matrix
+                        </h3>
+                        <div class="matrix-legend">
+                            <span class="legend-item high">High Risk</span>
+                            <span class="legend-item medium">Medium Risk</span>
+                            <span class="legend-item low">Low Risk</span>
+                        </div>
+                    </div>
+                    <div class="risk-matrix-container">
+                        <div class="matrix-axis-labels">
+                            <div class="y-axis-label">Cost per Injury →</div>
+                            <div class="x-axis-label">← Injury Frequency</div>
+                        </div>
+                        <div class="risk-matrix" id="companyRiskMatrix">
+                            <!-- Matrix will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Location Hotspot Map -->
+                <div class="priority-card location-hotspot-card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M10 2C6.69 2 4 4.69 4 8c0 5.25 6 10 6 10s6-4.75 6-10c0-3.31-2.69-6-6-6zm0 8c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>
+                            </svg>
+                            Location Hotspots
+                        </h3>
+                        <div class="trend-indicator">
+                            <span id="hotspotTrend">DFW: 59% of all injuries</span>
+                        </div>
+                    </div>
+                    <div class="location-hotspots" id="locationHotspots">
+                        <!-- Location bubbles will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- High-Risk Company Rankings -->
+                <div class="priority-card rankings-card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M3 17h14v2H3v-2zm6.5-14L8 4l1.5 1.5L11 4l-1.5-1.5zM11 7H9v10h2V7z"/>
+                                <path d="M5 11H3v6h2v-6zm10-4h-2v10h2V7z"/>
+                            </svg>
+                            Company Priority Rankings
+                        </h3>
+                        <button class="btn view-all-btn" onclick="showDetailedRankings()">View All Details</button>
+                    </div>
+                    <div class="priority-rankings" id="priorityRankings">
+                        <!-- Rankings will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- Claims Overview -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm1 15H9v-6h2v6zm0-8H9V5h2v2z"/>
+                        </svg>
+                        Claims This Month
+                    </h3>
+                    <div class="trend-indicator">
+                        <span class="loading"></span>
+                        Live Data
+                    </div>
+                </div>
+                <div class="metric-value" id="monthlyClaimsValue">23</div>
+                <div class="metric-change negative">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                        <path d="M6 2l4 4H8v4H4V6H0l6-4z"/>
+                    </svg>
+                    15% vs last month
+                </div>
+                <div class="chart-container">
+                    <canvas id="claimsChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Cost Analysis -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H8.5v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H5.64c.1 1.7 1.36 2.66 2.86 2.97V17h2.34v-1.67c1.52-.29 2.72-1.16 2.72-2.97-.01-2.2-1.9-2.96-3.25-3.22z"/>
+                        </svg>
+                        Cost Analysis
+                    </h3>
+                    <span class="risk-indicator risk-medium">Moderate</span>
+                </div>
+                <div class="metric-value" id="monthlyCostValue">$98,450</div>
+                <div class="metric-change positive">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                        <path d="M6 10L2 6h4V2h4v4h4l-4 4z"/>
+                    </svg>
+                    8% reduction vs target
+                </div>
+                <div class="chart-container">
+                    <canvas id="costChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Risk Assessment -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M10 0L0 6v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V6L10 0z"/>
+                        </svg>
+                        Risk Assessment
+                    </h3>
+                    <button class="btn" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" onclick="showRiskDetails()">
+                        Details
+                    </button>
+                </div>
+                <div class="metric-value" id="riskScoreValue">72</div>
+                <div class="metric-change positive">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                        <path d="M6 10L2 6h4V2h4v4h4l-4 4z"/>
+                    </svg>
+                    Improving trend
+                </div>
+                <div class="chart-container">
+                    <canvas id="riskChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Injury Heat Map -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+                            <circle cx="10" cy="7" r="1"/>
+                            <path d="M9 9h2v6H9z"/>
+                        </svg>
+                        Injury Heat Map (Last 30 Days)
+                    </h3>
+                    <div class="trend-indicator">
+                        Peak: Mondays 2-4 PM
+                    </div>
+                </div>
+                <div class="heatmap" id="injuryHeatmap"></div>
+                <div style="margin-top: 1rem; font-size: 0.8rem; color: var(--text-secondary);">
+                    <span style="display: inline-flex; align-items: center; gap: 0.5rem; margin-right: 1rem;">
+                        <div class="heatmap-cell heat-0" style="width: 12px; height: 12px;"></div>
+                        No incidents
+                    </span>
+                    <span style="display: inline-flex; align-items: center; gap: 0.5rem; margin-right: 1rem;">
+                        <div class="heatmap-cell heat-4" style="width: 12px; height: 12px;"></div>
+                        High risk
+                    </span>
+                </div>
+            </div>
+
+            <!-- Department Breakdown -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M10 10.5c2.67 0 8 1.34 8 4v2H2v-2c0-2.66 5.33-4 8-4z"/>
+                            <circle cx="10" cy="5.5" r="3.5"/>
+                        </svg>
+                        Department Risk Analysis
+                    </h3>
+                    <button class="btn" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" onclick="showDepartmentDetails()">
+                        View All
+                    </button>
+                </div>
+                <ul class="department-list" id="departmentList">
+                    <li class="department-item high-risk">
+                        <span>Manufacturing</span>
+                        <span class="risk-indicator risk-high">High Risk</span>
+                    </li>
+                    <li class="department-item medium-risk">
+                        <span>Warehouse</span>
+                        <span class="risk-indicator risk-medium">Medium Risk</span>
+                    </li>
+                    <li class="department-item">
+                        <span>Administration</span>
+                        <span class="risk-indicator risk-low">Low Risk</span>
+                    </li>
+                    <li class="department-item medium-risk">
+                        <span>Maintenance</span>
+                        <span class="risk-indicator risk-medium">Medium Risk</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Compliance Tracking -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M9 12l2 2 4-4 1.41 1.41L11 16.83l-3.41-3.42L9 12z"/>
+                            <path d="M18 8h-8V6c0-2.76-2.24-5-5-5S0 3.24 0 6v2c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8z"/>
+                        </svg>
+                        Compliance Status
+                    </h3>
+                    <div class="trend-indicator">
+                        98.5% Overall
+                    </div>
+                </div>
+                <div class="compliance-grid">
+                    <div class="compliance-item">
+                        <div class="compliance-percentage" style="color: var(--safety-green);">100%</div>
+                        <div>OSHA Training</div>
+                    </div>
+                    <div class="compliance-item">
+                        <div class="compliance-percentage" style="color: var(--safety-green);">98%</div>
+                        <div>Safety Audits</div>
+                    </div>
+                    <div class="compliance-item">
+                        <div class="compliance-percentage" style="color: var(--safety-yellow);">95%</div>
+                        <div>Equipment Checks</div>
+                    </div>
+                    <div class="compliance-item">
+                        <div class="compliance-percentage" style="color: var(--safety-green);">100%</div>
+                        <div>Documentation</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Predictive Analytics -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M2 2h16v2H2V2zm0 4h16v2H2V6zm0 4h16v2H2v-2zm0 4h16v2H2v-2z"/>
+                            <path d="M18 10l-4-4v3H6v2h8v3l4-4z"/>
+                        </svg>
+                        Predictive Analytics
+                    </h3>
+                    <span class="risk-indicator risk-medium">Moderate Trend</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="predictiveChart"></canvas>
+                </div>
+                <div style="margin-top: 1rem; padding: 1rem; background: var(--light-gray); border-radius: 4px;">
+                    <strong>AI Insights:</strong>
+                    <ul style="margin-top: 0.5rem; padding-left: 1rem;">
+                        <li>15% increase in claims predicted for next month</li>
+                        <li>Manufacturing department requires immediate attention</li>
+                        <li>Implement additional safety training by week 3</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Trends Analysis -->
+            <div class="card" style="grid-column: 1 / -1;">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M2 18h16v2H2v-2zm1.41-1.41L7 13l4 4 5.59-5.59L18 12.83l-7 7-4-4-3.59 3.59L2 16.59z"/>
+                        </svg>
+                        Comprehensive Trends Analysis
+                    </h3>
+                    <div style="display: flex; gap: 1rem;">
+                        <button class="btn" onclick="changeTimeframe('1M')">1M</button>
+                        <button class="btn" onclick="changeTimeframe('3M')">3M</button>
+                        <button class="btn" onclick="changeTimeframe('1Y')">1Y</button>
+                    </div>
+                </div>
+                <div class="chart-container large-chart">
+                    <canvas id="trendsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Emergency Contacts -->
+        <div class="emergency-contacts">
+            <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
+                </svg>
+                Emergency Contacts & Resources
+            </h3>
+            <div class="contact-grid">
+                <div class="contact-item">
+                    <div style="font-weight: bold;">Emergency Services</div>
+                    <div style="font-size: 1.2rem; margin: 0.5rem 0;">911</div>
+                </div>
+                <div class="contact-item">
+                    <div style="font-weight: bold;">Safety Manager</div>
+                    <div style="font-size: 1.2rem; margin: 0.5rem 0;">(555) 123-4567</div>
+                    <div>John Smith</div>
+                </div>
+                <div class="contact-item">
+                    <div style="font-weight: bold;">HR Department</div>
+                    <div style="font-size: 1.2rem; margin: 0.5rem 0;">(555) 123-4568</div>
+                    <div>ext. 2100</div>
+                </div>
+                <div class="contact-item">
+                    <div style="font-weight: bold;">Workers' Comp Claims</div>
+                    <div style="font-size: 1.2rem; margin: 0.5rem 0;">(555) 123-4569</div>
+                    <div>24/7 Hotline</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Risk Details Modal -->
+    <div id="riskModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('riskModal')">&times;</span>
+            <h2>Detailed Risk Assessment</h2>
+            <div style="margin-top: 1rem;">
+                <h4>Risk Factors:</h4>
+                <ul style="margin-top: 0.5rem;">
+                    <li><strong>Equipment Age:</strong> 25% of machinery over 10 years old</li>
+                    <li><strong>Training Compliance:</strong> 95% completion rate</li>
+                    <li><strong>Environmental Hazards:</strong> Moderate exposure levels</li>
+                    <li><strong>Historical Data:</strong> 12% increase in incidents this quarter</li>
+                </ul>
+                <h4 style="margin-top: 1rem;">Recommendations:</h4>
+                <ul style="margin-top: 0.5rem;">
+                    <li>Schedule equipment upgrades for Q1 2025</li>
+                    <li>Implement weekly safety briefings</li>
+                    <li>Increase safety officer presence in high-risk areas</li>
+                    <li>Review and update safety protocols</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Department Details Modal -->
+    <div id="departmentModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('departmentModal')">&times;</span>
+            <h2>Department Risk Analysis Details</h2>
+            <div style="margin-top: 1rem;">
+                <div class="chart-container">
+                    <canvas id="departmentChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification">
+        <div id="notificationMessage">Safety alert: Unusual activity detected in Manufacturing</div>
+    </div>
+
+    <script>
+        // Embedded injury data
+        const injuryData = {
+            "claims": [
+                {"id": 1, "employee_id": "EMP001", "date": "2024-01-15", "injury_type": "Slip and Fall", "body_part": "Back", "department": "Manufacturing", "cost": 15000, "days_lost": 14, "severity": "Major", "cause": "Wet Floor", "age": 35, "experience_years": 5},
+                {"id": 2, "employee_id": "EMP002", "date": "2024-01-22", "injury_type": "Cut", "body_part": "Hand", "department": "Manufacturing", "cost": 3500, "days_lost": 3, "severity": "Minor", "cause": "Equipment Malfunction", "age": 28, "experience_years": 2},
+                {"id": 3, "employee_id": "EMP003", "date": "2024-02-03", "injury_type": "Strain", "body_part": "Shoulder", "department": "Warehouse", "cost": 8200, "days_lost": 7, "severity": "Moderate", "cause": "Lifting Heavy Objects", "age": 42, "experience_years": 8},
+                {"id": 4, "employee_id": "EMP004", "date": "2024-02-18", "injury_type": "Burn", "body_part": "Arm", "department": "Manufacturing", "cost": 12000, "days_lost": 10, "severity": "Major", "cause": "Chemical Exposure", "age": 31, "experience_years": 4},
+                {"id": 5, "employee_id": "EMP005", "date": "2024-03-05", "injury_type": "Slip and Fall", "body_part": "Knee", "department": "Warehouse", "cost": 6500, "days_lost": 5, "severity": "Moderate", "cause": "Wet Floor", "age": 39, "experience_years": 6},
+                {"id": 6, "employee_id": "EMP006", "date": "2024-03-20", "injury_type": "Contusion", "body_part": "Head", "department": "Manufacturing", "cost": 18000, "days_lost": 21, "severity": "Major", "cause": "Falling Object", "age": 45, "experience_years": 12},
+                {"id": 7, "employee_id": "EMP007", "date": "2024-04-02", "injury_type": "Sprain", "body_part": "Ankle", "department": "Administration", "cost": 2800, "days_lost": 2, "severity": "Minor", "cause": "Uneven Surface", "age": 26, "experience_years": 1},
+                {"id": 8, "employee_id": "EMP008", "date": "2024-04-15", "injury_type": "Cut", "body_part": "Finger", "department": "Warehouse", "cost": 1500, "days_lost": 1, "severity": "Minor", "cause": "Sharp Object", "age": 33, "experience_years": 3},
+                {"id": 9, "employee_id": "EMP009", "date": "2024-05-08", "injury_type": "Strain", "body_part": "Back", "department": "Manufacturing", "cost": 9500, "days_lost": 8, "severity": "Moderate", "cause": "Lifting Heavy Objects", "age": 38, "experience_years": 7},
+                {"id": 10, "employee_id": "EMP010", "date": "2024-05-25", "injury_type": "Fracture", "body_part": "Wrist", "department": "Maintenance", "cost": 22000, "days_lost": 35, "severity": "Major", "cause": "Equipment Malfunction", "age": 29, "experience_years": 3}
+            ]
+        };
+
+        // Global variables
+        let currentTheme = 'light';
+        let charts = {};
+        let priorityData = null;
+        let rankingsData = null;
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPriorityData();
+            initializeCharts();
+            createHeatmap();
+            startRealTimeUpdates();
+            showNotification('Dashboard loaded successfully!', 'success');
+        });
+
+        // Load priority analysis data
+        async function loadPriorityData() {
+            try {
+                // Load both data files concurrently
+                const [injuryResponse, rankingsResponse] = await Promise.all([
+                    fetch('./injury_data.json'),
+                    fetch('./rankings_analysis.json')
+                ]);
+
+                if (!injuryResponse.ok || !rankingsResponse.ok) {
+                    throw new Error('Failed to load data files');
+                }
+
+                priorityData = await injuryResponse.json();
+                rankingsData = await rankingsResponse.json();
+
+                // Initialize priority analysis components
+                initializePriorityAnalysis();
+                showNotification('Priority analysis data loaded successfully!', 'success');
+            } catch (error) {
+                console.error('Error loading priority data:', error);
+                // Fallback to embedded data if external files fail
+                loadFallbackData();
+                showNotification('Using fallback data for priority analysis', 'alert');
+            }
+        }
+
+        // Fallback data in case external files are not available
+        function loadFallbackData() {
+            rankingsData = {
+                "company_rankings": {
+                    "by_frequency": [
+                        ["UNIVERSAL AIR CONDITIONER", 13, 2486.0, 2],
+                        ["CUISINE SOLUTIONS INC", 11, 531.18, 1],
+                        ["BANA BOX", 9, 2478.03, 2],
+                        ["DSV SOLUTIONS - CONROE", 5, 0, 2],
+                        ["UFP SAGINAW", 5, 0, 1]
+                    ],
+                    "by_cost": [
+                        ["UNIVERSAL AIR CONDITIONER", 2486.0, 13, 191.23],
+                        ["BANA BOX", 2478.03, 9, 275.34],
+                        ["MURPHY TOMATOES - SA", 1672.41, 2, 836.20],
+                        ["AMERICAN WOODMARK", 1305.0, 4, 326.25],
+                        ["U.S. LBM HOLDINGS, LLC", 1296.0, 1, 1296.0]
+                    ]
+                },
+                "location_rankings": [
+                    ["DFW", 44, 295.0, 19],
+                    ["San Antonio", 13, 2203.59, 2],
+                    ["GP", 10, 5087.0, 4],
+                    ["FW", 6, 3366.97, 2],
+                    ["Houston", 3, 0, 2]
+                ]
+            };
+            initializePriorityAnalysis();
+        }
+
+        // Initialize all priority analysis components
+        function initializePriorityAnalysis() {
+            if (!rankingsData) return;
+
+            updateExecutiveSummaryCards();
+            createCompanyRiskMatrix();
+            createLocationHotspots();
+            createPriorityRankings();
+        }
+
+        // Update executive summary cards with real data
+        function updateExecutiveSummaryCards() {
+            const topRiskCompany = rankingsData.company_rankings.by_frequency[0];
+            const topRiskLocation = rankingsData.location_rankings[0];
+            const costliestCompany = rankingsData.company_rankings.by_cost[1]; // BANA BOX has highest cost per injury
+
+            // Update most problematic client
+            document.getElementById('topRiskCompany').textContent = topRiskCompany[0];
+            const topRiskCard = document.querySelector('.action-card.critical .risk-metrics');
+            topRiskCard.innerHTML = `
+                <span class="metric">${topRiskCompany[1]} injuries</span>
+                <span class="metric">$${topRiskCompany[2].toFixed(0)} total cost</span>
+                <span class="metric critical">$${Math.round(topRiskCompany[2] / topRiskCompany[1])} avg/injury</span>
+            `;
+
+            // Update highest risk location
+            document.getElementById('topRiskLocation').textContent = topRiskLocation[0];
+            const locationCard = document.querySelector('.action-card.warning .risk-metrics');
+            locationCard.innerHTML = `
+                <span class="metric">${topRiskLocation[1]} injuries</span>
+                <span class="metric">$${topRiskLocation[2].toFixed(0)} total cost</span>
+                <span class="metric warning">High frequency, low cost</span>
+            `;
+
+            // Update costliest per injury
+            document.getElementById('costliestCompany').textContent = costliestCompany[0];
+            const costliestCard = document.querySelector('.action-card.moderate .risk-metrics');
+            costliestCard.innerHTML = `
+                <span class="metric">${costliestCompany[2]} injuries</span>
+                <span class="metric">$${costliestCompany[1].toFixed(0)} total cost</span>
+                <span class="metric critical">$${Math.round(costliestCompany[3])} avg/injury</span>
+            `;
+
+            // Update hotspot trend
+            const totalInjuries = rankingsData.location_rankings.reduce((sum, loc) => sum + loc[1], 0);
+            const dfwPercentage = Math.round((topRiskLocation[1] / totalInjuries) * 100);
+            document.getElementById('hotspotTrend').textContent = `${topRiskLocation[0]}: ${dfwPercentage}% of all injuries`;
+        }
+
+        // Create interactive risk matrix
+        function createCompanyRiskMatrix() {
+            const matrixContainer = document.getElementById('companyRiskMatrix');
+            matrixContainer.innerHTML = '';
+
+            // Create 5x5 grid (frequency x cost per injury)
+            const companies = rankingsData.company_rankings.by_frequency.slice(0, 10); // Top 10 companies
+
+            // Calculate ranges for positioning
+            const maxFrequency = Math.max(...companies.map(c => c[1]));
+            const costs = companies.map(c => c[2] / c[1]).filter(cost => cost > 0);
+            const maxCostPerInjury = Math.max(...costs);
+
+            for (let row = 0; row < 5; row++) {
+                for (let col = 0; col < 5; col++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'matrix-cell empty';
+
+                    // Find companies that fit in this cell
+                    const cellCompanies = companies.filter(company => {
+                        const frequency = company[1];
+                        const costPerInjury = company[2] / company[1];
+
+                        const freqRange = Math.floor((frequency / maxFrequency) * 4);
+                        const costRange = Math.floor((costPerInjury / maxCostPerInjury) * 4);
+
+                        return freqRange === col && (4 - costRange) === row;
+                    });
+
+                    if (cellCompanies.length > 0) {
+                        const company = cellCompanies[0];
+                        const costPerInjury = company[2] / company[1];
+
+                        cell.className = 'matrix-cell';
+                        cell.textContent = company[0].substring(0, 8) + '...';
+                        cell.title = `${company[0]}\n${company[1]} injuries\n$${Math.round(costPerInjury)} per injury`;
+
+                        // Determine risk level
+                        if (company[1] > 8 && costPerInjury > 200) {
+                            cell.classList.add('high-risk');
+                        } else if (company[1] > 5 || costPerInjury > 150) {
+                            cell.classList.add('medium-risk');
+                        } else {
+                            cell.classList.add('low-risk');
+                        }
+
+                        cell.addEventListener('click', () => {
+                            showCompanyDetails(company);
+                        });
+                    }
+
+                    matrixContainer.appendChild(cell);
+                }
+            }
+        }
+
+        // Create location hotspots visualization
+        function createLocationHotspots() {
+            const hotspotsContainer = document.getElementById('locationHotspots');
+            hotspotsContainer.innerHTML = '';
+
+            const totalInjuries = rankingsData.location_rankings.reduce((sum, loc) => sum + loc[1], 0);
+
+            rankingsData.location_rankings.forEach(location => {
+                const bubble = document.createElement('div');
+                bubble.className = 'location-bubble';
+
+                const percentage = Math.round((location[1] / totalInjuries) * 100);
+                const avgCost = location[1] > 0 ? location[2] / location[1] : 0;
+
+                // Determine bubble class based on risk level
+                if (location[1] > 20 || avgCost > 300) {
+                    bubble.classList.add('critical');
+                } else if (location[1] > 10 || avgCost > 100) {
+                    bubble.classList.add('warning');
+                } else if (location[1] > 5) {
+                    bubble.classList.add('moderate');
+                }
+
+                bubble.innerHTML = `
+                    <div class="location-name">${location[0]}</div>
+                    <div class="location-stats">
+                        ${location[1]} injuries<br>
+                        $${location[2].toFixed(0)} total cost
+                    </div>
+                    <div class="location-percentage">${percentage}%</div>
+                `;
+
+                bubble.addEventListener('click', () => {
+                    showLocationDetails(location);
+                });
+
+                hotspotsContainer.appendChild(bubble);
+            });
+        }
+
+        // Create priority rankings list
+        function createPriorityRankings() {
+            const rankingsContainer = document.getElementById('priorityRankings');
+            rankingsContainer.innerHTML = '';
+
+            // Combine and score companies based on frequency and cost
+            const scoredCompanies = rankingsData.company_rankings.by_frequency.slice(0, 5).map(company => {
+                const costPerInjury = company[2] / company[1];
+                const riskScore = (company[1] * 0.6) + (costPerInjury * 0.004); // Weighted score
+                return {
+                    name: company[0],
+                    injuries: company[1],
+                    totalCost: company[2],
+                    costPerInjury: costPerInjury,
+                    riskScore: riskScore
+                };
+            }).sort((a, b) => b.riskScore - a.riskScore);
+
+            scoredCompanies.forEach((company, index) => {
+                const rankingItem = document.createElement('div');
+                rankingItem.className = `ranking-item rank-${index + 1}`;
+
+                const trendDirection = Math.random() > 0.5 ? 'up' : 'down'; // Simulated trend
+                const trendArrow = trendDirection === 'up' ? '↗️' : '↘️';
+                const trendClass = trendDirection === 'up' ? 'trend-up' : 'trend-down';
+
+                rankingItem.innerHTML = `
+                    <div class="company-rank">${index + 1}</div>
+                    <div class="ranking-company">
+                        <div class="company-title">${company.name}</div>
+                        <div class="company-metrics">
+                            ${company.injuries} injuries | $${Math.round(company.costPerInjury)}/injury | Risk: ${company.riskScore.toFixed(1)}
+                        </div>
+                    </div>
+                    <div class="ranking-indicators">
+                        <span class="trend-arrow ${trendClass}">${trendArrow}</span>
+                        <span class="risk-indicator ${index === 0 ? 'risk-high' : index < 3 ? 'risk-medium' : 'risk-low'}">
+                            ${index === 0 ? 'Critical' : index < 3 ? 'High' : 'Medium'}
+                        </span>
+                    </div>
+                `;
+
+                rankingItem.addEventListener('click', () => {
+                    showCompanyDetails([company.name, company.injuries, company.totalCost]);
+                });
+
+                rankingsContainer.appendChild(rankingItem);
+            });
+        }
+
+        // Show company details modal
+        function showCompanyDetails(company) {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.display = 'block';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <span class="close" onclick="this.parentElement.parentElement.remove()">&times;</span>
+                    <h2>${company[0]} - Detailed Analysis</h2>
+                    <div style="margin-top: 1rem;">
+                        <h4>Key Metrics:</h4>
+                        <ul style="margin-top: 0.5rem;">
+                            <li><strong>Total Injuries:</strong> ${company[1]}</li>
+                            <li><strong>Total Cost:</strong> $${company[2].toFixed(2)}</li>
+                            <li><strong>Average Cost per Injury:</strong> $${Math.round(company[2] / company[1])}</li>
+                            <li><strong>Risk Level:</strong> ${company[1] > 10 ? 'Critical' : company[1] > 5 ? 'High' : 'Medium'}</li>
+                        </ul>
+                        <h4 style="margin-top: 1rem;">Recommended Actions:</h4>
+                        <ul style="margin-top: 0.5rem;">
+                            <li>Schedule immediate safety audit</li>
+                            <li>Review safety protocols and training</li>
+                            <li>Implement additional safety measures</li>
+                            <li>Monitor injury trends closely</li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // Show location details modal
+        function showLocationDetails(location) {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.display = 'block';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <span class="close" onclick="this.parentElement.parentElement.remove()">&times;</span>
+                    <h2>${location[0]} - Location Analysis</h2>
+                    <div style="margin-top: 1rem;">
+                        <h4>Location Metrics:</h4>
+                        <ul style="margin-top: 0.5rem;">
+                            <li><strong>Total Injuries:</strong> ${location[1]}</li>
+                            <li><strong>Total Cost:</strong> $${location[2].toFixed(2)}</li>
+                            <li><strong>Average Cost per Injury:</strong> $${location[1] > 0 ? Math.round(location[2] / location[1]) : 0}</li>
+                            <li><strong>Risk Level:</strong> ${location[1] > 20 ? 'Critical' : location[1] > 10 ? 'High' : 'Medium'}</li>
+                        </ul>
+                        <h4 style="margin-top: 1rem;">Recommended Actions:</h4>
+                        <ul style="margin-top: 0.5rem;">
+                            <li>Increase safety officer presence</li>
+                            <li>Implement location-specific safety protocols</li>
+                            <li>Review environmental factors</li>
+                            <li>Enhance employee training programs</li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // Show detailed rankings modal
+        function showDetailedRankings() {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.display = 'block';
+
+            let rankingsHTML = '<h3>Complete Company Rankings</h3><div style="max-height: 400px; overflow-y: auto;">';
+
+            rankingsData.company_rankings.by_frequency.forEach((company, index) => {
+                const costPerInjury = company[2] / company[1];
+                rankingsHTML += `
+                    <div class="ranking-item" style="margin-bottom: 0.5rem;">
+                        <div class="company-rank">${index + 1}</div>
+                        <div class="ranking-company">
+                            <div class="company-title">${company[0]}</div>
+                            <div class="company-metrics">
+                                ${company[1]} injuries | $${company[2].toFixed(0)} total | $${Math.round(costPerInjury)}/injury
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            rankingsHTML += '</div>';
+
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <span class="close" onclick="this.parentElement.parentElement.remove()">&times;</span>
+                    <h2>Detailed Company Rankings</h2>
+                    <div style="margin-top: 1rem;">
+                        ${rankingsHTML}
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // Theme toggle
+        function toggleTheme() {
+            currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', currentTheme);
+
+            // Update chart colors
+            Object.values(charts).forEach(chart => {
+                chart.options.scales.x.ticks.color = currentTheme === 'dark' ? '#CCCCCC' : '#666666';
+                chart.options.scales.y.ticks.color = currentTheme === 'dark' ? '#CCCCCC' : '#666666';
+                chart.options.scales.x.grid.color = currentTheme === 'dark' ? '#333333' : '#E1E5E9';
+                chart.options.scales.y.grid.color = currentTheme === 'dark' ? '#333333' : '#E1E5E9';
+                chart.update();
+            });
+        }
+
+        // Initialize all charts
+        function initializeCharts() {
+            initializeClaimsChart();
+            initializeCostChart();
+            initializeRiskChart();
+            initializePredictiveChart();
+            initializeTrendsChart();
+        }
+
+        // Claims chart
+        function initializeClaimsChart() {
+            const ctx = document.getElementById('claimsChart').getContext('2d');
+            charts.claims = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    datasets: [{
+                        label: 'Claims',
+                        data: [28, 32, 25, 29, 35, 31, 27, 30, 26, 23, 29, 25],
+                        borderColor: '#DC3545',
+                        backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#E1E5E9' },
+                            ticks: { color: '#666666' }
+                        },
+                        x: {
+                            grid: { color: '#E1E5E9' },
+                            ticks: { color: '#666666' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Cost chart
+        function initializeCostChart() {
+            const ctx = document.getElementById('costChart').getContext('2d');
+            charts.cost = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+                    datasets: [{
+                        label: 'Actual Cost',
+                        data: [285000, 320000, 295000, 280000],
+                        backgroundColor: '#FFD700'
+                    }, {
+                        label: 'Budget',
+                        data: [300000, 310000, 320000, 305000],
+                        backgroundColor: '#003366'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#E1E5E9' },
+                            ticks: {
+                                color: '#666666',
+                                callback: function(value) {
+                                    return '$' + (value / 1000) + 'K';
+                                }
+                            }
+                        },
+                        x: {
+                            grid: { color: '#E1E5E9' },
+                            ticks: { color: '#666666' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Risk chart
+        function initializeRiskChart() {
+            const ctx = document.getElementById('riskChart').getContext('2d');
+            charts.risk = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Low Risk', 'Medium Risk', 'High Risk'],
+                    datasets: [{
+                        data: [45, 35, 20],
+                        backgroundColor: ['#00B050', '#FFD700', '#DC3545'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: '#666666' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Predictive chart
+        function initializePredictiveChart() {
+            const ctx = document.getElementById('predictiveChart').getContext('2d');
+            charts.predictive = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Current', 'Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                    datasets: [{
+                        label: 'Predicted Claims',
+                        data: [23, 26, 28, 31, 29],
+                        borderColor: '#FF8C00',
+                        backgroundColor: 'rgba(255, 140, 0, 0.1)',
+                        borderDash: [5, 5],
+                        tension: 0.4,
+                        fill: true
+                    }, {
+                        label: 'Historical Average',
+                        data: [27, 27, 27, 27, 27],
+                        borderColor: '#4A4A4A',
+                        backgroundColor: 'transparent',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#E1E5E9' },
+                            ticks: { color: '#666666' }
+                        },
+                        x: {
+                            grid: { color: '#E1E5E9' },
+                            ticks: { color: '#666666' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Trends chart
+        function initializeTrendsChart() {
+            const ctx = document.getElementById('trendsChart').getContext('2d');
+            charts.trends = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    datasets: [{
+                        label: 'Claims',
+                        data: [28, 32, 25, 29, 35, 31, 27, 30, 26, 23, 29, 25],
+                        borderColor: '#DC3545',
+                        backgroundColor: 'transparent',
+                        yAxisID: 'y'
+                    }, {
+                        label: 'Cost ($K)',
+                        data: [125, 145, 110, 130, 165, 140, 120, 135, 115, 98, 130, 110],
+                        borderColor: '#FFD700',
+                        backgroundColor: 'transparent',
+                        yAxisID: 'y1'
+                    }, {
+                        label: 'Risk Score',
+                        data: [65, 70, 62, 68, 75, 72, 65, 69, 63, 58, 68, 62],
+                        borderColor: '#00B050',
+                        backgroundColor: 'transparent',
+                        yAxisID: 'y2'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        legend: { display: true }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: '#E1E5E9' },
+                            ticks: { color: '#666666' }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            grid: { color: '#E1E5E9' },
+                            ticks: { color: '#666666' }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: false,
+                            position: 'right',
+                            grid: { drawOnChartArea: false }
+                        },
+                        y2: {
+                            type: 'linear',
+                            display: false,
+                            position: 'right',
+                            grid: { drawOnChartArea: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Create injury heatmap
+        function createHeatmap() {
+            const heatmapContainer = document.getElementById('injuryHeatmap');
+            const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            const hours = ['6AM', '8AM', '10AM', '12PM', '2PM', '4PM', '6PM'];
+
+            // Create header row
+            heatmapContainer.innerHTML = '';
+
+            // Empty cell for corner
+            const cornerCell = document.createElement('div');
+            cornerCell.style.visibility = 'hidden';
+            heatmapContainer.appendChild(cornerCell);
+
+            // Hour headers
+            hours.forEach(hour => {
+                const headerCell = document.createElement('div');
+                headerCell.textContent = hour;
+                headerCell.style.fontWeight = 'bold';
+                headerCell.style.textAlign = 'center';
+                headerCell.style.fontSize = '0.7rem';
+                headerCell.style.color = 'var(--text-secondary)';
+                heatmapContainer.appendChild(headerCell);
+            });
+
+            // Data rows
+            days.forEach(day => {
+                // Day header
+                const dayHeader = document.createElement('div');
+                dayHeader.textContent = day;
+                dayHeader.style.fontWeight = 'bold';
+                dayHeader.style.textAlign = 'center';
+                dayHeader.style.fontSize = '0.7rem';
+                dayHeader.style.color = 'var(--text-secondary)';
+                heatmapContainer.appendChild(dayHeader);
+
+                // Heat cells for each hour
+                hours.forEach(hour => {
+                    const cell = document.createElement('div');
+                    cell.className = 'heatmap-cell';
+
+                    // Generate random heat level (0-4)
+                    const heatLevel = Math.floor(Math.random() * 5);
+                    cell.classList.add(`heat-${heatLevel}`);
+
+                    // Add tooltip
+                    cell.title = `${day} ${hour}: ${heatLevel} incidents`;
+
+                    if (heatLevel > 0) {
+                        cell.textContent = heatLevel;
+                    }
+
+                    heatmapContainer.appendChild(cell);
+                });
+            });
+        }
+
+        // Start real-time updates
+        function startRealTimeUpdates() {
+            setInterval(() => {
+                // Simulate real-time data updates
+                updateMetrics();
+            }, 30000); // Update every 30 seconds
+
+            // Show periodic notifications
+            setTimeout(() => {
+                showNotification('High risk activity detected in Manufacturing', 'alert');
+            }, 10000);
+        }
+
+        // Update metrics with simulated real-time data
+        function updateMetrics() {
+            const claimsElement = document.getElementById('monthlyClaimsValue');
+            const currentClaims = parseInt(claimsElement.textContent);
+            const newClaims = currentClaims + Math.floor(Math.random() * 3) - 1;
+            claimsElement.textContent = Math.max(0, newClaims);
+
+            // Add pulse animation
+            claimsElement.classList.add('pulse');
+            setTimeout(() => claimsElement.classList.remove('pulse'), 2000);
+        }
+
+        // Show notification
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            const messageElement = document.getElementById('notificationMessage');
+
+            messageElement.textContent = message;
+            notification.className = `notification ${type === 'alert' ? 'alert' : ''}`;
+            notification.classList.add('show');
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 5000);
+        }
+
+        // Modal functions
+        function showRiskDetails() {
+            document.getElementById('riskModal').style.display = 'block';
+        }
+
+        function showDepartmentDetails() {
+            document.getElementById('departmentModal').style.display = 'block';
+            initializeDepartmentChart();
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Department chart for modal
+        function initializeDepartmentChart() {
+            const ctx = document.getElementById('departmentChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Manufacturing', 'Warehouse', 'Administration', 'Maintenance', 'Security'],
+                    datasets: [{
+                        label: 'Claims Count',
+                        data: [45, 23, 5, 18, 3],
+                        backgroundColor: ['#DC3545', '#FFD700', '#00B050', '#FFD700', '#00B050']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#E1E5E9' },
+                            ticks: { color: '#666666' }
+                        },
+                        x: {
+                            grid: { color: '#E1E5E9' },
+                            ticks: { color: '#666666' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Change timeframe for trends
+        function changeTimeframe(period) {
+            // Update trends chart based on selected period
+            let newLabels, newData;
+
+            switch(period) {
+                case '1M':
+                    newLabels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+                    newData = [7, 8, 5, 3];
+                    break;
+                case '3M':
+                    newLabels = ['Month 1', 'Month 2', 'Month 3'];
+                    newData = [25, 28, 23];
+                    break;
+                case '1Y':
+                default:
+                    newLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                    newData = [28, 32, 25, 29, 35, 31, 27, 30, 26, 23, 29, 25];
+            }
+
+            charts.trends.data.labels = newLabels;
+            charts.trends.data.datasets[0].data = newData;
+            charts.trends.update();
+        }
+
+        // Export functions
+        function exportToPDF() {
+            showNotification('Generating PDF report...', 'success');
+
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF();
+
+            // Add title
+            pdf.setFontSize(20);
+            pdf.text('Workers\' Compensation Safety Dashboard', 20, 30);
+
+            // Add date
+            pdf.setFontSize(12);
+            pdf.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 45);
+
+            // Add summary metrics
+            pdf.setFontSize(14);
+            pdf.text('Executive Summary:', 20, 65);
+
+            pdf.setFontSize(10);
+            pdf.text(`Total Claims YTD: ${document.getElementById('totalClaims').textContent}`, 30, 80);
+            pdf.text(`Total Cost YTD: ${document.getElementById('totalCost').textContent}`, 30, 90);
+            pdf.text(`Average Claim Cost: ${document.getElementById('avgCost').textContent}`, 30, 100);
+            pdf.text(`Incident Rate: ${document.getElementById('incidentRate').textContent} per 100 workers`, 30, 110);
+            pdf.text(`Safety ROI Improvement: ${document.getElementById('roiSavings').textContent}`, 30, 120);
+
+            // Add compliance section
+            pdf.setFontSize(14);
+            pdf.text('Compliance Status:', 20, 140);
+
+            pdf.setFontSize(10);
+            pdf.text('OSHA Training: 100%', 30, 155);
+            pdf.text('Safety Audits: 98%', 30, 165);
+            pdf.text('Equipment Checks: 95%', 30, 175);
+            pdf.text('Documentation: 100%', 30, 185);
+
+            pdf.save('workers-comp-dashboard.pdf');
+            showNotification('PDF report generated successfully!', 'success');
+        }
+
+        function exportToExcel() {
+            showNotification('Generating Excel report...', 'success');
+
+            // Prepare data for Excel export
+            const data = injuryData.claims.map(claim => ({
+                'Claim ID': claim.id,
+                'Employee ID': claim.employee_id,
+                'Date': claim.date,
+                'Injury Type': claim.injury_type,
+                'Body Part': claim.body_part,
+                'Department': claim.department,
+                'Cost': `$${claim.cost}`,
+                'Days Lost': claim.days_lost,
+                'Severity': claim.severity,
+                'Cause': claim.cause,
+                'Employee Age': claim.age,
+                'Experience Years': claim.experience_years
+            }));
+
+            // Convert to CSV format
+            const headers = Object.keys(data[0]);
+            const csvContent = [
+                headers.join(','),
+                ...data.map(row => headers.map(header => `"${row[header]}"`).join(','))
+            ].join('\n');
+
+            // Create download link
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'workers-comp-data.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
+
+            showNotification('Excel report generated successfully!', 'success');
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+    </script>
+
+    <!-- Professional Signature Footer -->
+    <footer class="professional-footer">
+        <div class="footer-content">
+            <div class="footer-left">
+                <div class="company-logo">
+                    <span class="logo-icon">🏢</span>
+                    <span class="company-name">Jufipai.com</span>
+                </div>
+                <div class="footer-tagline">Enterprise Safety Analytics Solutions</div>
+            </div>
+            <div class="footer-center">
+                <div class="footer-divider"></div>
+            </div>
+            <div class="footer-right">
+                <div class="copyright-info">
+                    <span class="powered-by">Powered by</span>
+                    <strong>Jufipai.com</strong>
+                    <span class="separator">•</span>
+                    <span class="author">Fabien Perdomo</span>
+                    <span class="copyright">© All Rights Reserved</span>
+                </div>
+                <div class="enterprise-badge">Enterprise Dashboard Solution</div>
+            </div>
+        </div>
+    </footer>
+
+    <style>
+        .professional-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg,
+                rgba(30, 58, 138, 0.95) 0%,
+                rgba(15, 23, 42, 0.95) 100%);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 20px;
+            z-index: 1000;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+            height: 40px;
+        }
+
+        .footer-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .company-logo {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .logo-icon {
+            font-size: 18px;
+            filter: grayscale(0);
+        }
+
+        .company-name {
+            font-weight: 700;
+            font-size: 14px;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+        }
+
+        .footer-tagline {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 500;
+        }
+
+        .footer-center {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            padding: 0 20px;
+        }
+
+        .footer-divider {
+            width: 1px;
+            height: 20px;
+            background: linear-gradient(to bottom,
+                transparent,
+                rgba(255, 255, 255, 0.3),
+                transparent);
+        }
+
+        .footer-right {
+            text-align: right;
+        }
+
+        .copyright-info {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 2px;
+        }
+
+        .powered-by {
+            color: rgba(255, 255, 255, 0.6);
+            margin-right: 4px;
+        }
+
+        .separator {
+            margin: 0 6px;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .author {
+            font-weight: 600;
+            color: #60a5fa;
+        }
+
+        .copyright {
+            font-weight: 500;
+            margin-left: 4px;
+        }
+
+        .enterprise-badge {
+            font-size: 9px;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 500;
+        }
+
+        /* Hover effects */
+        .professional-footer:hover {
+            background: linear-gradient(135deg,
+                rgba(30, 58, 138, 0.98) 0%,
+                rgba(15, 23, 42, 0.98) 100%);
+            transition: all 0.3s ease;
+        }
+
+        .company-logo:hover .company-name {
+            color: #60a5fa;
+            transition: color 0.3s ease;
+        }
+
+        .company-logo:hover .logo-icon {
+            transform: scale(1.1);
+            transition: transform 0.3s ease;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .professional-footer {
+                padding: 6px 15px;
+            }
+
+            .footer-content {
+                flex-direction: column;
+                height: auto;
+                gap: 4px;
+                padding: 4px 0;
+            }
+
+            .footer-center {
+                display: none;
+            }
+
+            .footer-left, .footer-right {
+                text-align: center;
+            }
+
+            .footer-tagline, .enterprise-badge {
+                display: none;
+            }
+
+            .copyright-info {
+                font-size: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .footer-left {
+                gap: 8px;
+            }
+
+            .company-name {
+                font-size: 12px;
+            }
+
+            .logo-icon {
+                font-size: 16px;
+            }
+
+            .separator {
+                display: none;
+            }
+
+            .copyright-info {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+                align-items: center;
+            }
+        }
+
+        /* Ensure dashboard content doesn't overlap footer */
+        body {
+            padding-bottom: 60px;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding-bottom: 80px;
+            }
+        }
+    </style>
+</body>
+</html>

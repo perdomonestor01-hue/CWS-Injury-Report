@@ -1,0 +1,43 @@
+{
+  "name": "property-management-system",
+  "version": "1.0.0",
+  "description": "Comprehensive property management dashboard for rental properties",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "build": "npm run build:css && npm run build:js",
+    "build:css": "tailwindcss build styles/input.css -o public/styles.css",
+    "build:js": "webpack --mode production",
+    "test": "jest",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "sqlite3": "^5.1.6",
+    "chart.js": "^4.4.0",
+    "leaflet": "^1.9.4",
+    "moment": "^2.29.4",
+    "express-handlebars": "^7.1.2",
+    "body-parser": "^1.20.2",
+    "multer": "^1.4.5-lts.1",
+    "node-cron": "^3.0.2",
+    "nodemailer": "^6.9.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1",
+    "tailwindcss": "^3.3.5",
+    "webpack": "^5.88.2",
+    "webpack-cli": "^5.1.4",
+    "eslint": "^8.49.0",
+    "jest": "^29.7.0"
+  },
+  "keywords": [
+    "property-management",
+    "real-estate",
+    "dashboard",
+    "portfolio-management"
+  ],
+  "author": "Property Management Solutions",
+  "license": "MIT"
+}

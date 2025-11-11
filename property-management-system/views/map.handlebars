@@ -1,0 +1,491 @@
+<!-- Map Header -->
+<div class="flex items-center justify-between mb-8">
+    <div>
+        <h2 class="text-2xl font-bold text-gray-800">Property Portfolio Map</h2>
+        <p class="text-gray-600">Interactive map view of all properties with performance indicators</p>
+    </div>
+    <div class="flex space-x-4">
+        <button id="filter-profitable" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center">
+            <i class="fas fa-filter mr-2"></i>
+            Profitable Only
+        </button>
+        <button id="toggle-heatmap" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center">
+            <i class="fas fa-thermometer-half mr-2"></i>
+            ROI Heatmap
+        </button>
+    </div>
+</div>
+
+<!-- Map Controls -->
+<div class="bg-white rounded-lg shadow-sm p-4 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Manager Filter</label>
+            <select id="manager-filter" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">All Managers</option>
+            </select>
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Property Type</label>
+            <select id="type-filter" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">All Types</option>
+                <option value="Single Family">Single Family</option>
+                <option value="Multi-Family">Multi-Family</option>
+                <option value="Townhouse">Townhouse</option>
+            </select>
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">ROI Range</label>
+            <select id="roi-filter" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">All ROI</option>
+                <option value="high">High (>5%)</option>
+                <option value="medium">Medium (2-5%)</option>
+                <option value="low">Low (0-2%)</option>
+                <option value="negative">Negative (<0%)</option>
+            </select>
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">View Mode</label>
+            <select id="view-mode" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="markers">Property Markers</option>
+                <option value="clusters">Clustered View</option>
+                <option value="heatmap">Performance Heatmap</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- Map Container -->
+<div class="bg-white rounded-lg shadow-sm overflow-hidden">
+    <div id="property-map" style="height: 600px; width: 100%;"></div>
+</div>
+
+<!-- Property Details Panel -->
+<div id="property-details" class="hidden fixed right-4 top-20 bg-white rounded-lg shadow-lg p-6 w-80 z-50 border border-gray-200">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-gray-800">Property Details</h3>
+        <button onclick="closePropertyDetails()" class="text-gray-500 hover:text-gray-700">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <div id="property-details-content">
+        <!-- Content will be populated by JavaScript -->
+    </div>
+</div>
+
+<!-- Legend -->
+<div class="mt-6 bg-white rounded-lg shadow-sm p-6">
+    <h3 class="text-lg font-semibold text-gray-800 mb-4">Map Legend</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+            <h4 class="font-medium text-gray-700 mb-2">Performance Indicators</h4>
+            <div class="space-y-2">
+                <div class="flex items-center">
+                    <div class="w-4 h-4 bg-green-500 rounded-full mr-3"></div>
+                    <span class="text-sm text-gray-600">High ROI (>5%)</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-4 h-4 bg-blue-500 rounded-full mr-3"></div>
+                    <span class="text-sm text-gray-600">Medium ROI (2-5%)</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-4 h-4 bg-yellow-500 rounded-full mr-3"></div>
+                    <span class="text-sm text-gray-600">Low ROI (0-2%)</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-4 h-4 bg-red-500 rounded-full mr-3"></div>
+                    <span class="text-sm text-gray-600">Negative ROI (<0%)</span>
+                </div>
+            </div>
+        </div>
+        <div>
+            <h4 class="font-medium text-gray-700 mb-2">Property Types</h4>
+            <div class="space-y-2">
+                <div class="flex items-center">
+                    <i class="fas fa-home text-blue-600 mr-3"></i>
+                    <span class="text-sm text-gray-600">Single Family</span>
+                </div>
+                <div class="flex items-center">
+                    <i class="fas fa-building text-purple-600 mr-3"></i>
+                    <span class="text-sm text-gray-600">Multi-Family</span>
+                </div>
+                <div class="flex items-center">
+                    <i class="fas fa-home-user text-green-600 mr-3"></i>
+                    <span class="text-sm text-gray-600">Townhouse</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let map;
+let markers = [];
+let propertyData = [];
+let markerClusterGroup;
+
+document.addEventListener('DOMContentLoaded', async function() {
+    await initializeMap();
+    await loadPropertyData();
+    setupEventListeners();
+});
+
+async function initializeMap() {
+    // Initialize the map centered on Dallas, TX area
+    map = L.map('property-map').setView([32.7767, -96.7970], 10);
+
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+    }).addTo(map);
+
+    // Initialize marker cluster group
+    markerClusterGroup = L.markerClusterGroup({
+        chunkedLoading: true,
+        maxClusterRadius: 50
+    });
+
+    console.log('✅ Map initialized');
+}
+
+async function loadPropertyData() {
+    try {
+        const response = await fetch('/api/properties');
+        propertyData = await response.json();
+
+        // Populate manager filter
+        const managers = [...new Set(propertyData.map(p => p.manager))];
+        const managerFilter = document.getElementById('manager-filter');
+        managers.forEach(manager => {
+            const option = document.createElement('option');
+            option.value = manager;
+            option.textContent = manager;
+            managerFilter.appendChild(option);
+        });
+
+        displayProperties(propertyData);
+        console.log(`✅ Loaded ${propertyData.length} properties`);
+    } catch (error) {
+        console.error('❌ Error loading property data:', error);
+    }
+}
+
+function displayProperties(properties) {
+    // Clear existing markers
+    clearMarkers();
+
+    properties.forEach(property => {
+        const marker = createPropertyMarker(property);
+        markers.push(marker);
+        markerClusterGroup.addLayer(marker);
+    });
+
+    map.addLayer(markerClusterGroup);
+}
+
+function createPropertyMarker(property) {
+    const roi = property.roi || 0;
+    let color, icon;
+
+    // Determine marker color based on ROI
+    if (roi > 5) {
+        color = '#10b981'; // Green
+        icon = 'fa-home';
+    } else if (roi > 2) {
+        color = '#3b82f6'; // Blue
+        icon = 'fa-home';
+    } else if (roi > 0) {
+        color = '#f59e0b'; // Yellow
+        icon = 'fa-home';
+    } else {
+        color = '#ef4444'; // Red
+        icon = 'fa-exclamation-triangle';
+    }
+
+    // Create custom marker
+    const markerIcon = L.divIcon({
+        className: 'custom-marker',
+        html: `
+            <div style="
+                background-color: ${color};
+                width: 30px;
+                height: 30px;
+                border-radius: 50%;
+                border: 3px solid white;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 12px;
+            ">
+                <i class="fas ${icon}"></i>
+            </div>
+        `,
+        iconSize: [30, 30],
+        iconAnchor: [15, 15]
+    });
+
+    const marker = L.marker([property.latitude, property.longitude], {
+        icon: markerIcon,
+        propertyData: property
+    });
+
+    // Add popup with property information
+    const popupContent = `
+        <div class="property-popup" style="min-width: 250px;">
+            <h3 style="margin: 0 0 10px 0; color: #1f2937; font-size: 16px; font-weight: bold;">
+                ${property.address}
+            </h3>
+            <div style="margin-bottom: 8px;">
+                <strong>Manager:</strong> ${property.manager}
+            </div>
+            <div style="margin-bottom: 8px;">
+                <strong>Type:</strong> ${property.property_type || 'Unknown'}
+            </div>
+            <div style="margin-bottom: 8px;">
+                <strong>Monthly Rent:</strong> ${formatCurrency((property.rent_income || 0) / 12)}
+            </div>
+            <div style="margin-bottom: 8px;">
+                <strong>Net Income:</strong>
+                <span style="color: ${(property.net_income || 0) > 0 ? '#10b981' : '#ef4444'};">
+                    ${formatCurrency(property.net_income || 0)}
+                </span>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <strong>ROI:</strong>
+                <span style="color: ${roi > 0 ? '#10b981' : '#ef4444'};">
+                    ${roi.toFixed(1)}%
+                </span>
+            </div>
+            <button onclick="showPropertyDetails(${property.id})"
+                    style="background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; width: 100%;">
+                View Full Details
+            </button>
+        </div>
+    `;
+
+    marker.bindPopup(popupContent);
+
+    // Add click event for detailed view
+    marker.on('click', function() {
+        showPropertyDetails(property.id);
+    });
+
+    return marker;
+}
+
+function setupEventListeners() {
+    document.getElementById('manager-filter').addEventListener('change', filterProperties);
+    document.getElementById('type-filter').addEventListener('change', filterProperties);
+    document.getElementById('roi-filter').addEventListener('change', filterProperties);
+    document.getElementById('view-mode').addEventListener('change', changeViewMode);
+
+    document.getElementById('filter-profitable').addEventListener('click', function() {
+        const profitableProperties = propertyData.filter(p => (p.net_income || 0) > 0);
+        displayProperties(profitableProperties);
+    });
+
+    document.getElementById('toggle-heatmap').addEventListener('click', function() {
+        const viewMode = document.getElementById('view-mode');
+        viewMode.value = viewMode.value === 'heatmap' ? 'markers' : 'heatmap';
+        changeViewMode();
+    });
+}
+
+function filterProperties() {
+    const managerFilter = document.getElementById('manager-filter').value;
+    const typeFilter = document.getElementById('type-filter').value;
+    const roiFilter = document.getElementById('roi-filter').value;
+
+    let filteredProperties = propertyData.filter(property => {
+        const matchesManager = !managerFilter || property.manager === managerFilter;
+        const matchesType = !typeFilter || property.property_type === typeFilter;
+
+        let matchesROI = true;
+        if (roiFilter) {
+            const roi = property.roi || 0;
+            switch(roiFilter) {
+                case 'high': matchesROI = roi > 5; break;
+                case 'medium': matchesROI = roi >= 2 && roi <= 5; break;
+                case 'low': matchesROI = roi >= 0 && roi < 2; break;
+                case 'negative': matchesROI = roi < 0; break;
+            }
+        }
+
+        return matchesManager && matchesType && matchesROI;
+    });
+
+    displayProperties(filteredProperties);
+}
+
+function changeViewMode() {
+    const viewMode = document.getElementById('view-mode').value;
+
+    switch(viewMode) {
+        case 'markers':
+            displayProperties(propertyData);
+            break;
+        case 'clusters':
+            // Already using cluster view by default
+            displayProperties(propertyData);
+            break;
+        case 'heatmap':
+            createHeatmap();
+            break;
+    }
+}
+
+function createHeatmap() {
+    clearMarkers();
+
+    const heatmapData = propertyData.map(property => [
+        property.latitude,
+        property.longitude,
+        Math.max(0, property.roi || 0) / 10 // Normalize ROI for heatmap intensity
+    ]);
+
+    // Note: For a real implementation, you'd need to include the Leaflet heatmap plugin
+    // For now, we'll simulate with colored circles
+    propertyData.forEach(property => {
+        const roi = property.roi || 0;
+        const radius = Math.max(10, Math.abs(roi) * 5);
+        const color = roi > 0 ? '#10b981' : '#ef4444';
+        const opacity = Math.min(0.8, Math.abs(roi) / 10);
+
+        const circle = L.circle([property.latitude, property.longitude], {
+            color: color,
+            fillColor: color,
+            fillOpacity: opacity,
+            radius: radius * 100 // Convert to meters
+        }).addTo(map);
+
+        circle.bindPopup(`
+            <strong>${property.address}</strong><br>
+            ROI: ${roi.toFixed(1)}%<br>
+            Net Income: ${formatCurrency(property.net_income || 0)}
+        `);
+
+        markers.push(circle);
+    });
+}
+
+function clearMarkers() {
+    markers.forEach(marker => {
+        map.removeLayer(marker);
+    });
+    map.removeLayer(markerClusterGroup);
+    markerClusterGroup.clearLayers();
+    markers = [];
+}
+
+function showPropertyDetails(propertyId) {
+    const property = propertyData.find(p => p.id === propertyId);
+    if (!property) return;
+
+    const detailsPanel = document.getElementById('property-details');
+    const detailsContent = document.getElementById('property-details-content');
+
+    const monthlyRent = (property.rent_income || 0) / 12;
+    const roi = property.roi || 0;
+
+    detailsContent.innerHTML = `
+        <div class="space-y-4">
+            <div>
+                <h4 class="font-medium text-gray-800">${property.address}</h4>
+                <p class="text-sm text-gray-600">${property.city || 'Unknown'}, ${property.state || 'TX'}</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <p class="text-xs text-gray-500 uppercase">Manager</p>
+                    <p class="font-medium">${property.manager}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500 uppercase">Type</p>
+                    <p class="font-medium">${property.property_type || 'Unknown'}</p>
+                </div>
+            </div>
+
+            <div class="border-t pt-4">
+                <h5 class="font-medium text-gray-800 mb-2">Financial Overview</h5>
+                <div class="space-y-2">
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-600">Monthly Rent:</span>
+                        <span class="font-medium">${formatCurrency(monthlyRent)}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-600">Annual Income:</span>
+                        <span class="font-medium">${formatCurrency(property.rent_income || 0)}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-600">Total Expenses:</span>
+                        <span class="font-medium">${formatCurrency(property.total_expenses || 0)}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-600">Net Income:</span>
+                        <span class="font-medium ${(property.net_income || 0) > 0 ? 'text-green-600' : 'text-red-600'}">
+                            ${formatCurrency(property.net_income || 0)}
+                        </span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-600">ROI:</span>
+                        <span class="font-medium ${roi > 0 ? 'text-green-600' : 'text-red-600'}">
+                            ${roi.toFixed(1)}%
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t pt-4">
+                <h5 class="font-medium text-gray-800 mb-2">Quick Actions</h5>
+                <div class="space-y-2">
+                    <button class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded text-sm">
+                        View Full Report
+                    </button>
+                    <button class="w-full bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded text-sm">
+                        Contact Manager
+                    </button>
+                    <button class="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded text-sm">
+                        Schedule Maintenance
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    detailsPanel.classList.remove('hidden');
+}
+
+function closePropertyDetails() {
+    document.getElementById('property-details').classList.add('hidden');
+}
+
+// Utility function to format currency
+function formatCurrency(value) {
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(value);
+}
+</script>
+
+<style>
+.custom-marker {
+    background: none !important;
+    border: none !important;
+}
+
+.leaflet-popup-content {
+    margin: 8px 12px;
+    line-height: 1.4;
+}
+
+#property-details {
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+}
+</style>

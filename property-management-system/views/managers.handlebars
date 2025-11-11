@@ -1,0 +1,270 @@
+<!-- Managers Header -->
+<div class="flex items-center justify-between mb-8">
+    <div>
+        <h2 class="text-2xl font-bold text-gray-800">Property Managers</h2>
+        <p class="text-gray-600">Monitor performance and manage your property management team</p>
+    </div>
+    <div class="flex space-x-4">
+        <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center">
+            <i class="fas fa-user-plus mr-2"></i>
+            Add Manager
+        </button>
+        <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center">
+            <i class="fas fa-chart-bar mr-2"></i>
+            Performance Report
+        </button>
+    </div>
+</div>
+
+<!-- Managers Performance Overview -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-800">Total Managers</h3>
+            <i class="fas fa-users text-blue-500 text-2xl"></i>
+        </div>
+        <p class="text-3xl font-bold text-blue-600">{{managers.length}}</p>
+        <p class="text-sm text-gray-500 mt-2">Active property managers</p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-800">Avg Properties/Manager</h3>
+            <i class="fas fa-home text-green-500 text-2xl"></i>
+        </div>
+        <p class="text-3xl font-bold text-green-600">
+            {{#if managers.length}}
+                {{#each managers}}{{total_properties}}{{/each}}
+            {{else}}
+                0
+            {{/if}}
+        </p>
+        <p class="text-sm text-gray-500 mt-2">Properties per manager</p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-800">Top Performer ROI</h3>
+            <i class="fas fa-trophy text-yellow-500 text-2xl"></i>
+        </div>
+        <p class="text-3xl font-bold text-yellow-600">
+            {{#if managers.length}}
+                {{formatPercent (maxROI managers)}}
+            {{else}}
+                0%
+            {{/if}}
+        </p>
+        <p class="text-sm text-gray-500 mt-2">Best performing manager</p>
+    </div>
+</div>
+
+<!-- Managers Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {{#each managers}}
+    <div class="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-200">
+        <!-- Manager Header -->
+        <div class="p-6 border-b border-gray-100">
+            <div class="flex items-center mb-4">
+                <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                    {{substring name 0 1}}
+                </div>
+                <div class="ml-4">
+                    <h3 class="font-semibold text-gray-800 text-lg">{{name}}</h3>
+                    <p class="text-sm text-gray-600">Property Manager</p>
+                </div>
+            </div>
+
+            <!-- Contact Info Placeholder -->
+            <div class="flex items-center text-sm text-gray-600 mb-2">
+                <i class="fas fa-envelope mr-2"></i>
+                <span>{{lowercase name}}@propertymanagement.com</span>
+            </div>
+            <div class="flex items-center text-sm text-gray-600">
+                <i class="fas fa-phone mr-2"></i>
+                <span>(555) 123-4567</span>
+            </div>
+        </div>
+
+        <!-- Performance Metrics -->
+        <div class="p-6">
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                    <p class="text-xs text-gray-500 uppercase tracking-wide">Properties</p>
+                    <p class="text-2xl font-bold text-blue-600">{{total_properties}}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500 uppercase tracking-wide">Avg ROI</p>
+                    <p class="text-2xl font-bold {{#if (gt average_roi 0)}}text-green-600{{else}}text-red-600{{/if}}">
+                        {{formatPercent average_roi}}
+                    </p>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <p class="text-xs text-gray-500 uppercase tracking-wide mb-2">Total Rent Income</p>
+                <p class="text-lg font-bold text-green-600">{{formatCurrency total_rent_income}}</p>
+            </div>
+
+            <div class="mb-4">
+                <p class="text-xs text-gray-500 uppercase tracking-wide mb-2">Total Expenses</p>
+                <p class="text-lg font-bold text-red-600">{{formatCurrency total_expenses}}</p>
+            </div>
+
+            <!-- Performance Rating -->
+            <div class="mb-4">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs text-gray-500 uppercase tracking-wide">Performance</span>
+                    <span class="text-xs font-medium {{#if (gt average_roi 5)}}text-green-600{{else if (gt average_roi 2)}}text-yellow-600{{else}}text-red-600{{/if}}">
+                        {{#if (gt average_roi 5)}}Excellent{{else if (gt average_roi 2)}}Good{{else}}Needs Improvement{{/if}}
+                    </span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="h-2 rounded-full {{#if (gt average_roi 5)}}bg-green-500{{else if (gt average_roi 2)}}bg-yellow-500{{else}}bg-red-500{{/if}}"
+                         style="width: {{#if (gt average_roi 0)}}{{average_roi}}%{{else}}5%{{/if}}"></div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="space-y-2">
+                <a href="/managers/{{name}}" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 px-4 rounded-md text-center block transition">
+                    View Properties
+                </a>
+                <div class="grid grid-cols-2 gap-2">
+                    <button class="bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm py-2 px-3 rounded-md transition">
+                        <i class="fas fa-envelope mr-1"></i> Contact
+                    </button>
+                    <button class="bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm py-2 px-3 rounded-md transition">
+                        <i class="fas fa-chart-line mr-1"></i> Reports
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{/each}}
+</div>
+
+<!-- Performance Comparison Chart -->
+<div class="mt-12 bg-white rounded-lg shadow-sm p-6">
+    <h3 class="text-xl font-semibold text-gray-800 mb-6">Manager Performance Comparison</h3>
+    <div class="h-96">
+        <canvas id="managerPerformanceChart"></canvas>
+    </div>
+</div>
+
+<!-- Manager Performance Leaderboard -->
+<div class="mt-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-8 text-white">
+    <h3 class="text-2xl font-bold mb-6">Performance Leaderboard</h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Top Revenue Generator -->
+        <div class="bg-white bg-opacity-20 rounded-lg p-6 text-center">
+            <i class="fas fa-dollar-sign text-4xl mb-4"></i>
+            <h4 class="font-bold text-lg mb-2">Top Revenue</h4>
+            {{#if managers}}
+            <p class="text-2xl font-bold">{{getTopRevenueManager managers}}</p>
+            <p class="text-sm opacity-75">Highest rental income</p>
+            {{/if}}
+        </div>
+
+        <!-- Best ROI -->
+        <div class="bg-white bg-opacity-20 rounded-lg p-6 text-center">
+            <i class="fas fa-trophy text-4xl mb-4"></i>
+            <h4 class="font-bold text-lg mb-2">Best ROI</h4>
+            {{#if managers}}
+            <p class="text-2xl font-bold">{{getBestROIManager managers}}</p>
+            <p class="text-sm opacity-75">Highest return on investment</p>
+            {{/if}}
+        </div>
+
+        <!-- Most Properties -->
+        <div class="bg-white bg-opacity-20 rounded-lg p-6 text-center">
+            <i class="fas fa-home text-4xl mb-4"></i>
+            <h4 class="font-bold text-lg mb-2">Most Properties</h4>
+            {{#if managers}}
+            <p class="text-2xl font-bold">{{getMostPropertiesManager managers}}</p>
+            <p class="text-sm opacity-75">Largest portfolio</p>
+            {{/if}}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Manager Performance Chart
+    const ctx = document.getElementById('managerPerformanceChart').getContext('2d');
+
+    const managers = {{{json managers}}};
+    const managerNames = managers.map(m => m.name.length > 15 ? m.name.substring(0, 15) + '...' : m.name);
+    const managerROIs = managers.map(m => m.average_roi || 0);
+    const managerRevenues = managers.map(m => m.total_rent_income || 0);
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: managerNames,
+            datasets: [{
+                label: 'Average ROI (%)',
+                data: managerROIs,
+                backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                borderColor: 'rgba(59, 130, 246, 1)',
+                borderWidth: 1,
+                yAxisID: 'y'
+            }, {
+                label: 'Total Revenue ($)',
+                data: managerRevenues,
+                backgroundColor: 'rgba(16, 185, 129, 0.8)',
+                borderColor: 'rgba(16, 185, 129, 1)',
+                borderWidth: 1,
+                type: 'line',
+                yAxisID: 'y1'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
+            scales: {
+                x: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Property Managers'
+                    }
+                },
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    title: {
+                        display: true,
+                        text: 'ROI (%)'
+                    }
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    title: {
+                        display: true,
+                        text: 'Revenue ($)'
+                    },
+                    grid: {
+                        drawOnChartArea: false,
+                    },
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: 'Manager Performance: ROI vs Revenue'
+                }
+            }
+        }
+    });
+});
+</script>

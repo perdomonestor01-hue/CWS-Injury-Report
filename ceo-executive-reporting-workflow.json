@@ -1,0 +1,641 @@
+{
+  "meta": {
+    "instanceId": "jufipai-ceo-executive-reporting"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * 1"
+            }
+          ]
+        }
+      },
+      "id": "weekly-report-trigger",
+      "name": "Monday 8AM Executive Report",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [100, 200]
+    },
+    {
+      "parameters": {
+        "requestMethod": "GET",
+        "url": "={{ $env.SAFETY_API_ENDPOINT }}/analytics/executive-summary"
+      },
+      "id": "fetch-executive-data",
+      "name": "Fetch Executive Analytics",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [300, 200]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Create an executive summary for the CEO based on this safety data:\n\n{{ JSON.stringify($json, null, 2) }}\n\nInclude:\n1. Key Performance Indicators\n2. Week-over-week trends\n3. Critical action items\n4. Financial impact\n5. Strategic recommendations\n6. Competitive safety benchmarking\n\nFormat as professional executive briefing with bullet points and clear metrics. Focus on business impact and ROI.",
+        "options": {
+          "maxTokens": 1000,
+          "temperature": 0.3
+        }
+      },
+      "id": "ai-executive-summary",
+      "name": "AI Executive Summary Generation",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [500, 200]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "parent": {
+          "page_id": "{{ $env.NOTION_EXECUTIVE_DATABASE_ID }}"
+        },
+        "properties": {
+          "title": [
+            {
+              "text": {
+                "content": "📊 CEO Weekly Safety Report - {{ $now.format('YYYY-MM-DD') }}"
+              }
+            }
+          ]
+        },
+        "children": [
+          {
+            "type": "heading_1",
+            "heading_1": {
+              "rich_text": [
+                {
+                  "type": "text",
+                  "text": {
+                    "content": "🏢 Executive Safety Performance Dashboard"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "type": "paragraph",
+            "paragraph": {
+              "rich_text": [
+                {
+                  "type": "text",
+                  "text": {
+                    "content": "{{ $json.choices[0].message.content }}"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "type": "divider",
+            "divider": {}
+          },
+          {
+            "type": "paragraph",
+            "paragraph": {
+              "rich_text": [
+                {
+                  "type": "text",
+                  "text": {
+                    "content": "📈 View Live Dashboard: "
+                  }
+                },
+                {
+                  "type": "text",
+                  "text": {
+                    "content": "{{ $env.DASHBOARD_URL }}",
+                    "link": {
+                      "url": "{{ $env.DASHBOARD_URL }}"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "type": "paragraph",
+            "paragraph": {
+              "rich_text": [
+                {
+                  "type": "text",
+                  "text": {
+                    "content": "---\n💼 Powered by Jufipai.com Enterprise Safety Analytics\n👨‍💼 Fabien Perdomo © All Rights Reserved"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "id": "create-notion-report",
+      "name": "Create CEO Report in Notion",
+      "type": "mcp__MCP_DOCKER__API-post-page",
+      "typeVersion": 1,
+      "position": [700, 200]
+    },
+    {
+      "parameters": {
+        "to": "{{ $env.CEO_EMAIL }}",
+        "cc": "{{ $env.CFO_EMAIL }},{{ $env.COO_EMAIL }}",
+        "subject": "📊 Weekly Safety Performance Report - {{ $now.format('MMM DD, YYYY') }}",
+        "message": "Good Morning,\n\nYour weekly safety performance report is ready for review.\n\n🎯 **EXECUTIVE SUMMARY**\n\n{{ $json.choices[0].message.content }}\n\n📊 **QUICK ACCESS LINKS:**\n• Live Dashboard: {{ $env.DASHBOARD_URL }}\n• Detailed Analytics: {{ $env.DASHBOARD_URL }}/analytics\n• Cost Analysis: {{ $env.DASHBOARD_URL }}/costs\n• Compliance Status: {{ $env.DASHBOARD_URL }}/compliance\n\n📝 **FULL REPORT:**\nComplete analysis available in your Notion workspace:\n{{ $json.notion_page_url }}\n\n🤝 **NEXT STEPS:**\n1. Review priority action items\n2. Approve recommended safety investments\n3. Schedule follow-up with safety leadership\n\nBest regards,\nJufipai.com Enterprise Safety Analytics\n\n---\n💼 Fabien Perdomo © All Rights Reserved\n🏢 Fortune 500 Executive Reporting Solutions",
+        "options": {
+          "htmlBody": true
+        }
+      },
+      "id": "ceo-weekly-email",
+      "name": "CEO Weekly Report Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [900, 200]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 17 * * 5"
+            }
+          ]
+        }
+      },
+      "id": "friday-summary-trigger",
+      "name": "Friday 5PM Weekly Close",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [100, 400]
+    },
+    {
+      "parameters": {
+        "requestMethod": "GET",
+        "url": "={{ $env.SAFETY_API_ENDPOINT }}/reports/weekly-performance"
+      },
+      "id": "fetch-weekly-performance",
+      "name": "Fetch Weekly Performance",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [300, 400]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "query": "workplace safety training {{ $json.top_injury_type }}",
+        "maxResults": 5
+      },
+      "id": "find-training-videos",
+      "name": "Find Relevant Training Videos",
+      "type": "mcp__MCP_DOCKER__get_video_info",
+      "typeVersion": 1,
+      "position": [500, 400]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "parent": {
+          "page_id": "{{ $env.NOTION_TRAINING_DATABASE_ID }}"
+        },
+        "properties": {
+          "title": [
+            {
+              "text": {
+                "content": "📚 Weekly Training Recommendations - {{ $now.format('YYYY-MM-DD') }}"
+              }
+            }
+          ]
+        },
+        "children": [
+          {
+            "type": "heading_2",
+            "heading_2": {
+              "rich_text": [
+                {
+                  "type": "text",
+                  "text": {
+                    "content": "🎯 Priority Training Areas This Week"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "type": "paragraph",
+            "paragraph": {
+              "rich_text": [
+                {
+                  "type": "text",
+                  "text": {
+                    "content": "Based on this week's incident data, focus training on: {{ $json.top_injury_type }}\n\n📊 **Weekly Performance Metrics:**\n• Total Incidents: {{ $json.total_incidents }}\n• Cost Impact: ${{ $json.total_cost }}\n• Days Lost: {{ $json.total_days_lost }}\n• Most Common Injury: {{ $json.top_injury_type }}\n\n🎥 **Recommended Training Resources:**"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "id": "create-training-recommendations",
+      "name": "Create Training Recommendations",
+      "type": "mcp__MCP_DOCKER__API-post-page",
+      "typeVersion": 1,
+      "position": [700, 400]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 1 * *"
+            }
+          ]
+        }
+      },
+      "id": "monthly-board-report",
+      "name": "Monthly Board Report",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [100, 600]
+    },
+    {
+      "parameters": {
+        "requestMethod": "GET",
+        "url": "={{ $env.SAFETY_API_ENDPOINT }}/reports/monthly-board-package"
+      },
+      "id": "fetch-board-data",
+      "name": "Fetch Board Report Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [300, 600]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Create a comprehensive board-level safety report for the following data:\n\n{{ JSON.stringify($json, null, 2) }}\n\nInclude:\n1. Executive Summary (3 bullet points max)\n2. Key Risk Indicators and trends\n3. Financial impact and cost analysis\n4. Regulatory compliance status\n5. Strategic safety initiatives and ROI\n6. Benchmarking against industry standards\n7. Board action items and recommendations\n\nFormat as formal board presentation with clear metrics, charts references, and actionable insights. Focus on governance, risk management, and strategic value creation.",
+        "options": {
+          "maxTokens": 1500,
+          "temperature": 0.2
+        }
+      },
+      "id": "ai-board-summary",
+      "name": "AI Board Report Generation",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [500, 600]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "parent": {
+          "page_id": "{{ $env.NOTION_BOARD_DATABASE_ID }}"
+        },
+        "properties": {
+          "title": [
+            {
+              "text": {
+                "content": "🏛️ Board Safety Report - {{ $now.format('MMMM YYYY') }}"
+              }
+            }
+          ]
+        },
+        "children": [
+          {
+            "type": "heading_1",
+            "heading_1": {
+              "rich_text": [
+                {
+                  "type": "text",
+                  "text": {
+                    "content": "🏢 Board of Directors Safety Report"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "type": "paragraph",
+            "paragraph": {
+              "rich_text": [
+                {
+                  "type": "text",
+                  "text": {
+                    "content": "{{ $json.choices[0].message.content }}"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "type": "divider",
+            "divider": {}
+          },
+          {
+            "type": "heading_3",
+            "heading_3": {
+              "rich_text": [
+                {
+                  "type": "text",
+                  "text": {
+                    "content": "📊 Supporting Analytics"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "type": "paragraph",
+            "paragraph": {
+              "rich_text": [
+                {
+                  "type": "text",
+                  "text": {
+                    "content": "🔗 Executive Dashboard: "
+                  }
+                },
+                {
+                  "type": "text",
+                  "text": {
+                    "content": "{{ $env.DASHBOARD_URL }}",
+                    "link": {
+                      "url": "{{ $env.DASHBOARD_URL }}"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "type": "paragraph",
+            "paragraph": {
+              "rich_text": [
+                {
+                  "type": "text",
+                  "text": {
+                    "content": "---\n🏛️ Powered by Jufipai.com Enterprise Governance Suite\n👨‍💼 Fabien Perdomo © All Rights Reserved\n🎯 Fortune 500 Board Reporting Solutions"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "id": "create-board-report",
+      "name": "Create Board Report in Notion",
+      "type": "mcp__MCP_DOCKER__API-post-page",
+      "typeVersion": 1,
+      "position": [700, 600]
+    },
+    {
+      "parameters": {
+        "to": "{{ $env.BOARD_MEMBERS_EMAIL }}",
+        "cc": "{{ $env.CEO_EMAIL }},{{ $env.GENERAL_COUNSEL_EMAIL }}",
+        "subject": "🏛️ Monthly Board Safety Report - {{ $now.format('MMMM YYYY') }}",
+        "message": "Dear Board Members,\n\nYour monthly safety governance report is ready for review ahead of our board meeting.\n\n📋 **BOARD SUMMARY**\n\n{{ $json.choices[0].message.content }}\n\n📊 **GOVERNANCE DASHBOARD:**\n• Live Executive Dashboard: {{ $env.DASHBOARD_URL }}\n• Compliance Status: {{ $env.DASHBOARD_URL }}/compliance\n• Risk Management: {{ $env.DASHBOARD_URL }}/risk\n• Financial Impact: {{ $env.DASHBOARD_URL }}/financial\n\n📝 **COMPREHENSIVE REPORT:**\nFull board package available in Notion:\n{{ $json.notion_page_url }}\n\n🗓️ **BOARD MEETING PREPARATION:**\n1. Review key risk indicators\n2. Assess regulatory compliance status\n3. Evaluate safety investment ROI\n4. Consider strategic initiatives\n\n📞 For questions, please contact:\n• CEO: {{ $env.CEO_EMAIL }}\n• General Counsel: {{ $env.GENERAL_COUNSEL_EMAIL }}\n• Safety Leadership: {{ $env.SAFETY_DIRECTOR_EMAIL }}\n\nRespectfully submitted,\nJufipai.com Enterprise Governance Team\n\n---\n🏛️ Board Reporting Excellence\n👨‍💼 Fabien Perdomo © All Rights Reserved\n🎯 Fortune 500 Governance Solutions",
+        "options": {
+          "htmlBody": true
+        }
+      },
+      "id": "board-monthly-email",
+      "name": "Board Monthly Report Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [900, 600]
+    },
+    {
+      "parameters": {
+        "intervalSize": 4,
+        "intervalUnit": "hours"
+      },
+      "id": "real-time-kpi-monitor",
+      "name": "Real-time KPI Monitor",
+      "type": "n8n-nodes-base.interval",
+      "typeVersion": 1,
+      "position": [100, 800]
+    },
+    {
+      "parameters": {
+        "requestMethod": "GET",
+        "url": "={{ $env.SAFETY_API_ENDPOINT }}/kpis/current"
+      },
+      "id": "fetch-current-kpis",
+      "name": "Fetch Current KPIs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [300, 800]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "kpi-threshold-check",
+              "leftValue": "={{ $json.safety_score }}",
+              "rightValue": 75,
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            }
+          ],
+          "combinator": "or"
+        }
+      },
+      "id": "kpi-alert-filter",
+      "name": "KPI Alert Threshold",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [500, 800]
+    },
+    {
+      "parameters": {
+        "to": "{{ $env.CEO_EMAIL }},{{ $env.COO_EMAIL }}",
+        "subject": "⚠️ ALERT: Safety KPI Below Threshold",
+        "message": "KPI PERFORMANCE ALERT\n\n⚠️ **Safety Score Alert**\n\nCurrent Performance:\n📊 Safety Score: {{ $json.safety_score }}/100\n🎯 Target: 75+\n📉 Performance: Below Target\n\n📈 **Current Metrics:**\n• Incident Rate: {{ $json.incident_rate }}\n• Cost Trend: {{ $json.cost_trend }}\n• Compliance Score: {{ $json.compliance_score }}%\n• Days Since Last Incident: {{ $json.days_since_incident }}\n\n🚨 **Immediate Actions Required:**\n1. Review current safety protocols\n2. Increase safety team presence\n3. Accelerate training programs\n4. Investigate contributing factors\n5. Implement corrective measures\n\n📊 **Dashboard Access:**\n{{ $env.DASHBOARD_URL }}\n\n---\n⚡ Real-time Monitoring by Jufipai.com\n👨‍💼 Fabien Perdomo © All Rights Reserved"
+      },
+      "id": "kpi-alert-email",
+      "name": "KPI Alert Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [700, 800]
+    }
+  ],
+  "connections": {
+    "Monday 8AM Executive Report": {
+      "main": [
+        [
+          {
+            "node": "Fetch Executive Analytics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Executive Analytics": {
+      "main": [
+        [
+          {
+            "node": "AI Executive Summary Generation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Executive Summary Generation": {
+      "main": [
+        [
+          {
+            "node": "Create CEO Report in Notion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create CEO Report in Notion": {
+      "main": [
+        [
+          {
+            "node": "CEO Weekly Report Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Friday 5PM Weekly Close": {
+      "main": [
+        [
+          {
+            "node": "Fetch Weekly Performance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Weekly Performance": {
+      "main": [
+        [
+          {
+            "node": "Find Relevant Training Videos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Relevant Training Videos": {
+      "main": [
+        [
+          {
+            "node": "Create Training Recommendations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Monthly Board Report": {
+      "main": [
+        [
+          {
+            "node": "Fetch Board Report Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Board Report Data": {
+      "main": [
+        [
+          {
+            "node": "AI Board Report Generation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Board Report Generation": {
+      "main": [
+        [
+          {
+            "node": "Create Board Report in Notion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Board Report in Notion": {
+      "main": [
+        [
+          {
+            "node": "Board Monthly Report Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Real-time KPI Monitor": {
+      "main": [
+        [
+          {
+            "node": "Fetch Current KPIs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Current KPIs": {
+      "main": [
+        [
+          {
+            "node": "KPI Alert Threshold",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "KPI Alert Threshold": {
+      "main": [
+        [
+          {
+            "node": "KPI Alert Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "createdAt": "2024-12-15T10:00:00.000Z",
+      "updatedAt": "2024-12-15T10:00:00.000Z",
+      "id": "ceo-executive-reporting",
+      "name": "CEO Executive Reporting"
+    }
+  ],
+  "triggerCount": 4,
+  "updatedAt": "2024-12-15T10:00:00.000Z",
+  "versionId": "ceo-reporting-v1.0"
+}

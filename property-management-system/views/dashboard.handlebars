@@ -1,0 +1,624 @@
+<!-- Portfolio Metrics Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="metric-card metric-neutral card-hover">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-600 text-sm">Total Properties</p>
+                <p class="text-3xl font-bold text-gray-800">{{portfolioMetrics.totalProperties}}</p>
+            </div>
+            <div class="bg-blue-100 p-3 rounded-full">
+                <i class="fas fa-home text-blue-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="metric-card metric-positive card-hover">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-600 text-sm">Total Rent Income</p>
+                <p class="text-3xl font-bold text-green-600">{{formatCurrency portfolioMetrics.totalRentIncome}}</p>
+            </div>
+            <div class="bg-green-100 p-3 rounded-full">
+                <i class="fas fa-dollar-sign text-green-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="metric-card {{#if (gt portfolioMetrics.totalNetIncome 0)}}metric-positive{{else}}metric-negative{{/if}} card-hover">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-600 text-sm">Net Income</p>
+                <p class="text-3xl font-bold {{#if (gt portfolioMetrics.totalNetIncome 0)}}text-green-600{{else}}text-red-600{{/if}}">
+                    {{formatCurrency portfolioMetrics.totalNetIncome}}
+                </p>
+            </div>
+            <div class="{{#if (gt portfolioMetrics.totalNetIncome 0)}}bg-green-100{{else}}bg-red-100{{/if}} p-3 rounded-full">
+                <i class="fas fa-chart-line {{#if (gt portfolioMetrics.totalNetIncome 0)}}text-green-600{{else}}text-red-600{{/if}} text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="metric-card metric-warning card-hover">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-600 text-sm">Average ROI</p>
+                <p class="text-3xl font-bold text-orange-600">{{formatPercent portfolioMetrics.averageROI}}</p>
+            </div>
+            <div class="bg-orange-100 p-3 rounded-full">
+                <i class="fas fa-percentage text-orange-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Secondary Metrics -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-800">Total Expenses</h3>
+            <i class="fas fa-credit-card text-red-500"></i>
+        </div>
+        <p class="text-2xl font-bold text-red-600">{{formatCurrency portfolioMetrics.totalExpenses}}</p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-800">Mortgage Balance</h3>
+            <i class="fas fa-university text-purple-500"></i>
+        </div>
+        <p class="text-2xl font-bold text-purple-600">{{formatCurrency portfolioMetrics.totalMortgageBalance}}</p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-800">Occupancy Rate</h3>
+            <i class="fas fa-chart-pie text-blue-500"></i>
+        </div>
+        <p class="text-2xl font-bold text-blue-600">{{formatPercent portfolioMetrics.occupancyRate}}</p>
+    </div>
+</div>
+
+<!-- Main Content Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+    <!-- Top Performing Properties -->
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xl font-semibold text-gray-800">
+                <i class="fas fa-trophy text-yellow-500 mr-2"></i>
+                Top Performers
+            </h3>
+            <a href="/properties" class="text-blue-600 hover:text-blue-800 text-sm">View All</a>
+        </div>
+
+        {{#if topPerformers}}
+        <div class="space-y-4">
+            {{#each topPerformers}}
+            <div class="flex items-center justify-between p-4 bg-green-50 rounded-lg border-l-4 border-green-400">
+                <div>
+                    <p class="font-medium text-gray-800">{{address}}</p>
+                    <p class="text-sm text-gray-600">Manager: {{manager}}</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-lg font-bold text-green-600">{{formatPercent roi}}</p>
+                    <p class="text-sm text-gray-600">ROI</p>
+                </div>
+            </div>
+            {{/each}}
+        </div>
+        {{else}}
+        <div class="text-center py-8 text-gray-500">
+            <i class="fas fa-chart-line text-4xl mb-4"></i>
+            <p>No performance data available yet</p>
+        </div>
+        {{/if}}
+    </div>
+
+    <!-- Under Performers -->
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xl font-semibold text-gray-800">
+                <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>
+                Under Performers
+            </h3>
+            <a href="/properties" class="text-blue-600 hover:text-blue-800 text-sm">View All</a>
+        </div>
+
+        {{#if underPerformers}}
+        <div class="space-y-4">
+            {{#each underPerformers}}
+            <div class="flex items-center justify-between p-4 bg-red-50 rounded-lg border-l-4 border-red-400">
+                <div>
+                    <p class="font-medium text-gray-800">{{address}}</p>
+                    <p class="text-sm text-gray-600">Manager: {{manager}}</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-lg font-bold text-red-600">{{formatCurrency net_income}}</p>
+                    <p class="text-sm text-gray-600">Net Loss</p>
+                </div>
+            </div>
+            {{/each}}
+        </div>
+        {{else}}
+        <div class="text-center py-8 text-gray-500">
+            <i class="fas fa-thumbs-up text-4xl mb-4"></i>
+            <p>All properties are performing well!</p>
+        </div>
+        {{/if}}
+    </div>
+</div>
+
+<!-- Manager Performance and Alerts -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- Top Managers -->
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xl font-semibold text-gray-800">
+                <i class="fas fa-users text-blue-500 mr-2"></i>
+                Top Managers
+            </h3>
+            <a href="/managers" class="text-blue-600 hover:text-blue-800 text-sm">View All</a>
+        </div>
+
+        {{#if managers}}
+        <div class="space-y-4">
+            {{#each managers}}
+            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                <div>
+                    <p class="font-medium text-gray-800">{{name}}</p>
+                    <p class="text-sm text-gray-600">{{total_properties}} properties</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-lg font-bold text-blue-600">{{formatCurrency total_rent_income}}</p>
+                    <p class="text-sm text-gray-600">{{formatPercent average_roi}} ROI</p>
+                </div>
+            </div>
+            {{/each}}
+        </div>
+        {{else}}
+        <div class="text-center py-8 text-gray-500">
+            <i class="fas fa-user-plus text-4xl mb-4"></i>
+            <p>No manager data available</p>
+        </div>
+        {{/if}}
+    </div>
+
+    <!-- Recent Alerts -->
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xl font-semibold text-gray-800">
+                <i class="fas fa-bell text-red-500 mr-2"></i>
+                Recent Alerts
+            </h3>
+            <a href="/alerts" class="text-blue-600 hover:text-blue-800 text-sm">View All</a>
+        </div>
+
+        {{#if alerts}}
+        <div class="space-y-4">
+            {{#each alerts}}
+            <div class="p-4 rounded-lg {{priorityClass priority}}">
+                <div class="flex items-center justify-between mb-2">
+                    <p class="font-medium">{{title}}</p>
+                    <span class="text-xs px-2 py-1 rounded {{priorityClass priority}}">{{priority}}</span>
+                </div>
+                <p class="text-sm mb-2">{{message}}</p>
+                <div class="flex items-center justify-between text-xs">
+                    <span>{{address}}</span>
+                    <span>Due: {{formatDate due_date}}</span>
+                </div>
+            </div>
+            {{/each}}
+        </div>
+        {{else}}
+        <div class="text-center py-8 text-gray-500">
+            <i class="fas fa-check-circle text-4xl mb-4"></i>
+            <p>No urgent alerts</p>
+        </div>
+        {{/if}}
+    </div>
+</div>
+
+<!-- Agent Management Control Panel -->
+<div class="mt-8 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg p-6 text-white">
+    <div class="flex items-center justify-between mb-6">
+        <h3 class="text-xl font-bold">🤖 Intelligent Agents Control Panel</h3>
+        <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-2">
+                <div id="agent-status-indicator" class="w-3 h-3 bg-gray-400 rounded-full"></div>
+                <span class="text-sm" id="agent-status-text">Checking...</span>
+            </div>
+            <button onclick="refreshAgentStatus()" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-1 rounded text-sm">
+                <i class="fas fa-sync-alt mr-1"></i> Refresh
+            </button>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+        <button onclick="deployAllAgents()"
+                class="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg p-4 text-center transition">
+            <i class="fas fa-rocket text-2xl mb-2"></i>
+            <p class="font-medium">Deploy All Agents</p>
+            <p class="text-xs opacity-75">Launch complete agent suite</p>
+        </button>
+
+        <button onclick="deploySpecificAgent('rent_collector')"
+                class="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg p-4 text-center transition">
+            <i class="fas fa-dollar-sign text-2xl mb-2"></i>
+            <p class="font-medium">Rent Collection Agent</p>
+            <p class="text-xs opacity-75">Automate rent collection & follow-ups</p>
+        </button>
+
+        <button onclick="deploySpecificAgent('maintenance_coordinator')"
+                class="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg p-4 text-center transition">
+            <i class="fas fa-wrench text-2xl mb-2"></i>
+            <p class="font-medium">Maintenance Agent</p>
+            <p class="text-xs opacity-75">Schedule & coordinate maintenance</p>
+        </button>
+
+        <button onclick="deploySpecificAgent('tenant_relationship')"
+                class="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg p-4 text-center transition">
+            <i class="fas fa-users text-2xl mb-2"></i>
+            <p class="font-medium">Tenant Relations Agent</p>
+            <p class="text-xs opacity-75">Manage tenant satisfaction</p>
+        </button>
+
+        <button onclick="deploySpecificAgent('financial_analyst')"
+                class="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg p-4 text-center transition">
+            <i class="fas fa-chart-line text-2xl mb-2"></i>
+            <p class="font-medium">Financial Analyst</p>
+            <p class="text-xs opacity-75">Performance analysis & insights</p>
+        </button>
+
+        <button onclick="deploySpecificAgent('emergency_responder')"
+                class="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg p-4 text-center transition">
+            <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
+            <p class="font-medium">Emergency Response</p>
+            <p class="text-xs opacity-75">Handle urgent situations</p>
+        </button>
+    </div>
+
+    <div class="bg-white bg-opacity-10 rounded-lg p-4">
+        <div class="flex items-center justify-between mb-3">
+            <h4 class="font-medium">Active Agents Status</h4>
+            <button onclick="stopAllAgents()" class="text-red-300 hover:text-red-100 text-sm">
+                <i class="fas fa-stop-circle mr-1"></i> Stop All
+            </button>
+        </div>
+        <div id="active-agents-list" class="space-y-2">
+            <p class="text-sm opacity-75">Loading agent status...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Automation Control Panel -->
+<div class="mt-8 bg-gradient-to-r from-indigo-600 to-blue-600 rounded-lg p-6 text-white">
+    <div class="flex items-center justify-between mb-6">
+        <h3 class="text-xl font-bold">🤖 Automation Control Panel</h3>
+        <div class="flex items-center space-x-2">
+            <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+            <span class="text-sm">Active</span>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <button onclick="triggerAutomation('rent-reminders')"
+                class="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg p-4 text-center transition">
+            <i class="fas fa-dollar-sign text-2xl mb-2"></i>
+            <p class="font-medium">Trigger Rent Reminders</p>
+            <p class="text-xs opacity-75">Send monthly rent collection notices</p>
+        </button>
+        <button onclick="triggerAutomation('maintenance-check')"
+                class="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg p-4 text-center transition">
+            <i class="fas fa-tools text-2xl mb-2"></i>
+            <p class="font-medium">Maintenance Check</p>
+            <p class="text-xs opacity-75">Generate maintenance reminders</p>
+        </button>
+        <button onclick="triggerAutomation('monthly-report')"
+                class="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg p-4 text-center transition">
+            <i class="fas fa-chart-bar text-2xl mb-2"></i>
+            <p class="font-medium">Monthly Report</p>
+            <p class="text-xs opacity-75">Generate financial reports</p>
+        </button>
+    </div>
+
+    <div class="bg-white bg-opacity-10 rounded-lg p-4">
+        <h4 class="font-medium mb-3">Automation Status</h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div class="flex justify-between">
+                <span>Rent Reminders:</span>
+                <span class="text-green-300">Active (Monthly)</span>
+            </div>
+            <div class="flex justify-between">
+                <span>Maintenance Checks:</span>
+                <span class="text-green-300">Active (Weekly)</span>
+            </div>
+            <div class="flex justify-between">
+                <span>Overdue Alerts:</span>
+                <span class="text-green-300">Active (Daily)</span>
+            </div>
+            <div class="flex justify-between">
+                <span>Financial Reports:</span>
+                <span class="text-green-300">Active (Monthly)</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="mt-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white">
+    <h3 class="text-xl font-bold mb-4">Quick Actions</h3>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <button class="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg p-4 text-center transition">
+            <i class="fas fa-plus text-2xl mb-2"></i>
+            <p class="font-medium">Add Property</p>
+        </button>
+        <button class="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg p-4 text-center transition">
+            <i class="fas fa-user-plus text-2xl mb-2"></i>
+            <p class="font-medium">Add Manager</p>
+        </button>
+        <button class="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg p-4 text-center transition">
+            <i class="fas fa-file-alt text-2xl mb-2"></i>
+            <p class="font-medium">Generate Report</p>
+        </button>
+        <button class="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg p-4 text-center transition">
+            <i class="fas fa-tools text-2xl mb-2"></i>
+            <p class="font-medium">Maintenance</p>
+        </button>
+    </div>
+</div>
+
+<script>
+async function triggerAutomation(type) {
+    try {
+        // Show loading state
+        const button = event.target.closest('button');
+        const originalContent = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin text-2xl mb-2"></i><p class="font-medium">Processing...</p>';
+        button.disabled = true;
+
+        const response = await fetch(`/api/automation/trigger/${type}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            // Show success message
+            button.innerHTML = '<i class="fas fa-check text-2xl mb-2 text-green-300"></i><p class="font-medium">Success!</p>';
+
+            // Show notification
+            showNotification(`${result.message}`, 'success');
+
+            // Reset button after 3 seconds
+            setTimeout(() => {
+                button.innerHTML = originalContent;
+                button.disabled = false;
+            }, 3000);
+
+            // Refresh alerts section
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        } else {
+            throw new Error(result.message || 'Unknown error');
+        }
+    } catch (error) {
+        console.error('Automation trigger error:', error);
+        showNotification(`Error: ${error.message}`, 'error');
+
+        // Reset button
+        button.innerHTML = originalContent;
+        button.disabled = false;
+    }
+}
+
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg text-white ${
+        type === 'success' ? 'bg-green-600' : 'bg-red-600'
+    } transform transition-transform duration-300 translate-x-full`;
+
+    notification.innerHTML = `
+        <div class="flex items-center space-x-2">
+            <i class="fas fa-${type === 'success' ? 'check' : 'exclamation-triangle'}"></i>
+            <span>${message}</span>
+        </div>
+    `;
+
+    document.body.appendChild(notification);
+
+    // Slide in
+    setTimeout(() => {
+        notification.classList.remove('translate-x-full');
+    }, 100);
+
+    // Slide out after 5 seconds
+    setTimeout(() => {
+        notification.classList.add('translate-x-full');
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 300);
+    }, 5000);
+}
+
+// Agent Management Functions
+
+async function deployAllAgents() {
+    try {
+        showLoadingState('Deploying all agents...');
+
+        const response = await fetch('/api/agents/deploy-all', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showNotification(`Successfully deployed ${result.agents.length} agents!`, 'success');
+            await refreshAgentStatus();
+        } else {
+            throw new Error(result.message || 'Failed to deploy agents');
+        }
+    } catch (error) {
+        console.error('Agent deployment error:', error);
+        showNotification(`Error: ${error.message}`, 'error');
+    }
+}
+
+async function deploySpecificAgent(agentType) {
+    try {
+        showLoadingState(`Deploying ${agentType} agent...`);
+
+        const response = await fetch(`/api/agents/deploy/${agentType}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showNotification(`${result.agent.name} deployed successfully!`, 'success');
+            await refreshAgentStatus();
+        } else {
+            throw new Error(result.message || 'Failed to deploy agent');
+        }
+    } catch (error) {
+        console.error('Agent deployment error:', error);
+        showNotification(`Error: ${error.message}`, 'error');
+    }
+}
+
+async function stopAllAgents() {
+    try {
+        showLoadingState('Stopping all agents...');
+
+        const response = await fetch('/api/agents/stop-all', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showNotification(`Stopped ${result.stoppedAgents.length} agents`, 'success');
+            await refreshAgentStatus();
+        } else {
+            throw new Error(result.message || 'Failed to stop agents');
+        }
+    } catch (error) {
+        console.error('Agent stop error:', error);
+        showNotification(`Error: ${error.message}`, 'error');
+    }
+}
+
+async function stopAgent(agentId) {
+    try {
+        const response = await fetch(`/api/agents/stop/${agentId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showNotification(`Agent stopped successfully`, 'success');
+            await refreshAgentStatus();
+        } else {
+            throw new Error(result.message || 'Failed to stop agent');
+        }
+    } catch (error) {
+        console.error('Agent stop error:', error);
+        showNotification(`Error: ${error.message}`, 'error');
+    }
+}
+
+async function refreshAgentStatus() {
+    try {
+        const response = await fetch('/api/agents/status');
+        const result = await response.json();
+
+        if (result.success) {
+            updateAgentStatusDisplay(result.status);
+        } else {
+            throw new Error('Failed to fetch agent status');
+        }
+    } catch (error) {
+        console.error('Error fetching agent status:', error);
+        document.getElementById('agent-status-text').textContent = 'Error';
+        document.getElementById('agent-status-indicator').className = 'w-3 h-3 bg-red-400 rounded-full';
+    }
+}
+
+function updateAgentStatusDisplay(status) {
+    const statusIndicator = document.getElementById('agent-status-indicator');
+    const statusText = document.getElementById('agent-status-text');
+    const agentsList = document.getElementById('active-agents-list');
+
+    // Update status indicator
+    if (status.totalAgents > 0) {
+        statusIndicator.className = 'w-3 h-3 bg-green-400 rounded-full animate-pulse';
+        statusText.textContent = `${status.totalAgents} Active`;
+    } else {
+        statusIndicator.className = 'w-3 h-3 bg-gray-400 rounded-full';
+        statusText.textContent = 'No Agents';
+    }
+
+    // Update agents list
+    if (status.activeAgents.length === 0) {
+        agentsList.innerHTML = '<p class="text-sm opacity-75">No agents currently active</p>';
+    } else {
+        agentsList.innerHTML = status.activeAgents.map(agent => `
+            <div class="flex items-center justify-between bg-white bg-opacity-10 rounded p-3">
+                <div>
+                    <div class="font-medium text-sm">${agent.name}</div>
+                    <div class="text-xs opacity-75">
+                        ${agent.status} • ${agent.tasksInProgress} tasks •
+                        ${formatUptime(agent.uptime)}
+                    </div>
+                </div>
+                <button onclick="stopAgent('${agent.agentId}')"
+                        class="text-red-300 hover:text-red-100 text-sm">
+                    <i class="fas fa-stop"></i>
+                </button>
+            </div>
+        `).join('');
+    }
+}
+
+function formatUptime(uptime) {
+    const seconds = Math.floor(uptime / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+
+    if (hours > 0) {
+        return `${hours}h ${minutes % 60}m`;
+    } else if (minutes > 0) {
+        return `${minutes}m ${seconds % 60}s`;
+    } else {
+        return `${seconds}s`;
+    }
+}
+
+function showLoadingState(message) {
+    showNotification(message, 'info');
+}
+
+// Auto-refresh agent status every 30 seconds
+setInterval(refreshAgentStatus, 30000);
+
+// Initial agent status load
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(refreshAgentStatus, 1000);
+});
+</script>
