@@ -167,7 +167,7 @@ app.post('/api/send-email', async (req, res) => {
                 </div>
                 <div class="field">
                     <span class="label">Submitted:</span>
-                    <span class="value">${new Date(reportData.timestamp).toLocaleString('en-US')}</span>
+                    <span class="value">${new Date(reportData.timestamp).toLocaleString('en-US', { timeZone: 'America/Chicago' })}</span>
                 </div>
             </div>
 
