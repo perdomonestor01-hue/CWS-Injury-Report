@@ -1729,7 +1729,7 @@
                 <!-- Photo Upload -->
                 <div class="form-group">
                     <label class="form-label">
-                        Injury Photo <span class="required">*</span>
+                        Injury Photos (2-3 photos recommended) <span class="required">*</span>
                     </label>
                     <div class="photo-upload-container">
                         <input type="file" id="injuryPhoto" accept="image/*" capture="environment"
@@ -1865,7 +1865,8 @@
         let signaturePad;
         let signaturePadInitialized = false;
         let selectedBodyParts = [];
-        let photoData = null;
+        let photoData = []; // Array to store multiple photos (max 3)
+        const MAX_PHOTOS = 3;
         let submittedReportId = null;
         let currentView = 'front';
         let savedReportData = null;
@@ -1943,14 +1944,38 @@
         }
 
         // Set default date/time to now
-        function setDefaultDateTime() {
+        // Helper function to get current time in Texas Central Time
+        function getTexasCentralTime() {
             const now = new Date();
-            // Set incident date/time to now as default
-            document.getElementById('incidentDate').valueAsDate = now;
-            document.getElementById('incidentTime').value = now.toTimeString().slice(0, 5);
-            // Set reported date/time to now as default
-            document.getElementById('reportedDate').valueAsDate = now;
-            document.getElementById('reportedTime').value = now.toTimeString().slice(0, 5);
+            // Convert to Texas Central Time (America/Chicago)
+            const texasTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Chicago' }));
+            return texasTime;
+        }
+
+        // Helper function to format date/time for Texas Central Time display
+        function formatTexasDateTime(date, options = {}) {
+            return new Date(date).toLocaleString('en-US', {
+                timeZone: 'America/Chicago',
+                ...options
+            });
+        }
+
+        function setDefaultDateTime() {
+            const texasNow = getTexasCentralTime();
+
+            // Set incident date/time to Texas time
+            const year = texasNow.getFullYear();
+            const month = String(texasNow.getMonth() + 1).padStart(2, '0');
+            const day = String(texasNow.getDate()).padStart(2, '0');
+            const hours = String(texasNow.getHours()).padStart(2, '0');
+            const minutes = String(texasNow.getMinutes()).padStart(2, '0');
+
+            document.getElementById('incidentDate').value = `${year}-${month}-${day}`;
+            document.getElementById('incidentTime').value = `${hours}:${minutes}`;
+
+            // Set reported date/time to Texas time
+            document.getElementById('reportedDate').value = `${year}-${month}-${day}`;
+            document.getElementById('reportedTime').value = `${hours}:${minutes}`;
         }
 
         // Capture geolocation
@@ -2107,21 +2132,27 @@
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
             // Convert to data URL
-            photoData = canvas.toDataURL('image/jpeg', 0.9);
+            const newPhoto = canvas.toDataURL('image/jpeg', 0.9);
 
-            // Display preview
-            document.getElementById('photoPreviewImg').src = photoData;
-            document.getElementById('photoPreview').style.display = 'block';
+            // Check if we've reached the limit
+            if (photoData.length >= MAX_PHOTOS) {
+                showNotification(`Maximum ${MAX_PHOTOS} photos allowed`, 'warning');
+                closeCamera();
+                return;
+            }
 
-            // Hide drop zone when photo is captured
-            document.getElementById('dropZone').style.display = 'none';
+            // Add photo to array
+            photoData.push(newPhoto);
+
+            // Update preview display
+            updatePhotoPreview();
 
             // Close camera
             closeCamera();
 
-            statusElement.textContent = '✓ Photo captured successfully!';
+            statusElement.textContent = `✓ Photo ${photoData.length} of ${MAX_PHOTOS} captured!`;
             statusElement.style.color = 'var(--safety-green)';
-            showNotification('Photo captured successfully!', 'success');
+            showNotification(`Photo ${photoData.length} captured successfully!`, 'success');
 
             setTimeout(() => {
                 statusElement.textContent = '';
@@ -2171,19 +2202,22 @@
                 return;
             }
 
-            statusElement.textContent = '✓ Photo uploaded successfully!';
-            statusElement.style.color = 'var(--safety-green)';
+            // Check if we've reached the limit
+            if (photoData.length >= MAX_PHOTOS) {
+                statusElement.textContent = `⚠️ Maximum ${MAX_PHOTOS} photos allowed.`;
+                statusElement.style.color = 'var(--alert-red)';
+                showNotification(`Maximum ${MAX_PHOTOS} photos allowed`, 'warning');
+                return;
+            }
 
             const reader = new FileReader();
             reader.onload = function(e) {
-                photoData = e.target.result;
-                document.getElementById('photoPreviewImg').src = photoData;
-                document.getElementById('photoPreview').style.display = 'block';
+                photoData.push(e.target.result);
+                updatePhotoPreview();
 
-                // Hide drop zone when photo is uploaded
-                document.getElementById('dropZone').style.display = 'none';
-
-                showNotification('Photo uploaded successfully!', 'success');
+                statusElement.textContent = `✓ Photo ${photoData.length} of ${MAX_PHOTOS} uploaded!`;
+                statusElement.style.color = 'var(--safety-green)';
+                showNotification(`Photo ${photoData.length} uploaded successfully!`, 'success');
 
                 // Clear status after a moment
                 setTimeout(() => {
@@ -2205,13 +2239,57 @@
             }
         }
 
-        function removePhoto() {
-            photoData = null;
-            document.getElementById('injuryPhoto').value = '';
-            document.getElementById('photoPreview').style.display = 'none';
-            document.getElementById('dropZone').style.display = 'block';
-            document.getElementById('cameraStatus').textContent = '';
+        function removePhoto(index) {
+            photoData.splice(index, 1);
+            updatePhotoPreview();
             showNotification('Photo removed', 'info');
+        }
+
+        function updatePhotoPreview() {
+            const previewContainer = document.getElementById('photoPreview');
+            const dropZone = document.getElementById('dropZone');
+
+            if (photoData.length === 0) {
+                previewContainer.style.display = 'none';
+                dropZone.style.display = 'block';
+                return;
+            }
+
+            // Hide drop zone and show previews
+            dropZone.style.display = 'none';
+            previewContainer.style.display = 'block';
+
+            // Create HTML for all photos
+            let photosHTML = '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem;">';
+
+            photoData.forEach((photo, index) => {
+                photosHTML += `
+                    <div style="position: relative; border: 2px solid var(--border-gray); border-radius: 8px; overflow: hidden;">
+                        <img src="${photo}" alt="Injury photo ${index + 1}" style="width: 100%; height: 150px; object-fit: cover;">
+                        <button type="button" onclick="removePhoto(${index})"
+                                style="position: absolute; top: 5px; right: 5px; background: var(--alert-red); color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <div style="position: absolute; bottom: 5px; left: 5px; background: rgba(0,0,0,0.7); color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">
+                            Photo ${index + 1}
+                        </div>
+                    </div>
+                `;
+            });
+
+            photosHTML += '</div>';
+
+            if (photoData.length < MAX_PHOTOS) {
+                photosHTML += `<p style="margin-top: 1rem; color: var(--text-secondary); font-size: 0.9rem;">
+                    <i class="fas fa-info-circle"></i> You can add ${MAX_PHOTOS - photoData.length} more photo(s)
+                </p>`;
+            } else {
+                photosHTML += `<p style="margin-top: 1rem; color: var(--safety-green); font-size: 0.9rem;">
+                    <i class="fas fa-check-circle"></i> Maximum ${MAX_PHOTOS} photos reached
+                </p>`;
+            }
+
+            previewContainer.innerHTML = photosHTML;
         }
 
         // Classification Selection
@@ -2343,8 +2421,8 @@
 
             // Additional validation for step 4
             if (step === 4) {
-                if (!photoData) {
-                    showNotification('Please take or upload an injury photo', 'error');
+                if (photoData.length === 0) {
+                    showNotification('Please take or upload at least one injury photo', 'error');
                     return false;
                 }
                 if (signaturePad.isEmpty()) {
@@ -2365,8 +2443,8 @@
             // Show loading
             document.getElementById('loadingSpinner').style.display = 'flex';
 
-            // Generate unique serial number report ID
-            const timestamp = new Date();
+            // Generate unique serial number report ID using Texas Central Time
+            const timestamp = getTexasCentralTime();
 
             // Get and increment counter from localStorage for unique serial numbers
             let reportCounter = parseInt(localStorage.getItem('reportCounter') || '1000');
@@ -2430,7 +2508,7 @@
                 employeeName: formData.employeeName,
                 incidentDate: formData.incidentDate,
                 injuryType: formData.injuryType,
-                hasPhoto: !!formData.injuryPhoto,
+                photoCount: formData.injuryPhoto.length,
                 hasSignature: !!formData.signature,
                 bodyParts: formData.bodyParts,
                 bodyDiagramCaptured: !!formData.bodyDiagramImage
@@ -2568,7 +2646,7 @@
             doc.setFont(undefined, 'normal');
             doc.setFontSize(9);
             doc.text('Report ID: ' + savedReportData.reportId, margin + 5, yPos + 11);
-            doc.text('Generated: ' + new Date().toLocaleString('en-US'), pageWidth - margin - 5, yPos + 11, { align: 'right' });
+            doc.text('Generated: ' + formatTexasDateTime(new Date()), pageWidth - margin - 5, yPos + 11, { align: 'right' });
             yPos += 25;
 
             // ===== EMPLOYEE INFORMATION SECTION =====
@@ -2769,24 +2847,38 @@
             }
 
             // ===== INJURY PHOTO =====
-            if (savedReportData.injuryPhoto) {
+            if (savedReportData.injuryPhoto && savedReportData.injuryPhoto.length > 0) {
                 doc.setFillColor(30, 58, 95);
                 doc.rect(margin, yPos, 3, 8, 'F');
                 doc.setTextColor(30, 58, 95);
                 doc.setFontSize(12);
                 doc.setFont(undefined, 'bold');
-                doc.text('INJURY PHOTO', margin + 6, yPos + 6);
+                doc.text(`INJURY PHOTO${savedReportData.injuryPhoto.length > 1 ? 'S' : ''}`, margin + 6, yPos + 6);
                 yPos += 12;
-                try {
-                    doc.addImage(savedReportData.injuryPhoto, 'JPEG', margin, yPos, 80, 60);
-                    yPos += 75;
-                } catch (e) {
-                    console.error('Error adding photo:', e);
-                    doc.setTextColor(185, 28, 28);
-                    doc.setFontSize(10);
-                    doc.text('Error: Photo could not be embedded', margin, yPos);
-                    yPos += 10;
-                }
+
+                savedReportData.injuryPhoto.forEach((photo, index) => {
+                    try {
+                        // Check if we need a new page
+                        if (yPos > pageHeight - 80) {
+                            doc.addPage();
+                            yPos = margin;
+                        }
+
+                        doc.setTextColor(0, 0, 0);
+                        doc.setFontSize(10);
+                        doc.setFont(undefined, 'bold');
+                        doc.text(`Photo ${index + 1}:`, margin, yPos);
+                        yPos += 5;
+                        doc.addImage(photo, 'JPEG', margin, yPos, 80, 60);
+                        yPos += 70;
+                    } catch (e) {
+                        console.error(`Error adding photo ${index + 1}:`, e);
+                        doc.setTextColor(185, 28, 28);
+                        doc.setFontSize(10);
+                        doc.text(`Error: Photo ${index + 1} could not be embedded`, margin, yPos);
+                        yPos += 10;
+                    }
+                });
             }
 
             // Check if we need a new page for signature
@@ -2860,7 +2952,7 @@
                 `Description:\n${savedReportData.description}\n\n` +
                 `---\n` +
                 `Submitted by: ${savedReportData.reporterName} (${savedReportData.reporterPosition})\n` +
-                `Generated: ${new Date().toLocaleString('en-US')}\n\n` +
+                `Generated: ${formatTexasDateTime(new Date())}\n\n` +
                 `IMPORTANT: Please download and attach the PDF report from the dashboard before sending this email.\n` +
                 `The PDF contains the complete report with injury photos and employee signature.`
             );
@@ -3083,7 +3175,7 @@
             doc.setFont(undefined, 'normal');
             doc.setFontSize(9);
             doc.text('Report ID: ' + savedReportData.reportId, margin + 5, yPos + 11);
-            doc.text('Generated: ' + new Date().toLocaleString('en-US'), pageWidth - margin - 5, yPos + 11, { align: 'right' });
+            doc.text('Generated: ' + formatTexasDateTime(new Date()), pageWidth - margin - 5, yPos + 11, { align: 'right' });
 
             yPos += 25;
 
@@ -3268,27 +3360,41 @@
             }
 
             // ===== INJURY PHOTO =====
-            if (savedReportData.injuryPhoto) {
+            if (savedReportData.injuryPhoto && savedReportData.injuryPhoto.length > 0) {
                 doc.setFillColor(30, 58, 95);
                 doc.rect(margin, yPos, 3, 8, 'F');
                 doc.setTextColor(30, 58, 95);
                 doc.setFontSize(12);
                 doc.setFont(undefined, 'bold');
-                doc.text('INJURY PHOTO', margin + 6, yPos + 6);
+                doc.text(`INJURY PHOTO${savedReportData.injuryPhoto.length > 1 ? 'S' : ''}`, margin + 6, yPos + 6);
                 yPos += 12;
 
-                try {
-                    const imgWidth = 80;
-                    const imgHeight = 60;
-                    doc.addImage(savedReportData.injuryPhoto, 'JPEG', margin, yPos, imgWidth, imgHeight);
-                    yPos += imgHeight + 15;
-                } catch (error) {
-                    console.error('Error adding photo to PDF:', error);
-                    doc.setTextColor(185, 28, 28);
-                    doc.setFontSize(10);
-                    doc.text('Error: Could not add photo to PDF', margin, yPos);
-                    yPos += 15;
-                }
+                savedReportData.injuryPhoto.forEach((photo, index) => {
+                    try {
+                        // Check if we need a new page
+                        if (yPos > pageHeight - 80) {
+                            doc.addPage();
+                            yPos = margin;
+                        }
+
+                        doc.setTextColor(0, 0, 0);
+                        doc.setFontSize(10);
+                        doc.setFont(undefined, 'bold');
+                        doc.text(`Photo ${index + 1}:`, margin, yPos);
+                        yPos += 5;
+
+                        const imgWidth = 80;
+                        const imgHeight = 60;
+                        doc.addImage(photo, 'JPEG', margin, yPos, imgWidth, imgHeight);
+                        yPos += imgHeight + 15;
+                    } catch (error) {
+                        console.error(`Error adding photo ${index + 1} to PDF:`, error);
+                        doc.setTextColor(185, 28, 28);
+                        doc.setFontSize(10);
+                        doc.text(`Error: Could not add photo ${index + 1} to PDF`, margin, yPos);
+                        yPos += 15;
+                    }
+                });
             }
 
             // Check if we need a new page for signature
@@ -3474,7 +3580,7 @@
             doc.text('Generated:', boxX + 10, yPos + 54);
             doc.setFont(undefined, 'normal');
             doc.setFontSize(9);
-            doc.text(new Date().toLocaleString('en-US'), boxX + 60, yPos + 54);
+            doc.text(formatTexasDateTime(new Date()), boxX + 60, yPos + 54);
 
             yPos = 200;
             doc.setFillColor(255, 255, 255);
@@ -3637,28 +3743,32 @@
                 doc.text('No body parts selected for this report', pageWidth / 2, pageHeight / 2, { align: 'center' });
             }
 
-            // PAGE 4: PHOTO (if exists)
-            if (savedReportData.injuryPhoto) {
-                doc.addPage();
-                addPageHeaderFooter(4, 'INJURY PHOTO');
-                yPos = 60;
-                try {
-                    const imgWidth = 140;
-                    const imgHeight = 105;
-                    const imgX = (pageWidth - imgWidth) / 2;
-                    doc.addImage(savedReportData.injuryPhoto, 'JPEG', imgX, yPos, imgWidth, imgHeight);
-                    doc.setTextColor(100, 100, 100);
-                    doc.setFontSize(9);
-                    doc.setFont(undefined, 'italic');
-                    doc.text('Photo captured: ' + new Date(savedReportData.timestamp).toLocaleString(), pageWidth / 2, yPos + imgHeight + 10, { align: 'center' });
-                } catch (error) {
-                    console.error('Error adding photo:', error);
-                }
+            // PAGE 4+: PHOTOS (if exist)
+            if (savedReportData.injuryPhoto && savedReportData.injuryPhoto.length > 0) {
+                savedReportData.injuryPhoto.forEach((photo, index) => {
+                    doc.addPage();
+                    addPageHeaderFooter(4 + index, `INJURY PHOTO ${index + 1}`);
+                    yPos = 60;
+                    try {
+                        const imgWidth = 140;
+                        const imgHeight = 105;
+                        const imgX = (pageWidth - imgWidth) / 2;
+                        doc.addImage(photo, 'JPEG', imgX, yPos, imgWidth, imgHeight);
+                        doc.setTextColor(100, 100, 100);
+                        doc.setFontSize(9);
+                        doc.setFont(undefined, 'italic');
+                        doc.text(`Photo ${index + 1} of ${savedReportData.injuryPhoto.length} - Captured: ` + formatTexasDateTime(new Date(savedReportData.timestamp)),
+                                 pageWidth / 2, yPos + imgHeight + 10, { align: 'center' });
+                    } catch (error) {
+                        console.error(`Error adding photo ${index + 1}:`, error);
+                    }
+                });
             }
 
-            // PAGE 5: SIGNATURE
+            // FINAL PAGE: SIGNATURE
             doc.addPage();
-            const finalPage = savedReportData.injuryPhoto ? 5 : 4;
+            const photoPageCount = (savedReportData.injuryPhoto && savedReportData.injuryPhoto.length > 0) ? savedReportData.injuryPhoto.length : 0;
+            const finalPage = 4 + photoPageCount;
             addPageHeaderFooter(finalPage, 'SIGNATURE & CERTIFICATION');
             yPos = 60;
 
@@ -3766,8 +3876,16 @@
                     </div>
 
                     <div class="section">
-                        <h2>Injury Photo</h2>
-                        <img src="${savedReportData.injuryPhoto}" alt="Injury photo">
+                        <h2>Injury Photo${savedReportData.injuryPhoto && savedReportData.injuryPhoto.length > 1 ? 's' : ''}</h2>
+                        ${savedReportData.injuryPhoto && savedReportData.injuryPhoto.length > 0 ?
+                            savedReportData.injuryPhoto.map((photo, index) => `
+                                <div style="margin-bottom: 1rem;">
+                                    <p style="font-weight: bold; color: #1e3a5f;">Photo ${index + 1} of ${savedReportData.injuryPhoto.length}:</p>
+                                    <img src="${photo}" alt="Injury photo ${index + 1}" style="max-width: 100%; border: 2px solid #e2e8f0; border-radius: 8px; margin-top: 0.5rem;">
+                                </div>
+                            `).join('') :
+                            '<p>No photos attached</p>'
+                        }
                     </div>
 
                     <div class="section">
