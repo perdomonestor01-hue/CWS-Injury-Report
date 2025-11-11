@@ -179,11 +179,11 @@ app.post('/api/send-email', async (req, res) => {
                 </div>
                 <div class="field">
                     <span class="label">Employee ID:</span>
-                    <span class="value">${reportData.employeeId}</span>
+                    <span class="value">${reportData.employeeId || 'Not provided'}</span>
                 </div>
                 <div class="field">
-                    <span class="label">Affiliate:</span>
-                    <span class="value">${reportData.affiliate}</span>
+                    <span class="label">Cellphone:</span>
+                    <span class="value">${reportData.employeePhone || 'Not provided'}</span>
                 </div>
                 <div class="field">
                     <span class="label">Client Company:</span>
@@ -247,10 +247,18 @@ app.post('/api/send-email', async (req, res) => {
             </div>
             ` : ''}
 
-            ${reportData.injuryPhoto ? `
+            ${reportData.injuryPhoto && (Array.isArray(reportData.injuryPhoto) ? reportData.injuryPhoto.length > 0 : reportData.injuryPhoto) ? `
             <div class="section">
-                <h2>📸 Injury Photo</h2>
-                <img src="cid:injuryPhoto" alt="Injury Photo" style="border: 1px solid #e2e8f0; border-radius: 8px;">
+                <h2>📸 Injury Photo${Array.isArray(reportData.injuryPhoto) && reportData.injuryPhoto.length > 1 ? 's' : ''}</h2>
+                ${Array.isArray(reportData.injuryPhoto)
+                    ? reportData.injuryPhoto.map((photo, index) => `
+                        <div style="margin-bottom: 15px;">
+                            <p style="font-weight: bold; color: #1e3a5f; margin-bottom: 5px;">Photo ${index + 1} of ${reportData.injuryPhoto.length}:</p>
+                            <img src="cid:injuryPhoto${index}" alt="Injury Photo ${index + 1}" style="border: 1px solid #e2e8f0; border-radius: 8px; max-width: 100%;">
+                        </div>
+                    `).join('')
+                    : `<img src="cid:injuryPhoto" alt="Injury Photo" style="border: 1px solid #e2e8f0; border-radius: 8px;">`
+                }
             </div>
             ` : ''}
 
@@ -303,13 +311,27 @@ app.post('/api/send-email', async (req, res) => {
             });
         }
 
-        // Add injury photo as attachment if present
-        if (reportData.injuryPhoto && reportData.injuryPhoto.startsWith('data:')) {
-            attachments.push({
-                filename: `injury-photo-${reportData.reportId}.jpg`,
-                path: reportData.injuryPhoto,
-                cid: 'injuryPhoto'
-            });
+        // Add injury photo(s) as attachment(s) if present
+        if (reportData.injuryPhoto) {
+            if (Array.isArray(reportData.injuryPhoto)) {
+                // Handle multiple photos
+                reportData.injuryPhoto.forEach((photo, index) => {
+                    if (photo && photo.startsWith('data:')) {
+                        attachments.push({
+                            filename: `injury-photo-${index + 1}-${reportData.reportId}.jpg`,
+                            path: photo,
+                            cid: `injuryPhoto${index}`
+                        });
+                    }
+                });
+            } else if (reportData.injuryPhoto.startsWith('data:')) {
+                // Handle single photo (backwards compatibility)
+                attachments.push({
+                    filename: `injury-photo-${reportData.reportId}.jpg`,
+                    path: reportData.injuryPhoto,
+                    cid: 'injuryPhoto'
+                });
+            }
         }
 
         // Add employee signature as attachment if present
