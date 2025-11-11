@@ -289,7 +289,7 @@ app.post('/api/send-email', async (req, res) => {
         <div class="footer">
             <p><strong>Custom Workforce Solutions LLC</strong></p>
             <p>Safety Management System</p>
-            <p class="footer-highlight">Engineered by Jufipai</p>
+            <p class="footer-highlight">Engineered by Safety Developer</p>
             <p style="margin-top: 10px; font-size: 11px; color: #94a3b8;">
                 This is an automated message. All reports are confidential and should be handled according to OSHA guidelines.
             </p>
@@ -401,7 +401,7 @@ app.listen(PORT, () => {
     console.log(`
 ╔════════════════════════════════════════════════╗
 ║   CWS Injury Report Email Service             ║
-║   Engineered by Jufipai                        ║
+║   Engineered by Safety Developer               ║
 ╠════════════════════════════════════════════════╣
 ║   Status: ✅ Running                           ║
 ║   Port: ${PORT.toString().padEnd(38)}      ║
