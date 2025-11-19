@@ -89,6 +89,12 @@
             text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
+        .logo img {
+            height: 50px;
+            width: auto;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+
         .logo i {
             color: var(--safety-accent);
             filter: drop-shadow(0 0 8px rgba(74, 222, 128, 0.8));
@@ -98,6 +104,41 @@
             display: flex;
             align-items: center;
             gap: 1rem;
+        }
+
+        /* Language Toggle */
+        .language-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255,255,255,0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .language-toggle:hover {
+            background: rgba(255,255,255,0.2);
+            border-color: var(--safety-accent);
+            transform: translateY(-2px);
+        }
+
+        .language-toggle i {
+            font-size: 1.2rem;
+            color: var(--safety-accent);
+        }
+
+        .language-label {
+            font-weight: 600;
+            font-size: 0.95rem;
+            letter-spacing: 0.5px;
+        }
+
+        .language-label.active {
+            color: var(--safety-accent);
         }
 
         .report-id {
@@ -1114,10 +1155,16 @@
     <!-- Header -->
     <header class="header">
         <div class="logo">
-            <i class="fas fa-file-medical" id="headerIcon"></i>
-            <span id="headerTitle">Injury Report System</span>
+            <img src="/images/cws-logo-white.png" alt="CWS Logo" id="cws-logo" onerror="this.style.display='none'">
+            <span id="headerTitle">Accident Report System</span>
         </div>
         <div class="header-info">
+            <div class="language-toggle" onclick="toggleLanguage()">
+                <i class="fas fa-globe"></i>
+                <span class="language-label" id="lang-en">EN</span>
+                <span style="color: rgba(255,255,255,0.5)">|</span>
+                <span class="language-label" id="lang-es">ES</span>
+            </div>
             <span class="report-id" id="reportIdDisplay"></span>
         </div>
     </header>
@@ -1871,12 +1918,647 @@
         let currentView = 'front';
         let savedReportData = null;
         let cameraStream = null;
+        let currentLanguage = 'en'; // Default language
+
+        // Comprehensive Bilingual Translation System - Professional Technical Spanish
+        const translations = {
+            en: {
+                // Header & Navigation
+                headerTitle: "Accident Report System",
+
+                // Progress Steps
+                step1: "Classification",
+                step2: "Employee Info",
+                step3: "Incident Details",
+                step4: "Injury Details",
+                step5: "Photo & Signature",
+
+                // Step 0: Classification
+                reportClassificationTitle: "Report Classification",
+                classificationInfo: "Please select the type of report you are filing. This helps us ensure the proper documentation and follow-up procedures.",
+                incidentTitle: "Incident",
+                incidentDesc: "An unexpected event or near miss that could have resulted in injury, but did not cause harm. Examples: slip without fall, near miss, unsafe condition discovered.",
+                accidentTitle: "Accident",
+                accidentDesc: "An unexpected event that resulted in actual injury, illness, or property damage. Examples: fall with injury, equipment malfunction causing harm, workplace injury.",
+                continueBtn: "Continue",
+
+                // Step 1: Employee Info
+                employeeInfoTitle: "Employee Information",
+                employeeName: "Employee Name",
+                employeeNamePH: "Enter full name",
+                employeeId: "Employee ID",
+                employeeIdPH: "Enter employee ID",
+                cellphone: "Cellphone Number",
+                cellphonePH: "321-123-4545",
+                cellphoneHint: "To be contacted regarding this incident",
+                required: "*",
+
+                // Step 2: Incident Details
+                incidentDetailsTitle: "Incident Details",
+                clientCompany: "Client Company",
+                clientCompanyPH: "Enter client company name",
+                completeAddress: "Complete Address",
+                completeAddressPH: "Enter full street address, city, state, zip code",
+                locationHint: "Where the incident/accident happened",
+                dateTime: "Date & Time",
+                incidentDate: "Incident Date",
+                incidentDateHint: "When did the incident occur?",
+                incidentTime: "Incident Time",
+                incidentTimeHint: "Time the incident occurred",
+                reportedDate: "Date Reported",
+                reportedDateHint: "When is this being reported?",
+                reportedTime: "Time Reported",
+                reportedTimeHint: "Time this report is being submitted",
+                injuryTypeLabel: "Type of Injury",
+                injuryTypeOption: "Select injury type...",
+                injuryTypeSlipFall: "Slip/Fall",
+                injuryTypeCut: "Cut/Laceration",
+                injuryTypeBurn: "Burn",
+                injuryTypeStrain: "Strain/Sprain",
+                injuryTypeCrushing: "Crushing Injury",
+                injuryTypeForeign: "Foreign Object in Eye",
+                injuryTypeEquipment: "Equipment Accident",
+                injuryTypeChemical: "Chemical Exposure",
+                injuryTypeOther: "Other",
+                description: "Incident Description",
+                descriptionPH: "Describe what happened in detail...",
+                descriptionHint: "Include: What was the employee doing? What happened? Any equipment involved?",
+                witnessName: "Witness Name (if any)",
+                witnessNamePH: "Optional",
+                witnessContact: "Witness Contact",
+                witnessContactPH: "Phone or email",
+
+                // Step 3: Injury Details
+                injuryDetailsTitle: "Select Injured Body Parts",
+                injuryDetailsInfo: "Click on the body diagram below to select injured areas. You can select multiple areas.",
+                viewFront: "Front View",
+                viewBack: "Back View",
+                selectedBodyParts: "Selected Body Parts:",
+                noSelection: "No body parts selected yet",
+
+                // Step 4: Photos & Signature
+                photoSignatureTitle: "Photo & Digital Signature",
+                photoLabel: "Injury Photos (2-3 photos recommended)",
+                takePhoto: "Take Photo",
+                uploadDevice: "Upload from Device",
+                dragDrop: "Drag and drop an image here",
+                dragDropHint: "or click the buttons above",
+                takePhotoTitle: "Take Photo",
+                capturePhoto: "Capture Photo",
+                cancelBtn: "Cancel",
+                employeeSignature: "Employee Signature",
+                clearSignature: "Clear Signature",
+                signatureHint: "Sign above using your finger or stylus",
+                reporterName: "Report Submitted By",
+                reporterNamePH: "Your name",
+                reporterPosition: "Position",
+                reporterPositionPH: "Your position/title",
+
+                // Buttons
+                nextStep: "Next",
+                previousStep: "Back",
+                submitReport: "Submit Report",
+
+                // Success Message
+                successTitle: "Report Submitted Successfully!",
+                reportId: "Report ID:",
+                savedMessage: "Your injury report has been saved locally for demonstration purposes.",
+                downloadPdf: "Download PDF",
+                submitAnother: "Submit Another Report",
+                viewReport: "View Report Data",
+
+                // Loading
+                submitting: "Submitting report...",
+
+                // Footer
+                footerCompany: "Custom Workforce Solutions LLC",
+                footerSystem: "Safety Management System",
+                footerCopyright: "© 2025 Custom Workforce Solutions LLC - Engineered by Jufipai"
+            },
+            es: {
+                // Encabezado y Navegación
+                headerTitle: "Sistema de Reporte de Accidentes",
+
+                // Pasos de Progreso
+                step1: "Clasificación",
+                step2: "Info del Empleado",
+                step3: "Detalles del Incidente",
+                step4: "Detalles de Lesión",
+                step5: "Foto y Firma",
+
+                // Paso 0: Clasificación
+                reportClassificationTitle: "Clasificación del Reporte",
+                classificationInfo: "Por favor seleccione el tipo de reporte que está presentando. Esto nos ayuda a garantizar la documentación y los procedimientos de seguimiento adecuados.",
+                incidentTitle: "Incidente",
+                incidentDesc: "Un evento inesperado o casi accidente que podría haber resultado en lesión, pero no causó daño. Ejemplos: resbalón sin caída, casi accidente, condición insegura descubierta.",
+                accidentTitle: "Accidente",
+                accidentDesc: "Un evento inesperado que resultó en lesión real, enfermedad o daño a la propiedad. Ejemplos: caída con lesión, mal funcionamiento de equipo causando daño, lesión laboral.",
+                continueBtn: "Continuar",
+
+                // Paso 1: Información del Empleado
+                employeeInfoTitle: "Información del Empleado",
+                employeeName: "Nombre del Empleado",
+                employeeNamePH: "Ingrese nombre completo",
+                employeeId: "ID del Empleado",
+                employeeIdPH: "Ingrese ID del empleado",
+                cellphone: "Número de Celular",
+                cellphonePH: "321-123-4545",
+                cellphoneHint: "Para ser contactado con respecto a este incidente",
+                required: "*",
+
+                // Paso 2: Detalles del Incidente
+                incidentDetailsTitle: "Detalles del Incidente",
+                clientCompany: "Compañía Cliente",
+                clientCompanyPH: "Ingrese nombre de la compañía cliente",
+                completeAddress: "Dirección Completa",
+                completeAddressPH: "Ingrese dirección completa, ciudad, estado, código postal",
+                locationHint: "Donde ocurrió el incidente/accidente",
+                dateTime: "Fecha y Hora",
+                incidentDate: "Fecha del Incidente",
+                incidentDateHint: "¿Cuándo ocurrió el incidente?",
+                incidentTime: "Hora del Incidente",
+                incidentTimeHint: "Hora en que ocurrió el incidente",
+                reportedDate: "Fecha de Reporte",
+                reportedDateHint: "¿Cuándo se está reportando esto?",
+                reportedTime: "Hora de Reporte",
+                reportedTimeHint: "Hora en que se está enviando este reporte",
+                injuryTypeLabel: "Tipo de Lesión",
+                injuryTypeOption: "Seleccione tipo de lesión...",
+                injuryTypeSlipFall: "Resbalón/Caída",
+                injuryTypeCut: "Corte/Laceración",
+                injuryTypeBurn: "Quemadura",
+                injuryTypeStrain: "Esguince/Distensión",
+                injuryTypeCrushing: "Lesión por Aplastamiento",
+                injuryTypeForeign: "Objeto Extraño en el Ojo",
+                injuryTypeEquipment: "Accidente de Equipo",
+                injuryTypeChemical: "Exposición Química",
+                injuryTypeOther: "Otro",
+                description: "Descripción del Incidente",
+                descriptionPH: "Describa lo que sucedió en detalle...",
+                descriptionHint: "Incluya: ¿Qué estaba haciendo el empleado? ¿Qué sucedió? ¿Algún equipo involucrado?",
+                witnessName: "Nombre del Testigo (si aplica)",
+                witnessNamePH: "Opcional",
+                witnessContact: "Contacto del Testigo",
+                witnessContactPH: "Teléfono o correo electrónico",
+
+                // Paso 3: Detalles de la Lesión
+                injuryDetailsTitle: "Seleccione Partes del Cuerpo Lesionadas",
+                injuryDetailsInfo: "Haga clic en el diagrama corporal a continuación para seleccionar áreas lesionadas. Puede seleccionar múltiples áreas.",
+                viewFront: "Vista Frontal",
+                viewBack: "Vista Trasera",
+                selectedBodyParts: "Partes del Cuerpo Seleccionadas:",
+                noSelection: "Ninguna parte del cuerpo seleccionada aún",
+
+                // Paso 4: Fotos y Firma
+                photoSignatureTitle: "Foto y Firma Digital",
+                photoLabel: "Fotos de Lesión (2-3 fotos recomendadas)",
+                takePhoto: "Tomar Foto",
+                uploadDevice: "Subir desde Dispositivo",
+                dragDrop: "Arrastre y suelte una imagen aquí",
+                dragDropHint: "o haga clic en los botones de arriba",
+                takePhotoTitle: "Tomar Foto",
+                capturePhoto: "Capturar Foto",
+                cancelBtn: "Cancelar",
+                employeeSignature: "Firma del Empleado",
+                clearSignature: "Borrar Firma",
+                signatureHint: "Firme arriba usando su dedo o lápiz óptico",
+                reporterName: "Reporte Enviado Por",
+                reporterNamePH: "Su nombre",
+                reporterPosition: "Posición",
+                reporterPositionPH: "Su posición/título",
+
+                // Botones
+                nextStep: "Siguiente",
+                previousStep: "Atrás",
+                submitReport: "Enviar Reporte",
+
+                // Mensaje de Éxito
+                successTitle: "¡Reporte Enviado Exitosamente!",
+                reportId: "ID del Reporte:",
+                savedMessage: "Su reporte de lesión ha sido guardado localmente para fines de demostración.",
+                downloadPdf: "Descargar PDF",
+                submitAnother: "Enviar Otro Reporte",
+                viewReport: "Ver Datos del Reporte",
+
+                // Cargando
+                submitting: "Enviando reporte...",
+
+                // Pie de Página
+                footerCompany: "Custom Workforce Solutions LLC",
+                footerSystem: "Sistema de Gestión de Seguridad",
+                footerCopyright: "© 2025 Custom Workforce Solutions LLC - Desarrollado por Jufipai"
+            }
+        };
+
+        // Language toggle function
+        function toggleLanguage() {
+            currentLanguage = currentLanguage === 'en' ? 'es' : 'en';
+            updateLanguageUI();
+            applyTranslations();
+        }
+
+        function updateLanguageUI() {
+            const enLabel = document.getElementById('lang-en');
+            const esLabel = document.getElementById('lang-es');
+
+            if (currentLanguage === 'en') {
+                enLabel.classList.add('active');
+                esLabel.classList.remove('active');
+            } else {
+                enLabel.classList.remove('active');
+                esLabel.classList.add('active');
+            }
+        }
+
+        function applyTranslations() {
+            const t = translations[currentLanguage];
+
+            // ===== HEADER =====
+            const headerTitle = document.getElementById('headerTitle');
+            if (headerTitle) headerTitle.textContent = t.headerTitle;
+
+            // ===== PROGRESS STEPS =====
+            const progressSteps = document.querySelectorAll('.step-label');
+            if (progressSteps.length >= 5) {
+                progressSteps[0].textContent = t.step1;
+                progressSteps[1].textContent = t.step2;
+                progressSteps[2].textContent = t.step3;
+                progressSteps[3].textContent = t.step4;
+                progressSteps[4].textContent = t.step5;
+            }
+
+            // ===== STEP 0: CLASSIFICATION =====
+            const step0Title = document.querySelector('#step0 .section-title');
+            if (step0Title) {
+                const icon = step0Title.querySelector('i');
+                if (icon) {
+                    step0Title.innerHTML = icon.outerHTML + ' ' + t.reportClassificationTitle;
+                }
+            }
+
+            const step0Info = document.querySelector('#step0 .info-box p');
+            if (step0Info) step0Info.textContent = t.classificationInfo;
+
+            // Classification cards
+            const incidentCard = document.querySelector('#incidentCard .classification-title');
+            if (incidentCard) incidentCard.textContent = t.incidentTitle;
+
+            const incidentDesc = document.querySelector('#incidentCard .classification-description');
+            if (incidentDesc) incidentDesc.textContent = t.incidentDesc;
+
+            const accidentCard = document.querySelector('#accidentCard .classification-title');
+            if (accidentCard) accidentCard.textContent = t.accidentTitle;
+
+            const accidentDesc = document.querySelector('#accidentCard .classification-description');
+            if (accidentDesc) accidentDesc.textContent = t.accidentDesc;
+
+            const continueBtn = document.getElementById('classificationNextBtn');
+            if (continueBtn) {
+                const icon = continueBtn.querySelector('i');
+                continueBtn.innerHTML = t.continueBtn + (icon ? ' ' + icon.outerHTML : '');
+            }
+
+            // ===== STEP 1: EMPLOYEE INFO =====
+            const step1Title = document.querySelector('#step1 .section-title');
+            if (step1Title) {
+                const icon = step1Title.querySelector('i');
+                if (icon) {
+                    step1Title.innerHTML = icon.outerHTML + ' ' + t.employeeInfoTitle;
+                }
+            }
+
+            // Employee Name
+            const empNameLabel = document.querySelector('label[for="employeeName"]');
+            if (empNameLabel) {
+                const required = empNameLabel.querySelector('.required');
+                empNameLabel.innerHTML = t.employeeName + (required ? ' ' + required.outerHTML : '');
+            }
+            const empNameInput = document.getElementById('employeeName');
+            if (empNameInput) empNameInput.placeholder = t.employeeNamePH;
+
+            // Employee ID
+            const empIdLabel = document.querySelector('label[for="employeeId"]');
+            if (empIdLabel) empIdLabel.childNodes[0].textContent = t.employeeId + ' ';
+
+            const empIdInput = document.getElementById('employeeId');
+            if (empIdInput) empIdInput.placeholder = t.employeeIdPH;
+
+            // Cellphone
+            const phoneLabel = document.querySelector('label[for="employeePhone"]');
+            if (phoneLabel) {
+                const required = phoneLabel.querySelector('.required');
+                phoneLabel.innerHTML = t.cellphone + (required ? ' ' + required.outerHTML : '');
+            }
+            const phoneInput = document.getElementById('employeePhone');
+            if (phoneInput) phoneInput.placeholder = t.cellphonePH;
+
+            const phoneHint = document.querySelector('label[for="employeePhone"]').parentElement.querySelector('.form-hint');
+            if (phoneHint) phoneHint.textContent = t.cellphoneHint;
+
+            // ===== STEP 2: INCIDENT DETAILS =====
+            const step2Title = document.getElementById('step2Title');
+            if (step2Title) step2Title.textContent = t.incidentDetailsTitle;
+
+            // Client Company
+            const clientLabel = document.querySelector('label[for="client"]');
+            if (clientLabel) {
+                const required = clientLabel.querySelector('.required');
+                clientLabel.innerHTML = t.clientCompany + (required ? ' ' + required.outerHTML : '');
+            }
+            const clientInput = document.getElementById('client');
+            if (clientInput) clientInput.placeholder = t.clientCompanyPH;
+
+            // Complete Address
+            const locationLabel = document.querySelector('label[for="location"]');
+            if (locationLabel) {
+                const required = locationLabel.querySelector('.required');
+                locationLabel.innerHTML = t.completeAddress + (required ? ' ' + required.outerHTML : '');
+            }
+            const locationInput = document.getElementById('location');
+            if (locationInput) locationInput.placeholder = t.completeAddressPH;
+
+            const locationHint = document.getElementById('locationHint');
+            if (locationHint) locationHint.textContent = t.locationHint;
+
+            // Incident Date
+            const incidentDateLabel = document.querySelector('label[for="incidentDate"]');
+            if (incidentDateLabel) {
+                const required = incidentDateLabel.querySelector('.required');
+                incidentDateLabel.innerHTML = t.incidentDate + (required ? ' ' + required.outerHTML : '');
+            }
+            const incidentDateHint = document.querySelector('label[for="incidentDate"]').parentElement.querySelector('.form-hint');
+            if (incidentDateHint) incidentDateHint.textContent = t.incidentDateHint;
+
+            // Incident Time
+            const incidentTimeLabel = document.querySelector('label[for="incidentTime"]');
+            if (incidentTimeLabel) {
+                const required = incidentTimeLabel.querySelector('.required');
+                incidentTimeLabel.innerHTML = t.incidentTime + (required ? ' ' + required.outerHTML : '');
+            }
+            const incidentTimeHint = document.querySelector('label[for="incidentTime"]').parentElement.querySelector('.form-hint');
+            if (incidentTimeHint) incidentTimeHint.textContent = t.incidentTimeHint;
+
+            // Reported Date
+            const reportedDateLabel = document.querySelector('label[for="reportedDate"]');
+            if (reportedDateLabel) {
+                const required = reportedDateLabel.querySelector('.required');
+                reportedDateLabel.innerHTML = t.reportedDate + (required ? ' ' + required.outerHTML : '');
+            }
+            const reportedDateHint = document.querySelector('label[for="reportedDate"]').parentElement.querySelector('.form-hint');
+            if (reportedDateHint) reportedDateHint.textContent = t.reportedDateHint;
+
+            // Reported Time
+            const reportedTimeLabel = document.querySelector('label[for="reportedTime"]');
+            if (reportedTimeLabel) {
+                const required = reportedTimeLabel.querySelector('.required');
+                reportedTimeLabel.innerHTML = t.reportedTime + (required ? ' ' + required.outerHTML : '');
+            }
+            const reportedTimeHint = document.querySelector('label[for="reportedTime"]').parentElement.querySelector('.form-hint');
+            if (reportedTimeHint) reportedTimeHint.textContent = t.reportedTimeHint;
+
+            // Injury Type
+            const injuryTypeLabel = document.querySelector('label[for="injuryType"]');
+            if (injuryTypeLabel) {
+                const required = injuryTypeLabel.querySelector('.required');
+                injuryTypeLabel.innerHTML = t.injuryTypeLabel + (required ? ' ' + required.outerHTML : '');
+            }
+            const injuryTypeSelect = document.getElementById('injuryType');
+            if (injuryTypeSelect && injuryTypeSelect.options) {
+                injuryTypeSelect.options[0].textContent = t.injuryTypeOption;
+                injuryTypeSelect.options[1].textContent = t.injuryTypeSlipFall;
+                injuryTypeSelect.options[2].textContent = t.injuryTypeCut;
+                injuryTypeSelect.options[3].textContent = t.injuryTypeBurn;
+                injuryTypeSelect.options[4].textContent = t.injuryTypeStrain;
+                injuryTypeSelect.options[5].textContent = t.injuryTypeCrushing;
+                injuryTypeSelect.options[6].textContent = t.injuryTypeForeign;
+                injuryTypeSelect.options[7].textContent = t.injuryTypeEquipment;
+                injuryTypeSelect.options[8].textContent = t.injuryTypeChemical;
+                injuryTypeSelect.options[9].textContent = t.injuryTypeOther;
+            }
+
+            // Description
+            const descriptionLabel = document.querySelector('label[for="description"]');
+            if (descriptionLabel) {
+                const required = descriptionLabel.querySelector('.required');
+                descriptionLabel.innerHTML = t.description + (required ? ' ' + required.outerHTML : '');
+            }
+            const descriptionTextarea = document.getElementById('description');
+            if (descriptionTextarea) descriptionTextarea.placeholder = t.descriptionPH;
+
+            const descriptionHint = document.querySelector('label[for="description"]').parentElement.querySelector('.form-hint');
+            if (descriptionHint) descriptionHint.textContent = t.descriptionHint;
+
+            // Witness Name
+            const witnessNameLabel = document.querySelector('label[for="witnessName"]');
+            if (witnessNameLabel) witnessNameLabel.textContent = t.witnessName;
+
+            const witnessNameInput = document.getElementById('witnessName');
+            if (witnessNameInput) witnessNameInput.placeholder = t.witnessNamePH;
+
+            // Witness Contact
+            const witnessContactLabel = document.querySelector('label[for="witnessContact"]');
+            if (witnessContactLabel) witnessContactLabel.textContent = t.witnessContact;
+
+            const witnessContactInput = document.getElementById('witnessContact');
+            if (witnessContactInput) witnessContactInput.placeholder = t.witnessContactPH;
+
+            // ===== STEP 3: INJURY DETAILS (BODY DIAGRAM) =====
+            const step3Title = document.getElementById('step3Title');
+            if (step3Title) step3Title.textContent = t.injuryDetailsTitle;
+
+            const step3Info = document.getElementById('step3Info');
+            if (step3Info) step3Info.textContent = t.injuryDetailsInfo;
+
+            // Front/Back buttons
+            const frontBtn = document.getElementById('frontBtn');
+            if (frontBtn) {
+                const icon = frontBtn.querySelector('i');
+                frontBtn.innerHTML = (icon ? icon.outerHTML + ' ' : '') + t.viewFront;
+            }
+
+            const backBtn = document.getElementById('backBtn');
+            if (backBtn) {
+                const icon = backBtn.querySelector('i');
+                backBtn.innerHTML = (icon ? icon.outerHTML + ' ' : '') + t.viewBack;
+            }
+
+            // Selected body parts
+            const selectedPartsTitle = document.querySelector('.selected-parts-container h3');
+            if (selectedPartsTitle) selectedPartsTitle.textContent = t.selectedBodyParts;
+
+            const noSelection = document.querySelector('.selected-parts-list .no-selection');
+            if (noSelection) noSelection.textContent = t.noSelection;
+
+            // ===== STEP 4: PHOTO & SIGNATURE =====
+            const step4Title = document.querySelector('#step4 .section-title');
+            if (step4Title) {
+                const icon = step4Title.querySelector('i');
+                if (icon) {
+                    step4Title.innerHTML = icon.outerHTML + ' ' + t.photoSignatureTitle;
+                }
+            }
+
+            // Photo Label
+            const photoLabel = document.querySelector('#step4 .form-label');
+            if (photoLabel && photoLabel.textContent.includes('Injury Photos') || photoLabel.textContent.includes('Fotos de Lesión')) {
+                const required = photoLabel.querySelector('.required');
+                photoLabel.innerHTML = t.photoLabel + (required ? ' ' + required.outerHTML : '');
+            }
+
+            // Photo buttons
+            const takePhotoBtn = document.querySelector('button[onclick="openCamera()"]');
+            if (takePhotoBtn) {
+                const icon = takePhotoBtn.querySelector('i');
+                takePhotoBtn.innerHTML = (icon ? icon.outerHTML + ' ' : '') + t.takePhoto;
+            }
+
+            const uploadBtn = document.querySelector('button[onclick="requestFileAccess()"]');
+            if (uploadBtn) {
+                const icon = uploadBtn.querySelector('i');
+                uploadBtn.innerHTML = (icon ? icon.outerHTML + ' ' : '') + t.uploadDevice;
+            }
+
+            // Drop zone
+            const dropZoneText = document.querySelector('#dropZone p:first-of-type');
+            if (dropZoneText) dropZoneText.textContent = t.dragDrop;
+
+            const dropZoneHint = document.querySelector('.drop-zone-hint');
+            if (dropZoneHint) dropZoneHint.textContent = t.dragDropHint;
+
+            // Camera modal
+            const cameraModalTitle = document.querySelector('.camera-header h3');
+            if (cameraModalTitle) {
+                const icon = cameraModalTitle.querySelector('i');
+                cameraModalTitle.innerHTML = (icon ? icon.outerHTML + ' ' : '') + t.takePhotoTitle;
+            }
+
+            const captureBtn = document.querySelector('button[onclick="capturePhoto()"]');
+            if (captureBtn) {
+                const icon = captureBtn.querySelector('i');
+                captureBtn.innerHTML = (icon ? icon.outerHTML + ' ' : '') + t.capturePhoto;
+            }
+
+            const cameraCancelBtn = document.querySelector('.camera-controls button[onclick="closeCamera()"]');
+            if (cameraCancelBtn) {
+                const icon = cameraCancelBtn.querySelector('i');
+                cameraCancelBtn.innerHTML = (icon ? icon.outerHTML + ' ' : '') + t.cancelBtn;
+            }
+
+            // Signature
+            const signatureLabel = document.querySelector('label[for="signaturePad"]');
+            if (!signatureLabel) {
+                // The signature label is the parent of the canvas
+                const signatureContainer = document.querySelector('.signature-container');
+                if (signatureContainer) {
+                    const labelElement = signatureContainer.previousElementSibling;
+                    if (labelElement && labelElement.tagName === 'LABEL') {
+                        const required = labelElement.querySelector('.required');
+                        labelElement.innerHTML = t.employeeSignature + (required ? ' ' + required.outerHTML : '');
+                    }
+                }
+            }
+
+            const clearSigBtn = document.querySelector('button[onclick="clearSignature()"]');
+            if (clearSigBtn) {
+                const icon = clearSigBtn.querySelector('i');
+                clearSigBtn.innerHTML = (icon ? icon.outerHTML + ' ' : '') + t.clearSignature;
+            }
+
+            const signatureHint = document.querySelector('.signature-container').parentElement.querySelector('.form-hint');
+            if (signatureHint) signatureHint.textContent = t.signatureHint;
+
+            // Reporter Name
+            const reporterNameLabel = document.querySelector('label[for="reporterName"]');
+            if (reporterNameLabel) {
+                const required = reporterNameLabel.querySelector('.required');
+                reporterNameLabel.innerHTML = t.reporterName + (required ? ' ' + required.outerHTML : '');
+            }
+            const reporterNameInput = document.getElementById('reporterName');
+            if (reporterNameInput) reporterNameInput.placeholder = t.reporterNamePH;
+
+            // Reporter Position
+            const reporterPositionLabel = document.querySelector('label[for="reporterPosition"]');
+            if (reporterPositionLabel) {
+                const required = reporterPositionLabel.querySelector('.required');
+                reporterPositionLabel.innerHTML = t.reporterPosition + (required ? ' ' + required.outerHTML : '');
+            }
+            const reporterPositionInput = document.getElementById('reporterPosition');
+            if (reporterPositionInput) reporterPositionInput.placeholder = t.reporterPositionPH;
+
+            // ===== NAVIGATION BUTTONS =====
+            // Next buttons
+            document.querySelectorAll('button.btn-next').forEach(btn => {
+                if (btn.id !== 'classificationNextBtn') {
+                    const icon = btn.querySelector('i');
+                    btn.innerHTML = t.nextStep + (icon ? ' ' + icon.outerHTML : '');
+                }
+            });
+
+            // Previous buttons (Back)
+            document.querySelectorAll('button[onclick*="previousStep"]').forEach(btn => {
+                const icon = btn.querySelector('i');
+                btn.innerHTML = (icon ? icon.outerHTML + ' ' : '') + t.previousStep;
+            });
+
+            // Submit Report button
+            const submitBtn = document.querySelector('button[onclick="submitReport()"]');
+            if (submitBtn) {
+                const icon = submitBtn.querySelector('i');
+                submitBtn.innerHTML = (icon ? icon.outerHTML + ' ' : '') + t.submitReport;
+            }
+
+            // ===== SUCCESS MESSAGE =====
+            const successTitle = document.querySelector('#successMessage h2');
+            if (successTitle) successTitle.textContent = t.successTitle;
+
+            const reportIdLabel = document.querySelector('.report-id-success');
+            if (reportIdLabel) {
+                const reportIdValue = document.getElementById('successReportId');
+                if (reportIdValue) {
+                    const idText = reportIdValue.textContent;
+                    reportIdLabel.innerHTML = t.reportId + ' <strong id="successReportId">' + idText + '</strong>';
+                }
+            }
+
+            const savedMessage = document.querySelector('#successMessage > p:nth-of-type(2)');
+            if (savedMessage) savedMessage.textContent = t.savedMessage;
+
+            const downloadPdfBtn = document.querySelector('button[onclick="downloadPdfImproved()"]');
+            if (downloadPdfBtn) {
+                const icon = downloadPdfBtn.querySelector('i');
+                downloadPdfBtn.innerHTML = (icon ? icon.outerHTML + ' ' : '') + t.downloadPdf;
+            }
+
+            const submitAnotherBtn = document.querySelector('button[onclick="submitAnother()"]');
+            if (submitAnotherBtn) {
+                const icon = submitAnotherBtn.querySelector('i');
+                submitAnotherBtn.innerHTML = (icon ? icon.outerHTML + ' ' : '') + t.submitAnother;
+            }
+
+            const viewReportBtn = document.querySelector('button[onclick="viewReportData()"]');
+            if (viewReportBtn) {
+                const icon = viewReportBtn.querySelector('i');
+                viewReportBtn.innerHTML = (icon ? icon.outerHTML + ' ' : '') + t.viewReport;
+            }
+
+            // ===== LOADING SPINNER =====
+            const loadingText = document.querySelector('#loadingSpinner p');
+            if (loadingText) loadingText.textContent = t.submitting;
+
+            // ===== FOOTER =====
+            const footerParagraphs = document.querySelectorAll('.footer p');
+            if (footerParagraphs.length >= 2) {
+                footerParagraphs[0].innerHTML = '<strong>' + t.footerCompany + '</strong> - ' + t.footerSystem;
+                footerParagraphs[1].textContent = t.footerCopyright;
+            }
+        }
 
         // Initialize on load
         document.addEventListener('DOMContentLoaded', function() {
             setDefaultDateTime();
             captureGeolocation();
             initializeDragAndDrop();
+            updateLanguageUI(); // Initialize language UI
         });
 
         // Initialize signature pad
