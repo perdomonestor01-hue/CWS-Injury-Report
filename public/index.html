@@ -2474,9 +2474,14 @@
                 <i class="fas fa-briefcase-medical"></i>
                 Workers' Compensation Cases
             </h2>
-            <button class="btn-add-case" onclick="openAddCaseModal()">
-                <i class="fas fa-plus"></i> Add New Case
-            </button>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <button class="btn-add-case" onclick="openAddCaseModal()">
+                    <i class="fas fa-plus"></i> Add New Case
+                </button>
+                <button class="btn btn-secondary" onclick="logoutSupervisor()" style="padding: 0.75rem 1.25rem; border-radius: 25px;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
         </div>
 
         <!-- Cases List (will be populated by JavaScript) -->
@@ -2648,9 +2653,11 @@
         let currentMode = 'reports'; // 'reports' or 'cases'
         let workersCompCases = [];
         let isAuthorized = false;
-        const SUPERVISOR_PIN = '4698'; // Supervisor PIN - change this to your desired PIN
+        let authToken = null;
+        let tokenExpiresAt = null;
         let pinAttempts = 0;
-        const MAX_PIN_ATTEMPTS = 3;
+        const MAX_PIN_ATTEMPTS = 5; // Server controls actual limit
+        const API_BASE_URL = window.location.origin; // Use same origin for API calls
 
         // Initialize case data with Geissa Romero's case and first expense
         function initializeCaseData() {
@@ -2792,7 +2799,7 @@
             }
         }
 
-        function verifyPin() {
+        async function verifyPin() {
             const enteredPin =
                 document.getElementById('pin1').value +
                 document.getElementById('pin2').value +
@@ -2804,62 +2811,207 @@
                 return;
             }
 
-            if (enteredPin === SUPERVISOR_PIN) {
-                // Success!
-                isAuthorized = true;
+            // Disable inputs while verifying
+            for (let i = 1; i <= 4; i++) {
+                document.getElementById('pin' + i).disabled = true;
+            }
+            showPinError('Verifying...');
+            document.getElementById('pinErrorMessage').style.color = 'var(--corporate-navy)';
 
-                // Visual feedback
+            try {
+                // Call backend authentication API
+                const response = await fetch(`${API_BASE_URL}/api/auth/verify-pin`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ pin: enteredPin })
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.token) {
+                    // Success! Store token securely
+                    authToken = data.token;
+                    tokenExpiresAt = data.expiresAt;
+                    isAuthorized = true;
+
+                    // Store token in sessionStorage (cleared when browser closes)
+                    sessionStorage.setItem('cwsAuthToken', authToken);
+                    sessionStorage.setItem('cwsTokenExpires', tokenExpiresAt.toString());
+
+                    // Visual feedback
+                    for (let i = 1; i <= 4; i++) {
+                        document.getElementById('pin' + i).classList.add('success');
+                        document.getElementById('pin' + i).disabled = false;
+                    }
+
+                    showNotification('Access Granted - Welcome Supervisor', 'success');
+
+                    setTimeout(() => {
+                        closePinModal();
+                        switchMode('cases');
+
+                        // Update the Cases button to show authorized status
+                        const casesBtn = document.getElementById('caseModeBtn');
+                        if (!casesBtn.querySelector('.authorized-badge')) {
+                            casesBtn.innerHTML += '<span class="authorized-badge"><i class="fas fa-check-circle"></i></span>';
+                        }
+                    }, 500);
+
+                    // Set up automatic token refresh check
+                    startTokenExpiryCheck();
+
+                } else {
+                    // Failed authentication
+                    pinAttempts++;
+                    document.getElementById('pinErrorMessage').style.color = '';
+
+                    // Re-enable inputs
+                    for (let i = 1; i <= 4; i++) {
+                        document.getElementById('pin' + i).disabled = false;
+                    }
+
+                    if (response.status === 429) {
+                        // Rate limited
+                        showPinError('Too many attempts. Please wait 15 minutes.');
+                        for (let i = 1; i <= 4; i++) {
+                            document.getElementById('pin' + i).disabled = true;
+                        }
+                        setTimeout(() => {
+                            for (let i = 1; i <= 4; i++) {
+                                document.getElementById('pin' + i).disabled = false;
+                            }
+                            clearPinInputs();
+                            document.getElementById('pinErrorMessage').classList.remove('show');
+                        }, 900000); // 15 minutes
+                    } else {
+                        showPinError(data.error || 'Invalid PIN. Please try again.');
+
+                        // Shake animation
+                        for (let i = 1; i <= 4; i++) {
+                            document.getElementById('pin' + i).classList.add('error');
+                        }
+
+                        setTimeout(() => {
+                            clearPinInputs();
+                            document.getElementById('pin1').focus();
+                        }, 500);
+                    }
+                }
+            } catch (error) {
+                console.error('Authentication error:', error);
+                document.getElementById('pinErrorMessage').style.color = '';
+
+                // Re-enable inputs
                 for (let i = 1; i <= 4; i++) {
-                    document.getElementById('pin' + i).classList.add('success');
+                    document.getElementById('pin' + i).disabled = false;
                 }
 
-                showNotification('Access Granted - Welcome Supervisor', 'success');
+                showPinError('Connection error. Please try again.');
 
                 setTimeout(() => {
-                    closePinModal();
-                    switchMode('cases');
+                    clearPinInputs();
+                    document.getElementById('pin1').focus();
+                }, 1000);
+            }
+        }
 
-                    // Update the Cases button to show authorized status
-                    const casesBtn = document.getElementById('caseModeBtn');
-                    if (!casesBtn.querySelector('.authorized-badge')) {
-                        casesBtn.innerHTML += '<span class="authorized-badge"><i class="fas fa-check-circle"></i></span>';
-                    }
-                }, 500);
-            } else {
-                pinAttempts++;
+        // Check for existing valid token on page load
+        function checkExistingToken() {
+            const storedToken = sessionStorage.getItem('cwsAuthToken');
+            const storedExpiry = sessionStorage.getItem('cwsTokenExpires');
 
-                if (pinAttempts >= MAX_PIN_ATTEMPTS) {
-                    showPinError('Too many attempts. Access locked for 30 seconds.');
-
-                    // Disable inputs
-                    for (let i = 1; i <= 4; i++) {
-                        document.getElementById('pin' + i).disabled = true;
-                    }
-
-                    setTimeout(() => {
-                        for (let i = 1; i <= 4; i++) {
-                            document.getElementById('pin' + i).disabled = false;
-                        }
-                        pinAttempts = 0;
-                        clearPinInputs();
-                        document.getElementById('pinErrorMessage').classList.remove('show');
-                        document.getElementById('pin1').focus();
-                    }, 30000);
+            if (storedToken && storedExpiry) {
+                const expiryTime = parseInt(storedExpiry);
+                if (Date.now() < expiryTime) {
+                    // Token still valid - validate with server
+                    validateStoredToken(storedToken, expiryTime);
                 } else {
-                    showPinError(`Incorrect PIN. ${MAX_PIN_ATTEMPTS - pinAttempts} attempts remaining.`);
-
-                    // Shake animation
-                    for (let i = 1; i <= 4; i++) {
-                        const input = document.getElementById('pin' + i);
-                        input.classList.add('error');
-                    }
-
-                    setTimeout(() => {
-                        clearPinInputs();
-                        document.getElementById('pin1').focus();
-                    }, 500);
+                    // Token expired - clear storage
+                    clearAuthSession();
                 }
             }
+        }
+
+        async function validateStoredToken(token, expiryTime) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/auth/validate-token`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ token })
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.valid) {
+                    // Restore session
+                    authToken = token;
+                    tokenExpiresAt = expiryTime;
+                    isAuthorized = true;
+
+                    // Update UI to show authorized
+                    const casesBtn = document.getElementById('caseModeBtn');
+                    if (casesBtn && !casesBtn.querySelector('.authorized-badge')) {
+                        casesBtn.innerHTML += '<span class="authorized-badge"><i class="fas fa-check-circle"></i></span>';
+                    }
+
+                    startTokenExpiryCheck();
+                    console.log('✅ Session restored from stored token');
+                } else {
+                    clearAuthSession();
+                }
+            } catch (error) {
+                console.error('Token validation error:', error);
+                // Don't clear on network error - might be temporary
+            }
+        }
+
+        function clearAuthSession() {
+            authToken = null;
+            tokenExpiresAt = null;
+            isAuthorized = false;
+            sessionStorage.removeItem('cwsAuthToken');
+            sessionStorage.removeItem('cwsTokenExpires');
+
+            // Remove authorized badge if present
+            const badge = document.querySelector('.authorized-badge');
+            if (badge) badge.remove();
+        }
+
+        function startTokenExpiryCheck() {
+            // Check token expiry every minute
+            setInterval(() => {
+                if (tokenExpiresAt && Date.now() > tokenExpiresAt) {
+                    clearAuthSession();
+                    if (currentMode === 'cases') {
+                        switchMode('reports');
+                        showNotification('Session expired. Please authenticate again.', 'info');
+                    }
+                }
+            }, 60000);
+        }
+
+        // Logout function
+        async function logoutSupervisor() {
+            if (authToken) {
+                try {
+                    await fetch(`${API_BASE_URL}/api/auth/logout`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ token: authToken })
+                    });
+                } catch (error) {
+                    console.error('Logout error:', error);
+                }
+            }
+            clearAuthSession();
+            switchMode('reports');
+            showNotification('Logged out successfully', 'success');
         }
 
         function showPinError(message) {
@@ -3122,6 +3274,7 @@
             captureGeolocation();
             initializeDragAndDrop();
             initializeCaseData(); // Initialize case management data
+            checkExistingToken(); // Check for existing auth session
         });
 
         // Initialize signature pad

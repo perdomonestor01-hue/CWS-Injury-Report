@@ -3,10 +3,52 @@ const nodemailer = require('nodemailer');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
+const crypto = require('crypto');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// ========== AUTHENTICATION SYSTEM ==========
+// Secure token storage (in-memory for simplicity, use Redis in production)
+const activeTokens = new Map();
+const TOKEN_EXPIRY_MS = parseInt(process.env.TOKEN_EXPIRY_MS) || 8 * 60 * 60 * 1000; // 8 hours default
+const SUPERVISOR_PIN_HASH = process.env.SUPERVISOR_PIN_HASH || hashPin('4698'); // Default PIN hashed
+
+// Hash function for PIN (using SHA-256 with salt)
+function hashPin(pin) {
+    const salt = process.env.PIN_SALT || 'cws-safety-2024';
+    return crypto.createHash('sha256').update(pin + salt).digest('hex');
+}
+
+// Generate secure token
+function generateToken() {
+    return crypto.randomBytes(32).toString('hex');
+}
+
+// Validate token
+function validateToken(token) {
+    if (!token || !activeTokens.has(token)) {
+        return false;
+    }
+    const tokenData = activeTokens.get(token);
+    if (Date.now() > tokenData.expiresAt) {
+        activeTokens.delete(token);
+        return false;
+    }
+    return true;
+}
+
+// Cleanup expired tokens periodically
+setInterval(() => {
+    const now = Date.now();
+    for (const [token, data] of activeTokens.entries()) {
+        if (now > data.expiresAt) {
+            activeTokens.delete(token);
+        }
+    }
+}, 60000); // Cleanup every minute
+// ========== END AUTHENTICATION SYSTEM ==========
 
 // Security middleware with CSP configuration
 app.use(helmet({
@@ -96,6 +138,164 @@ app.get('/api/health', (req, res) => {
         timestamp: new Date().toISOString()
     });
 });
+
+// ========== AUTHENTICATION ENDPOINTS ==========
+
+// Rate limiter for PIN authentication (stricter)
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5, // 5 attempts per window
+    message: { success: false, error: 'Too many authentication attempts. Please try again in 15 minutes.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+// PIN Authentication endpoint
+app.post('/api/auth/verify-pin', authLimiter, (req, res) => {
+    try {
+        const { pin } = req.body;
+
+        if (!pin || typeof pin !== 'string' || pin.length !== 4) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid PIN format. PIN must be 4 digits.'
+            });
+        }
+
+        // Hash the provided PIN and compare
+        const providedPinHash = hashPin(pin);
+
+        if (providedPinHash === SUPERVISOR_PIN_HASH) {
+            // Generate secure token
+            const token = generateToken();
+            const expiresAt = Date.now() + TOKEN_EXPIRY_MS;
+
+            // Store token
+            activeTokens.set(token, {
+                createdAt: Date.now(),
+                expiresAt: expiresAt,
+                ip: req.ip
+            });
+
+            console.log(`✅ Supervisor authenticated from IP: ${req.ip}`);
+
+            return res.json({
+                success: true,
+                token: token,
+                expiresAt: expiresAt,
+                expiresIn: TOKEN_EXPIRY_MS
+            });
+        } else {
+            console.log(`❌ Failed authentication attempt from IP: ${req.ip}`);
+            return res.status(401).json({
+                success: false,
+                error: 'Invalid PIN'
+            });
+        }
+    } catch (error) {
+        console.error('Authentication error:', error);
+        return res.status(500).json({
+            success: false,
+            error: 'Authentication service error'
+        });
+    }
+});
+
+// Token validation endpoint
+app.post('/api/auth/validate-token', (req, res) => {
+    try {
+        const { token } = req.body;
+
+        if (!token) {
+            return res.status(400).json({
+                success: false,
+                valid: false,
+                error: 'Token required'
+            });
+        }
+
+        const isValid = validateToken(token);
+
+        if (isValid) {
+            const tokenData = activeTokens.get(token);
+            return res.json({
+                success: true,
+                valid: true,
+                expiresAt: tokenData.expiresAt,
+                remainingMs: tokenData.expiresAt - Date.now()
+            });
+        } else {
+            return res.json({
+                success: true,
+                valid: false,
+                error: 'Token expired or invalid'
+            });
+        }
+    } catch (error) {
+        console.error('Token validation error:', error);
+        return res.status(500).json({
+            success: false,
+            valid: false,
+            error: 'Validation service error'
+        });
+    }
+});
+
+// Logout endpoint (invalidate token)
+app.post('/api/auth/logout', (req, res) => {
+    try {
+        const { token } = req.body;
+
+        if (token && activeTokens.has(token)) {
+            activeTokens.delete(token);
+            console.log(`✅ Token invalidated (logout)`);
+        }
+
+        return res.json({
+            success: true,
+            message: 'Logged out successfully'
+        });
+    } catch (error) {
+        console.error('Logout error:', error);
+        return res.status(500).json({
+            success: false,
+            error: 'Logout service error'
+        });
+    }
+});
+
+// Middleware to protect routes requiring authentication
+function requireAuth(req, res, next) {
+    const token = req.headers['x-auth-token'] || req.body.token;
+
+    if (!token) {
+        return res.status(401).json({
+            success: false,
+            error: 'Authentication required'
+        });
+    }
+
+    if (!validateToken(token)) {
+        return res.status(401).json({
+            success: false,
+            error: 'Invalid or expired token'
+        });
+    }
+
+    next();
+}
+
+// Protected endpoint example: Get cases data (for future API expansion)
+app.get('/api/cases', requireAuth, (req, res) => {
+    // This endpoint can be expanded to store cases server-side
+    res.json({
+        success: true,
+        message: 'Authenticated access to cases',
+        timestamp: new Date().toISOString()
+    });
+});
+
+// ========== END AUTHENTICATION ENDPOINTS ==========
 
 // Email sending endpoint
 app.post('/api/send-email', async (req, res) => {
