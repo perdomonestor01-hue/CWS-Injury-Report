@@ -2376,6 +2376,64 @@
                     </div>
                 </div>
 
+                <!-- Medical Attention Decline Section - Texas Mutual 2025 Compliant -->
+                <div class="form-group" id="medicalDeclineSection" style="background: #fef3c7; border: 2px solid #f59e0b; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+                    <label class="form-label" style="color: #92400e; font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-exclamation-triangle" style="color: #f59e0b;"></i>
+                        Medical Attention Declaration
+                    </label>
+
+                    <div style="margin: 1rem 0;">
+                        <label style="display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer; padding: 0.75rem; background: white; border-radius: 8px; border: 1px solid #e5e7eb;">
+                            <input type="checkbox" id="declineMedicalAttention" onchange="toggleMedicalDecline()"
+                                   style="width: 20px; height: 20px; margin-top: 2px; accent-color: #f59e0b;">
+                            <span style="font-weight: 600; color: #1f2937;">
+                                I DECLINE medical attention at this time
+                            </span>
+                        </label>
+                    </div>
+
+                    <!-- Decline Acknowledgment (hidden by default) -->
+                    <div id="declineAcknowledgment" style="display: none; margin-top: 1rem; padding: 1rem; background: #fef2f2; border: 1px solid #fca5a5; border-radius: 8px;">
+                        <p style="font-weight: 700; color: #991b1b; margin-bottom: 0.75rem;">
+                            <i class="fas fa-file-contract"></i> ACKNOWLEDGMENT OF REFUSAL OF MEDICAL TREATMENT
+                        </p>
+                        <p style="font-size: 0.9rem; color: #374151; line-height: 1.6; margin-bottom: 1rem;">
+                            Pursuant to <strong>Texas Labor Code Section 408.004</strong> and <strong>Texas Mutual Insurance Company</strong> guidelines (2025), I hereby acknowledge and understand the following:
+                        </p>
+                        <ul style="font-size: 0.85rem; color: #374151; line-height: 1.7; margin-left: 1.25rem; margin-bottom: 1rem;">
+                            <li><strong>Right to Medical Care:</strong> I have the right to receive medical treatment for this workplace injury under the Texas Workers' Compensation Act.</li>
+                            <li><strong>Voluntary Refusal:</strong> I am voluntarily declining medical attention at this time. This decision is made of my own free will without coercion from my employer.</li>
+                            <li><strong>Benefit Implications:</strong> I understand that under Texas Labor Code §408.004, refusing required medical examinations or reasonable medical treatment without good cause may result in suspension of temporary or lifetime income benefits.</li>
+                            <li><strong>Future Medical Care:</strong> I understand I may request medical treatment at a later time if my condition changes or worsens, subject to applicable Texas workers' compensation laws.</li>
+                            <li><strong>Right to Change Decision:</strong> I may change my decision and seek medical treatment at any time by notifying my employer or Custom Workforce Solutions LLC.</li>
+                            <li><strong>Employer Notification:</strong> I understand my employer is required to file a First Report of Injury with the Texas Division of Workers' Compensation within 8 days, and my refusal of medical treatment will be documented.</li>
+                        </ul>
+
+                        <div style="margin-top: 1rem;">
+                            <label style="display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer;">
+                                <input type="checkbox" id="confirmDeclineUnderstanding"
+                                       style="width: 18px; height: 18px; margin-top: 3px; accent-color: #dc2626;">
+                                <span style="font-size: 0.9rem; color: #1f2937; font-weight: 600;">
+                                    I have read, understand, and voluntarily agree to the above acknowledgment. I confirm I am declining medical attention at this time.
+                                </span>
+                            </label>
+                        </div>
+
+                        <p style="font-size: 0.75rem; color: #6b7280; margin-top: 1rem; font-style: italic;">
+                            <i class="fas fa-info-circle"></i> Reference: Texas Labor Code Chapter 408 | Texas Mutual Workers' Compensation Guidelines | Texas Division of Workers' Compensation (DWC)
+                        </p>
+                    </div>
+
+                    <!-- Accept Medical Treatment (default) -->
+                    <div id="acceptMedicalNotice" style="margin-top: 0.75rem; padding: 0.75rem; background: #ecfdf5; border: 1px solid #6ee7b7; border-radius: 8px;">
+                        <p style="font-size: 0.9rem; color: #065f46; margin: 0;">
+                            <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                            <strong>Medical attention will be provided</strong> as required under Texas Workers' Compensation law. You will be referred to an approved healthcare provider.
+                        </p>
+                    </div>
+                </div>
+
                 <!-- Digital Signature -->
                 <div class="form-group">
                     <label class="form-label">
@@ -3341,6 +3399,52 @@
             }
         }
 
+        // Medical Decline Toggle - Texas Mutual 2025 Compliant
+        function toggleMedicalDecline() {
+            const declineCheckbox = document.getElementById('declineMedicalAttention');
+            const declineAcknowledgment = document.getElementById('declineAcknowledgment');
+            const acceptNotice = document.getElementById('acceptMedicalNotice');
+            const confirmCheckbox = document.getElementById('confirmDeclineUnderstanding');
+
+            if (declineCheckbox.checked) {
+                declineAcknowledgment.style.display = 'block';
+                acceptNotice.style.display = 'none';
+                // Reset confirmation when showing
+                if (confirmCheckbox) confirmCheckbox.checked = false;
+            } else {
+                declineAcknowledgment.style.display = 'none';
+                acceptNotice.style.display = 'block';
+                if (confirmCheckbox) confirmCheckbox.checked = false;
+            }
+        }
+
+        // Validate medical decline acknowledgment
+        function validateMedicalDecline() {
+            const declineCheckbox = document.getElementById('declineMedicalAttention');
+            const confirmCheckbox = document.getElementById('confirmDeclineUnderstanding');
+
+            if (declineCheckbox && declineCheckbox.checked) {
+                if (!confirmCheckbox || !confirmCheckbox.checked) {
+                    showNotification('You must acknowledge understanding before declining medical attention', 'error');
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // Get medical decline data for form submission
+        function getMedicalDeclineData() {
+            const declineCheckbox = document.getElementById('declineMedicalAttention');
+            const confirmCheckbox = document.getElementById('confirmDeclineUnderstanding');
+
+            return {
+                declinesMedicalAttention: declineCheckbox ? declineCheckbox.checked : false,
+                acknowledgedDecline: confirmCheckbox ? confirmCheckbox.checked : false,
+                declineTimestamp: declineCheckbox && declineCheckbox.checked ? new Date().toISOString() : null,
+                complianceReference: 'Texas Labor Code §408.004 | Texas Mutual Insurance Company Guidelines 2025'
+            };
+        }
+
         // Set default date/time to now
         // Helper function to get current time in Texas Central Time
         function getTexasCentralTime() {
@@ -3823,6 +3927,10 @@
                     showNotification('Please take or upload at least one injury photo', 'error');
                     return false;
                 }
+                // Validate medical decline acknowledgment (Texas Mutual 2025 compliant)
+                if (!validateMedicalDecline()) {
+                    return false;
+                }
                 if (signaturePad.isEmpty()) {
                     showNotification('Please provide your signature', 'error');
                     return false;
@@ -3893,7 +4001,9 @@
                 reporterName: document.getElementById('reporterName').value,
                 reporterPosition: document.getElementById('reporterPosition').value,
                 latitude: userLocation.latitude,
-                longitude: userLocation.longitude
+                longitude: userLocation.longitude,
+                // Medical Attention Decline - Texas Mutual 2025 Compliant
+                medicalDecline: getMedicalDeclineData()
             };
 
             // Save to localStorage
@@ -4283,6 +4393,58 @@
             if (yPos > pageHeight - 60) {
                 doc.addPage();
                 yPos = 20;
+            }
+
+            // ===== MEDICAL ATTENTION DECLARATION - Texas Mutual 2025 Compliant =====
+            if (savedReportData.medicalDecline) {
+                doc.setFillColor(30, 58, 95);
+                doc.rect(margin, yPos, 3, 8, 'F');
+                doc.setTextColor(30, 58, 95);
+                doc.setFontSize(12);
+                doc.setFont(undefined, 'bold');
+                doc.text('MEDICAL ATTENTION DECLARATION', margin + 6, yPos + 6);
+                yPos += 14;
+
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'normal');
+
+                if (savedReportData.medicalDecline.declinesMedicalAttention) {
+                    // Medical attention declined - show warning box
+                    doc.setFillColor(254, 243, 199); // Yellow background
+                    doc.setDrawColor(245, 158, 11);
+                    doc.setLineWidth(0.5);
+                    doc.rect(margin, yPos, pageWidth - (2 * margin), 45, 'FD');
+
+                    doc.setTextColor(146, 64, 14);
+                    doc.setFont(undefined, 'bold');
+                    doc.text('EMPLOYEE DECLINED MEDICAL ATTENTION', margin + 5, yPos + 8);
+
+                    doc.setTextColor(55, 65, 81);
+                    doc.setFont(undefined, 'normal');
+                    doc.setFontSize(9);
+                    const declineText = [
+                        'Employee voluntarily declined medical treatment per Texas Labor Code §408.004.',
+                        'Employee acknowledged understanding of potential benefit implications.',
+                        'Timestamp: ' + (savedReportData.medicalDecline.declineTimestamp || 'N/A'),
+                        'Ref: Texas Labor Code Chapter 408 | Texas Mutual Insurance 2025 Guidelines'
+                    ];
+                    let textY = yPos + 16;
+                    declineText.forEach(line => {
+                        doc.text(line, margin + 5, textY);
+                        textY += 7;
+                    });
+                    yPos += 50;
+                } else {
+                    // Medical attention accepted
+                    doc.setFillColor(236, 253, 245); // Green background
+                    doc.setDrawColor(110, 231, 183);
+                    doc.setLineWidth(0.5);
+                    doc.rect(margin, yPos, pageWidth - (2 * margin), 15, 'FD');
+
+                    doc.setTextColor(6, 95, 70);
+                    doc.text('Medical attention will be provided as required under Texas Workers\' Compensation law.', margin + 5, yPos + 10);
+                    yPos += 20;
+                }
             }
 
             // ===== EMPLOYEE SIGNATURE =====
@@ -4799,6 +4961,56 @@
             if (yPos > pageHeight - 60) {
                 doc.addPage();
                 yPos = 20;
+            }
+
+            // ===== MEDICAL ATTENTION DECLARATION - Texas Mutual 2025 Compliant =====
+            if (savedReportData.medicalDecline) {
+                doc.setFillColor(30, 58, 95);
+                doc.rect(margin, yPos, 3, 8, 'F');
+                doc.setTextColor(30, 58, 95);
+                doc.setFontSize(12);
+                doc.setFont(undefined, 'bold');
+                doc.text('MEDICAL ATTENTION DECLARATION', margin + 6, yPos + 6);
+                yPos += 14;
+
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'normal');
+
+                if (savedReportData.medicalDecline.declinesMedicalAttention) {
+                    doc.setFillColor(254, 243, 199);
+                    doc.setDrawColor(245, 158, 11);
+                    doc.setLineWidth(0.5);
+                    doc.rect(margin, yPos, pageWidth - (2 * margin), 45, 'FD');
+
+                    doc.setTextColor(146, 64, 14);
+                    doc.setFont(undefined, 'bold');
+                    doc.text('EMPLOYEE DECLINED MEDICAL ATTENTION', margin + 5, yPos + 8);
+
+                    doc.setTextColor(55, 65, 81);
+                    doc.setFont(undefined, 'normal');
+                    doc.setFontSize(9);
+                    const declineText = [
+                        'Employee voluntarily declined medical treatment per Texas Labor Code §408.004.',
+                        'Employee acknowledged understanding of potential benefit implications.',
+                        'Timestamp: ' + (savedReportData.medicalDecline.declineTimestamp || 'N/A'),
+                        'Ref: Texas Labor Code Chapter 408 | Texas Mutual Insurance 2025 Guidelines'
+                    ];
+                    let textY = yPos + 16;
+                    declineText.forEach(line => {
+                        doc.text(line, margin + 5, textY);
+                        textY += 7;
+                    });
+                    yPos += 50;
+                } else {
+                    doc.setFillColor(236, 253, 245);
+                    doc.setDrawColor(110, 231, 183);
+                    doc.setLineWidth(0.5);
+                    doc.rect(margin, yPos, pageWidth - (2 * margin), 15, 'FD');
+
+                    doc.setTextColor(6, 95, 70);
+                    doc.text('Medical attention will be provided as required under Texas Workers\' Compensation law.', margin + 5, yPos + 10);
+                    yPos += 20;
+                }
             }
 
             // ===== EMPLOYEE SIGNATURE =====
