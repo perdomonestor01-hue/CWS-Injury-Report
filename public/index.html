@@ -1550,6 +1550,148 @@
                 flex-direction: column;
             }
         }
+
+        /* PIN Authentication Modal */
+        .pin-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10001;
+            backdrop-filter: blur(10px);
+        }
+
+        .pin-modal.active {
+            display: flex;
+        }
+
+        .pin-modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: var(--card-shadow);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .pin-modal-content i.lock-icon {
+            font-size: 4rem;
+            color: var(--corporate-navy);
+            margin-bottom: 1rem;
+        }
+
+        .pin-modal-content h3 {
+            color: var(--corporate-navy);
+            margin-bottom: 0.5rem;
+        }
+
+        .pin-modal-content p {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+
+        .pin-input-container {
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .pin-input {
+            width: 50px;
+            height: 60px;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border: 2px solid var(--border-gray);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .pin-input:focus {
+            outline: none;
+            border-color: var(--corporate-navy);
+            box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.1);
+        }
+
+        .pin-input.error {
+            border-color: var(--alert-red);
+            animation: shake 0.5s ease;
+        }
+
+        .pin-input.success {
+            border-color: var(--safety-green);
+            background: #dcfce7;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .pin-error-message {
+            color: var(--alert-red);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .pin-error-message.show {
+            display: block;
+        }
+
+        .btn-pin-submit {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 0.875rem 2rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            width: 100%;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+        }
+
+        .btn-pin-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(30, 58, 95, 0.3);
+        }
+
+        .btn-pin-cancel {
+            background: transparent;
+            color: var(--text-secondary);
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            text-decoration: underline;
+        }
+
+        .btn-pin-cancel:hover {
+            color: var(--corporate-navy);
+        }
+
+        .authorized-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+            color: #166534;
+            padding: 0.35rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
     </style>
 </head>
 <body>
@@ -2460,6 +2602,28 @@
         </div>
     </div>
 
+    <!-- PIN Authentication Modal -->
+    <div id="pinModal" class="pin-modal">
+        <div class="pin-modal-content">
+            <i class="fas fa-shield-alt lock-icon"></i>
+            <h3>Supervisor Access Required</h3>
+            <p>Enter your 4-digit supervisor PIN to access Case Management</p>
+            <div class="pin-input-container">
+                <input type="password" class="pin-input" maxlength="1" id="pin1" inputmode="numeric" pattern="[0-9]">
+                <input type="password" class="pin-input" maxlength="1" id="pin2" inputmode="numeric" pattern="[0-9]">
+                <input type="password" class="pin-input" maxlength="1" id="pin3" inputmode="numeric" pattern="[0-9]">
+                <input type="password" class="pin-input" maxlength="1" id="pin4" inputmode="numeric" pattern="[0-9]">
+            </div>
+            <p class="pin-error-message" id="pinErrorMessage">
+                <i class="fas fa-exclamation-circle"></i> Incorrect PIN. Please try again.
+            </p>
+            <button class="btn-pin-submit" onclick="verifyPin()">
+                <i class="fas fa-unlock"></i> Unlock Access
+            </button>
+            <button class="btn-pin-cancel" onclick="closePinModal()">Cancel</button>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer class="footer">
         <p><strong>Custom Workforce Solutions LLC</strong> - Safety Management System</p>
@@ -2483,6 +2647,10 @@
         // ========== CASE MANAGEMENT SYSTEM ==========
         let currentMode = 'reports'; // 'reports' or 'cases'
         let workersCompCases = [];
+        let isAuthorized = false;
+        const SUPERVISOR_PIN = '1234'; // Supervisor PIN - change this to your desired PIN
+        let pinAttempts = 0;
+        const MAX_PIN_ATTEMPTS = 3;
 
         // Initialize case data with Geissa Romero's case and first expense
         function initializeCaseData() {
@@ -2523,6 +2691,12 @@
 
         // Switch between Reports and Cases mode
         function switchMode(mode) {
+            if (mode === 'cases' && !isAuthorized) {
+                // Show PIN modal for authentication
+                showPinModal();
+                return;
+            }
+
             currentMode = mode;
 
             // Update button states
@@ -2546,6 +2720,152 @@
                 renderCases();
                 updateCaseStats();
             }
+        }
+
+        // PIN Authentication Functions
+        function showPinModal() {
+            document.getElementById('pinModal').classList.add('active');
+            document.getElementById('pin1').focus();
+            pinAttempts = 0;
+            clearPinInputs();
+            document.getElementById('pinErrorMessage').classList.remove('show');
+            setupPinInputListeners();
+        }
+
+        function closePinModal() {
+            document.getElementById('pinModal').classList.remove('active');
+            clearPinInputs();
+        }
+
+        function clearPinInputs() {
+            for (let i = 1; i <= 4; i++) {
+                const input = document.getElementById('pin' + i);
+                input.value = '';
+                input.classList.remove('error', 'success');
+            }
+        }
+
+        function setupPinInputListeners() {
+            for (let i = 1; i <= 4; i++) {
+                const input = document.getElementById('pin' + i);
+
+                // Remove existing listeners
+                input.replaceWith(input.cloneNode(true));
+                const newInput = document.getElementById('pin' + i);
+
+                newInput.addEventListener('input', function(e) {
+                    // Only allow numbers
+                    this.value = this.value.replace(/[^0-9]/g, '');
+
+                    if (this.value.length === 1 && i < 4) {
+                        document.getElementById('pin' + (i + 1)).focus();
+                    }
+
+                    // Auto-verify when all 4 digits entered
+                    if (i === 4 && this.value.length === 1) {
+                        verifyPin();
+                    }
+                });
+
+                newInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Backspace' && this.value === '' && i > 1) {
+                        document.getElementById('pin' + (i - 1)).focus();
+                    }
+                    if (e.key === 'Enter') {
+                        verifyPin();
+                    }
+                });
+
+                newInput.addEventListener('paste', function(e) {
+                    e.preventDefault();
+                    const pastedData = (e.clipboardData || window.clipboardData).getData('text');
+                    const digits = pastedData.replace(/[^0-9]/g, '').slice(0, 4);
+
+                    for (let j = 0; j < digits.length; j++) {
+                        document.getElementById('pin' + (j + 1)).value = digits[j];
+                    }
+
+                    if (digits.length === 4) {
+                        verifyPin();
+                    }
+                });
+            }
+        }
+
+        function verifyPin() {
+            const enteredPin =
+                document.getElementById('pin1').value +
+                document.getElementById('pin2').value +
+                document.getElementById('pin3').value +
+                document.getElementById('pin4').value;
+
+            if (enteredPin.length !== 4) {
+                showPinError('Please enter all 4 digits');
+                return;
+            }
+
+            if (enteredPin === SUPERVISOR_PIN) {
+                // Success!
+                isAuthorized = true;
+
+                // Visual feedback
+                for (let i = 1; i <= 4; i++) {
+                    document.getElementById('pin' + i).classList.add('success');
+                }
+
+                showNotification('Access Granted - Welcome Supervisor', 'success');
+
+                setTimeout(() => {
+                    closePinModal();
+                    switchMode('cases');
+
+                    // Update the Cases button to show authorized status
+                    const casesBtn = document.getElementById('caseModeBtn');
+                    if (!casesBtn.querySelector('.authorized-badge')) {
+                        casesBtn.innerHTML += '<span class="authorized-badge"><i class="fas fa-check-circle"></i></span>';
+                    }
+                }, 500);
+            } else {
+                pinAttempts++;
+
+                if (pinAttempts >= MAX_PIN_ATTEMPTS) {
+                    showPinError('Too many attempts. Access locked for 30 seconds.');
+
+                    // Disable inputs
+                    for (let i = 1; i <= 4; i++) {
+                        document.getElementById('pin' + i).disabled = true;
+                    }
+
+                    setTimeout(() => {
+                        for (let i = 1; i <= 4; i++) {
+                            document.getElementById('pin' + i).disabled = false;
+                        }
+                        pinAttempts = 0;
+                        clearPinInputs();
+                        document.getElementById('pinErrorMessage').classList.remove('show');
+                        document.getElementById('pin1').focus();
+                    }, 30000);
+                } else {
+                    showPinError(`Incorrect PIN. ${MAX_PIN_ATTEMPTS - pinAttempts} attempts remaining.`);
+
+                    // Shake animation
+                    for (let i = 1; i <= 4; i++) {
+                        const input = document.getElementById('pin' + i);
+                        input.classList.add('error');
+                    }
+
+                    setTimeout(() => {
+                        clearPinInputs();
+                        document.getElementById('pin1').focus();
+                    }, 500);
+                }
+            }
+        }
+
+        function showPinError(message) {
+            const errorElement = document.getElementById('pinErrorMessage');
+            errorElement.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + message;
+            errorElement.classList.add('show');
         }
 
         // Update case statistics
