@@ -2434,6 +2434,120 @@
                     </div>
                 </div>
 
+                <!-- Drug & Alcohol Testing Policy - CWS Policy (shown only for accidents) -->
+                <div class="form-group" id="drugTestSection" style="display: none; background: #fef2f2; border: 2px solid #dc2626; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+                    <label class="form-label" style="color: #991b1b; font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-flask" style="color: #dc2626;"></i>
+                        MANDATORY DRUG & ALCOHOL TESTING - CWS POLICY
+                    </label>
+
+                    <div style="margin: 1rem 0; padding: 1rem; background: white; border-radius: 8px; border: 1px solid #fca5a5;">
+                        <p style="font-size: 0.95rem; color: #1f2937; font-weight: 600; margin-bottom: 0.75rem;">
+                            <i class="fas fa-exclamation-circle" style="color: #dc2626;"></i>
+                            Per Custom Workforce Solutions policy, you are required to undergo drug and alcohol testing following this accident.
+                        </p>
+
+                        <p style="font-size: 0.85rem; color: #374151; margin-bottom: 0.75rem;">
+                            This policy maintains a safe and drug-free workplace for all CWS employees and protects client property.
+                        </p>
+
+                        <div style="background: #f9fafb; padding: 0.75rem; border-radius: 6px; margin-bottom: 1rem;">
+                            <p style="font-size: 0.85rem; color: #374151; font-weight: 600; margin-bottom: 0.5rem;">Post-Accident Testing applies when:</p>
+                            <ul style="font-size: 0.8rem; color: #4b5563; margin-left: 1.25rem; line-height: 1.6;">
+                                <li>Workplace accident resulting in personal injury</li>
+                                <li>Accident causing or contributing to severe property damage</li>
+                                <li>Operating equipment (forklift, etc.) causing significant damage</li>
+                                <li>Vehicle accidents on client property</li>
+                                <li>Any safety incident reasonably connected to impairment</li>
+                            </ul>
+                        </div>
+
+                        <div style="background: #fef3c7; padding: 0.75rem; border-radius: 6px; margin-bottom: 1rem; border: 1px solid #f59e0b;">
+                            <p style="font-size: 0.85rem; color: #92400e; font-weight: 600; margin-bottom: 0.5rem;">
+                                <i class="fas fa-clock"></i> Testing Requirements:
+                            </p>
+                            <ul style="font-size: 0.8rem; color: #78350f; margin-left: 1.25rem; line-height: 1.6;">
+                                <li>Testing must be completed <strong>within 24 hours</strong> of the incident</li>
+                                <li>Testing conducted at a state-approved laboratory</li>
+                                <li>Compliant with Texas Department of Insurance standards</li>
+                                <li>Written consent required from employee</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Consent/Refusal Selection -->
+                    <div style="margin-top: 1rem;">
+                        <p style="font-size: 0.9rem; color: #1f2937; font-weight: 700; margin-bottom: 0.75rem;">
+                            Select your response to the mandatory drug and alcohol testing requirement:
+                        </p>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            <!-- Consent Option -->
+                            <label style="display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer; padding: 1rem; background: #ecfdf5; border-radius: 8px; border: 2px solid #10b981;">
+                                <input type="radio" name="drugTestConsent" id="consentDrugTest" value="consent" onchange="handleDrugTestResponse()"
+                                       style="width: 20px; height: 20px; margin-top: 2px; accent-color: #10b981;">
+                                <div>
+                                    <span style="font-weight: 700; color: #065f46; font-size: 0.95rem;">
+                                        <i class="fas fa-check-circle"></i> I CONSENT to Drug & Alcohol Testing
+                                    </span>
+                                    <p style="font-size: 0.8rem; color: #047857; margin-top: 0.25rem;">
+                                        I understand and agree to submit to mandatory testing within 24 hours as required by CWS policy.
+                                    </p>
+                                </div>
+                            </label>
+
+                            <!-- Refuse Option -->
+                            <label style="display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer; padding: 1rem; background: #fef2f2; border-radius: 8px; border: 2px solid #dc2626;">
+                                <input type="radio" name="drugTestConsent" id="refuseDrugTest" value="refuse" onchange="handleDrugTestResponse()"
+                                       style="width: 20px; height: 20px; margin-top: 2px; accent-color: #dc2626;">
+                                <div>
+                                    <span style="font-weight: 700; color: #991b1b; font-size: 0.95rem;">
+                                        <i class="fas fa-times-circle"></i> I REFUSE Drug & Alcohol Testing
+                                    </span>
+                                    <p style="font-size: 0.8rem; color: #b91c1c; margin-top: 0.25rem;">
+                                        <strong>WARNING:</strong> Refusal will result in IMMEDIATE TERMINATION of your assignment with Custom Workforce Solutions.
+                                    </p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Refusal Confirmation (hidden by default) -->
+                    <div id="drugTestRefusalConfirm" style="display: none; margin-top: 1rem; padding: 1rem; background: #450a0a; border-radius: 8px;">
+                        <p style="color: #fecaca; font-weight: 700; font-size: 0.95rem; margin-bottom: 0.75rem;">
+                            <i class="fas fa-skull-crossbones"></i> FINAL WARNING - ASSIGNMENT TERMINATION
+                        </p>
+                        <p style="color: #fca5a5; font-size: 0.85rem; margin-bottom: 1rem;">
+                            By refusing mandatory drug and alcohol testing, your assignment with Custom Workforce Solutions will be <strong>IMMEDIATELY CANCELLED</strong>. This action cannot be undone.
+                        </p>
+                        <label style="display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer;">
+                            <input type="checkbox" id="confirmRefusalTermination"
+                                   style="width: 18px; height: 18px; margin-top: 3px; accent-color: #dc2626;">
+                            <span style="font-size: 0.85rem; color: #fecaca; font-weight: 600;">
+                                I understand that by refusing drug testing, my assignment will be terminated immediately. I accept this consequence.
+                            </span>
+                        </label>
+                    </div>
+
+                    <!-- Legal Compliance References -->
+                    <div style="margin-top: 1rem; padding: 0.75rem; background: #f1f5f9; border-radius: 6px; border: 1px solid #cbd5e1;">
+                        <p style="font-size: 0.8rem; color: #475569; font-weight: 600; margin-bottom: 0.5rem;">
+                            <i class="fas fa-balance-scale"></i> Legal Compliance - Texas Workers' Compensation Law:
+                        </p>
+                        <ul style="font-size: 0.7rem; color: #64748b; margin-left: 1rem; line-height: 1.5; columns: 2; column-gap: 1rem;">
+                            <li>Texas Labor Code § 401.013 (Definition of Intoxication)</li>
+                            <li>Texas Labor Code § 406.032(1)(A) (Intoxication Defense to Liability)</li>
+                            <li>Texas Labor Code Chapter 451 (Anti-Retaliation Protection)</li>
+                            <li>Texas Penal Code § 49.01(2) (Alcohol Concentration Standard)</li>
+                            <li>28 Texas Administrative Code § 137.100(a) (Drug Testing Guidelines)</li>
+                        </ul>
+                    </div>
+
+                    <p style="font-size: 0.75rem; color: #6b7280; margin-top: 0.75rem; font-style: italic;">
+                        <i class="fas fa-info-circle"></i> Reference: Custom Workforce Solutions Drug & Alcohol Testing Policy | Texas Department of Insurance Standards
+                    </p>
+                </div>
+
                 <!-- Digital Signature -->
                 <div class="form-group">
                     <label class="form-label">
@@ -3862,6 +3976,9 @@
                 // Update photo label to required for accidents
                 document.getElementById('photoLabel').innerHTML = 'Injury Photos <span class="required">*</span> <span style="color: #6b7280; font-weight: 400;">(2-3 photos recommended)</span>';
             }
+
+            // Update drug test section visibility based on classification
+            updateDrugTestSection();
         }
 
         // Update photo label based on classification
@@ -3872,6 +3989,101 @@
             } else {
                 photoLabel.innerHTML = 'Injury Photos <span style="color: #6b7280; font-weight: 400;">(Optional - photos recommended if available)</span>';
             }
+        }
+
+        // Show/hide drug test section based on classification
+        function updateDrugTestSection() {
+            const drugTestSection = document.getElementById('drugTestSection');
+            if (reportClassification === 'accident') {
+                drugTestSection.style.display = 'block';
+                // Reset the selection when showing
+                document.getElementById('consentDrugTest').checked = false;
+                document.getElementById('refuseDrugTest').checked = false;
+                document.getElementById('drugTestRefusalConfirm').style.display = 'none';
+                if (document.getElementById('confirmRefusalTermination')) {
+                    document.getElementById('confirmRefusalTermination').checked = false;
+                }
+            } else {
+                drugTestSection.style.display = 'none';
+            }
+        }
+
+        // Handle drug test consent/refusal response
+        function handleDrugTestResponse() {
+            const refuseRadio = document.getElementById('refuseDrugTest');
+            const consentRadio = document.getElementById('consentDrugTest');
+            const refusalConfirm = document.getElementById('drugTestRefusalConfirm');
+
+            if (refuseRadio.checked) {
+                // Show warning dialog before proceeding
+                const confirmRefusal = confirm(
+                    '⚠️ WARNING: ASSIGNMENT TERMINATION ⚠️\n\n' +
+                    'Per Custom Workforce Solutions Drug & Alcohol Testing Policy:\n\n' +
+                    'Refusal to submit to mandatory drug and alcohol testing will result in IMMEDIATE TERMINATION of your assignment.\n\n' +
+                    'This decision cannot be reversed.\n\n' +
+                    'Are you sure you want to REFUSE drug testing?'
+                );
+
+                if (confirmRefusal) {
+                    refusalConfirm.style.display = 'block';
+                    // Reset confirmation checkbox
+                    document.getElementById('confirmRefusalTermination').checked = false;
+                } else {
+                    // User cancelled - reset to no selection
+                    refuseRadio.checked = false;
+                    refusalConfirm.style.display = 'none';
+                }
+            } else {
+                refusalConfirm.style.display = 'none';
+            }
+        }
+
+        // Validate drug test response for accidents
+        function validateDrugTestResponse() {
+            if (reportClassification !== 'accident') {
+                return true; // Not required for incidents
+            }
+
+            const consentRadio = document.getElementById('consentDrugTest');
+            const refuseRadio = document.getElementById('refuseDrugTest');
+            const confirmTermination = document.getElementById('confirmRefusalTermination');
+
+            if (!consentRadio.checked && !refuseRadio.checked) {
+                showNotification('You must select consent or refusal for drug & alcohol testing', 'error');
+                return false;
+            }
+
+            if (refuseRadio.checked && !confirmTermination.checked) {
+                showNotification('You must acknowledge the termination consequence to refuse drug testing', 'error');
+                return false;
+            }
+
+            return true;
+        }
+
+        // Get drug test data for form submission
+        function getDrugTestData() {
+            if (reportClassification !== 'accident') {
+                return {
+                    required: false,
+                    response: 'not_applicable',
+                    timestamp: null
+                };
+            }
+
+            const consentRadio = document.getElementById('consentDrugTest');
+            const refuseRadio = document.getElementById('refuseDrugTest');
+
+            return {
+                required: true,
+                response: consentRadio.checked ? 'consent' : (refuseRadio.checked ? 'refused' : 'pending'),
+                consentGiven: consentRadio.checked,
+                refused: refuseRadio.checked,
+                assignmentTerminated: refuseRadio.checked,
+                timestamp: new Date().toISOString(),
+                policyReference: 'Custom Workforce Solutions Drug & Alcohol Testing Policy | Texas Department of Insurance Standards',
+                testingDeadline: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours from now
+            };
         }
 
         // Step navigation
@@ -3948,6 +4160,10 @@
                 if (!validateMedicalDecline()) {
                     return false;
                 }
+                // Validate drug test response for accidents (CWS Policy)
+                if (!validateDrugTestResponse()) {
+                    return false;
+                }
                 if (signaturePad.isEmpty()) {
                     showNotification('Please provide your signature', 'error');
                     return false;
@@ -4020,7 +4236,9 @@
                 latitude: userLocation.latitude,
                 longitude: userLocation.longitude,
                 // Medical Attention Decline - Texas Mutual 2025 Compliant
-                medicalDecline: getMedicalDeclineData()
+                medicalDecline: getMedicalDeclineData(),
+                // Drug & Alcohol Testing - CWS Policy
+                drugTest: getDrugTestData()
             };
 
             // Save to localStorage
@@ -4462,6 +4680,89 @@
                     doc.text('Medical attention will be provided as required under Texas Workers\' Compensation law.', margin + 5, yPos + 10);
                     yPos += 20;
                 }
+            }
+
+            // ===== DRUG & ALCOHOL TESTING - CWS Policy (Accidents Only) =====
+            if (savedReportData.drugTest && savedReportData.drugTest.required) {
+                // Check if we need a new page
+                if (yPos > pageHeight - 70) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+
+                doc.setFillColor(30, 58, 95);
+                doc.rect(margin, yPos, 3, 8, 'F');
+                doc.setTextColor(30, 58, 95);
+                doc.setFontSize(12);
+                doc.setFont(undefined, 'bold');
+                doc.text('DRUG & ALCOHOL TESTING - CWS POLICY', margin + 6, yPos + 6);
+                yPos += 14;
+
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'normal');
+
+                if (savedReportData.drugTest.refused) {
+                    // Employee refused - TERMINATION
+                    doc.setFillColor(69, 10, 10); // Dark red background
+                    doc.setDrawColor(220, 38, 38);
+                    doc.setLineWidth(0.5);
+                    doc.rect(margin, yPos, pageWidth - (2 * margin), 50, 'FD');
+
+                    doc.setTextColor(254, 202, 202);
+                    doc.setFont(undefined, 'bold');
+                    doc.text('EMPLOYEE REFUSED DRUG & ALCOHOL TESTING', margin + 5, yPos + 8);
+
+                    doc.setTextColor(252, 165, 165);
+                    doc.setFont(undefined, 'normal');
+                    doc.setFontSize(9);
+                    const refusalText = [
+                        'Employee refused mandatory drug and alcohol testing.',
+                        'Per CWS Policy: ASSIGNMENT IMMEDIATELY TERMINATED.',
+                        'Timestamp: ' + (savedReportData.drugTest.timestamp || 'N/A'),
+                        'Ref: Custom Workforce Solutions Drug & Alcohol Testing Policy'
+                    ];
+                    let textY = yPos + 18;
+                    refusalText.forEach(line => {
+                        doc.text(line, margin + 5, textY);
+                        textY += 8;
+                    });
+                    yPos += 55;
+                } else if (savedReportData.drugTest.consentGiven) {
+                    // Employee consented
+                    doc.setFillColor(236, 253, 245); // Green background
+                    doc.setDrawColor(16, 185, 129);
+                    doc.setLineWidth(0.5);
+                    doc.rect(margin, yPos, pageWidth - (2 * margin), 40, 'FD');
+
+                    doc.setTextColor(6, 95, 70);
+                    doc.setFont(undefined, 'bold');
+                    doc.text('EMPLOYEE CONSENTED TO DRUG & ALCOHOL TESTING', margin + 5, yPos + 8);
+
+                    doc.setTextColor(4, 120, 87);
+                    doc.setFont(undefined, 'normal');
+                    doc.setFontSize(9);
+                    const consentText = [
+                        'Employee agreed to submit to mandatory testing within 24 hours.',
+                        'Testing Deadline: ' + (savedReportData.drugTest.testingDeadline ? new Date(savedReportData.drugTest.testingDeadline).toLocaleString() : 'Within 24 hours'),
+                        'Ref: CWS Policy | Texas Department of Insurance Standards'
+                    ];
+                    let textY = yPos + 18;
+                    consentText.forEach(line => {
+                        doc.text(line, margin + 5, textY);
+                        textY += 7;
+                    });
+                    yPos += 45;
+                }
+
+                // Legal compliance references
+                doc.setFillColor(241, 245, 249);
+                doc.setDrawColor(203, 213, 225);
+                doc.rect(margin, yPos, pageWidth - (2 * margin), 25, 'FD');
+                doc.setTextColor(71, 85, 105);
+                doc.setFontSize(7);
+                doc.text('Legal Compliance: TX Labor Code §401.013, §406.032(1)(A), Ch.451 | TX Penal Code §49.01(2) | 28 TAC §137.100(a)', margin + 3, yPos + 8);
+                doc.text('This policy complies with Texas Workers\' Compensation Law and Texas Department of Insurance Standards.', margin + 3, yPos + 15);
+                yPos += 30;
             }
 
             // ===== EMPLOYEE SIGNATURE =====
@@ -5028,6 +5329,86 @@
                     doc.text('Medical attention will be provided as required under Texas Workers\' Compensation law.', margin + 5, yPos + 10);
                     yPos += 20;
                 }
+            }
+
+            // ===== DRUG & ALCOHOL TESTING - CWS Policy (Accidents Only) =====
+            if (savedReportData.drugTest && savedReportData.drugTest.required) {
+                if (yPos > pageHeight - 70) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+
+                doc.setFillColor(30, 58, 95);
+                doc.rect(margin, yPos, 3, 8, 'F');
+                doc.setTextColor(30, 58, 95);
+                doc.setFontSize(12);
+                doc.setFont(undefined, 'bold');
+                doc.text('DRUG & ALCOHOL TESTING - CWS POLICY', margin + 6, yPos + 6);
+                yPos += 14;
+
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'normal');
+
+                if (savedReportData.drugTest.refused) {
+                    doc.setFillColor(69, 10, 10);
+                    doc.setDrawColor(220, 38, 38);
+                    doc.setLineWidth(0.5);
+                    doc.rect(margin, yPos, pageWidth - (2 * margin), 50, 'FD');
+
+                    doc.setTextColor(254, 202, 202);
+                    doc.setFont(undefined, 'bold');
+                    doc.text('EMPLOYEE REFUSED DRUG & ALCOHOL TESTING', margin + 5, yPos + 8);
+
+                    doc.setTextColor(252, 165, 165);
+                    doc.setFont(undefined, 'normal');
+                    doc.setFontSize(9);
+                    const refusalText = [
+                        'Employee refused mandatory drug and alcohol testing.',
+                        'Per CWS Policy: ASSIGNMENT IMMEDIATELY TERMINATED.',
+                        'Timestamp: ' + (savedReportData.drugTest.timestamp || 'N/A'),
+                        'Ref: Custom Workforce Solutions Drug & Alcohol Testing Policy'
+                    ];
+                    let textY = yPos + 18;
+                    refusalText.forEach(line => {
+                        doc.text(line, margin + 5, textY);
+                        textY += 8;
+                    });
+                    yPos += 55;
+                } else if (savedReportData.drugTest.consentGiven) {
+                    doc.setFillColor(236, 253, 245);
+                    doc.setDrawColor(16, 185, 129);
+                    doc.setLineWidth(0.5);
+                    doc.rect(margin, yPos, pageWidth - (2 * margin), 40, 'FD');
+
+                    doc.setTextColor(6, 95, 70);
+                    doc.setFont(undefined, 'bold');
+                    doc.text('EMPLOYEE CONSENTED TO DRUG & ALCOHOL TESTING', margin + 5, yPos + 8);
+
+                    doc.setTextColor(4, 120, 87);
+                    doc.setFont(undefined, 'normal');
+                    doc.setFontSize(9);
+                    const consentText = [
+                        'Employee agreed to submit to mandatory testing within 24 hours.',
+                        'Testing Deadline: ' + (savedReportData.drugTest.testingDeadline ? new Date(savedReportData.drugTest.testingDeadline).toLocaleString() : 'Within 24 hours'),
+                        'Ref: CWS Policy | Texas Department of Insurance Standards'
+                    ];
+                    let textY = yPos + 18;
+                    consentText.forEach(line => {
+                        doc.text(line, margin + 5, textY);
+                        textY += 7;
+                    });
+                    yPos += 45;
+                }
+
+                // Legal compliance references
+                doc.setFillColor(241, 245, 249);
+                doc.setDrawColor(203, 213, 225);
+                doc.rect(margin, yPos, pageWidth - (2 * margin), 25, 'FD');
+                doc.setTextColor(71, 85, 105);
+                doc.setFontSize(7);
+                doc.text('Legal Compliance: TX Labor Code §401.013, §406.032(1)(A), Ch.451 | TX Penal Code §49.01(2) | 28 TAC §137.100(a)', margin + 3, yPos + 8);
+                doc.text('This policy complies with Texas Workers\' Compensation Law and Texas Department of Insurance Standards.', margin + 3, yPos + 15);
+                yPos += 30;
             }
 
             // ===== EMPLOYEE SIGNATURE =====
