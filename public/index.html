@@ -2436,10 +2436,15 @@
 
                 <!-- Drug & Alcohol Testing Policy - CWS Policy (applies to ALL incidents and accidents) -->
                 <div class="form-group" id="drugTestSection" style="display: none; background: #fef2f2; border: 2px solid #dc2626; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
-                    <label class="form-label" style="color: #991b1b; font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
-                        <i class="fas fa-flask" style="color: #dc2626;"></i>
-                        MANDATORY DRUG & ALCOHOL TESTING - CWS POLICY
-                    </label>
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                        <label class="form-label" style="color: #991b1b; font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem; margin: 0;">
+                            <i class="fas fa-flask" style="color: #dc2626;"></i>
+                            MANDATORY DRUG & ALCOHOL TESTING - CWS POLICY
+                        </label>
+                        <button type="button" onclick="showDrugAlcoholPolicyPDF()" style="background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%); color: white; border: none; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 2px 8px rgba(15,23,42,0.3); transition: all 0.3s ease;">
+                            <i class="fas fa-file-pdf"></i> View Full Policy
+                        </button>
+                    </div>
 
                     <div style="margin: 1rem 0; padding: 1rem; background: white; border-radius: 8px; border: 1px solid #fca5a5;">
                         <p style="font-size: 0.95rem; color: #1f2937; font-weight: 600; margin-bottom: 0.75rem;">
@@ -4062,6 +4067,177 @@
             }
 
             return true;
+        }
+
+        // Generate and display full Drug & Alcohol Testing Policy PDF
+        function showDrugAlcoholPolicyPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const margin = 20;
+            let yPos = 20;
+
+            // Header
+            doc.setFillColor(30, 58, 95);
+            doc.rect(0, 0, pageWidth, 40, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(18);
+            doc.setFont(undefined, 'bold');
+            doc.text('CUSTOM WORKFORCE SOLUTIONS LLC', pageWidth / 2, 18, { align: 'center' });
+            doc.setFontSize(14);
+            doc.text('Drug & Alcohol Testing Policy', pageWidth / 2, 30, { align: 'center' });
+
+            yPos = 55;
+
+            // Policy Purpose
+            doc.setTextColor(30, 58, 95);
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text('POLICY PURPOSE', margin, yPos);
+            yPos += 8;
+            doc.setTextColor(55, 65, 81);
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            const purpose = doc.splitTextToSize('This policy aims to maintain a safe and drug-free workplace for all Custom Workforce Solutions employees and protect client property. All employees are subject to drug and alcohol testing in accordance with this policy and applicable Texas law.', pageWidth - (2 * margin));
+            doc.text(purpose, margin, yPos);
+            yPos += purpose.length * 5 + 10;
+
+            // Mandatory Testing Situations
+            doc.setTextColor(30, 58, 95);
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text('MANDATORY TESTING SITUATIONS', margin, yPos);
+            yPos += 8;
+            doc.setTextColor(55, 65, 81);
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            doc.text('Employees will be required to submit to immediate drug and alcohol testing in the following situations:', margin, yPos);
+            yPos += 10;
+
+            // Post-Accident Testing
+            doc.setFont(undefined, 'bold');
+            doc.text('1. Post-Accident Testing:', margin + 5, yPos);
+            yPos += 6;
+            doc.setFont(undefined, 'normal');
+            const postAccident = [
+                '• If you are involved in a workplace accident resulting in personal injury',
+                '• If you cause or contribute to an accident resulting in severe property damage',
+                '• Operating a forklift or other equipment causing significant property damage',
+                '• Involvement in vehicle accidents on client property',
+                '• Any safety incident that could reasonably be connected to impairment'
+            ];
+            postAccident.forEach(item => {
+                doc.text(item, margin + 10, yPos);
+                yPos += 5;
+            });
+            yPos += 5;
+
+            // For-Cause Testing
+            doc.setFont(undefined, 'bold');
+            doc.text('2. For-Cause Testing:', margin + 5, yPos);
+            yPos += 6;
+            doc.setFont(undefined, 'normal');
+            const forCause = doc.splitTextToSize('If your supervisor has reasonable suspicion of impairment based on observable behavior, documented safety violations, or erratic conduct.', pageWidth - (2 * margin) - 10);
+            doc.text(forCause, margin + 10, yPos);
+            yPos += forCause.length * 5 + 10;
+
+            // Testing Requirements
+            doc.setTextColor(30, 58, 95);
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text('TESTING REQUIREMENTS', margin, yPos);
+            yPos += 8;
+            doc.setTextColor(55, 65, 81);
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            const requirements = [
+                '• Testing must be completed within 24 hours of the incident',
+                '• Testing will be conducted at a state-approved laboratory',
+                '• Testing complies with Texas Department of Insurance standards',
+                '• Written consent for testing must be provided by the employee'
+            ];
+            requirements.forEach(item => {
+                doc.text(item, margin + 5, yPos);
+                yPos += 6;
+            });
+            yPos += 8;
+
+            // Refusal Policy - highlighted box
+            doc.setFillColor(254, 226, 226);
+            doc.setDrawColor(220, 38, 38);
+            doc.rect(margin, yPos, pageWidth - (2 * margin), 25, 'FD');
+            yPos += 8;
+            doc.setTextColor(153, 27, 27);
+            doc.setFontSize(11);
+            doc.setFont(undefined, 'bold');
+            doc.text('REFUSAL POLICY', margin + 5, yPos);
+            yPos += 7;
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            doc.text('Refusal to submit to mandatory drug and alcohol testing will result in IMMEDIATE', margin + 5, yPos);
+            yPos += 5;
+            doc.text('TERMINATION of your assignment with Custom Workforce Solutions.', margin + 5, yPos);
+            yPos += 18;
+
+            // Legal Compliance
+            doc.setTextColor(30, 58, 95);
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text('LEGAL COMPLIANCE', margin, yPos);
+            yPos += 8;
+            doc.setTextColor(55, 65, 81);
+            doc.setFontSize(9);
+            doc.setFont(undefined, 'normal');
+            doc.text('This policy is established in accordance with:', margin, yPos);
+            yPos += 6;
+            const legalRefs = [
+                '• Texas Labor Code § 401.013 (Definition of Intoxication)',
+                '• Texas Labor Code § 406.032(1)(A) (Intoxication Defense to Liability)',
+                '• Texas Labor Code Chapter 451 (Anti-Retaliation Protection)',
+                '• Texas Penal Code § 49.01(2) (Alcohol Concentration Standard)',
+                '• 28 Texas Administrative Code § 137.100(a) (Drug Testing Guidelines)'
+            ];
+            legalRefs.forEach(item => {
+                doc.text(item, margin + 5, yPos);
+                yPos += 5;
+            });
+            yPos += 10;
+
+            // Employee Rights
+            doc.setTextColor(30, 58, 95);
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text('EMPLOYEE RIGHTS', margin, yPos);
+            yPos += 8;
+            doc.setTextColor(55, 65, 81);
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            const rights = [
+                '• You have the right to request a copy of your test results',
+                '• You may request a retest of a positive sample at your own expense',
+                '• You are protected from retaliation for reporting safety concerns',
+                '• Confidentiality of test results will be maintained per applicable law'
+            ];
+            rights.forEach(item => {
+                doc.text(item, margin + 5, yPos);
+                yPos += 6;
+            });
+
+            // Footer
+            doc.setFillColor(30, 58, 95);
+            doc.rect(0, pageHeight - 25, pageWidth, 25, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(8);
+            doc.text('Custom Workforce Solutions LLC - Drug & Alcohol Testing Policy', pageWidth / 2, pageHeight - 16, { align: 'center' });
+            doc.text('Effective Date: 2025 | Document Version: 1.0 | Compliant with Texas Workers\' Compensation Law', pageWidth / 2, pageHeight - 10, { align: 'center' });
+
+            // Open PDF in new window
+            const pdfBlob = doc.output('blob');
+            const pdfUrl = URL.createObjectURL(pdfBlob);
+            window.open(pdfUrl, '_blank');
+
+            showNotification('Drug & Alcohol Testing Policy opened in new tab', 'info');
         }
 
         // Get drug test data for form submission
