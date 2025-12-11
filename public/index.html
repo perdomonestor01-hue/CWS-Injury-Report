@@ -89,12 +89,6 @@
             text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
-        .logo img {
-            height: 50px;
-            width: auto;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
-        }
-
         .logo i {
             color: var(--safety-accent);
             filter: drop-shadow(0 0 8px rgba(74, 222, 128, 0.8));
@@ -104,41 +98,6 @@
             display: flex;
             align-items: center;
             gap: 1rem;
-        }
-
-        /* Language Toggle */
-        .language-toggle {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: rgba(255,255,255,0.1);
-            padding: 0.5rem 1rem;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 2px solid rgba(255,255,255,0.2);
-            backdrop-filter: blur(10px);
-        }
-
-        .language-toggle:hover {
-            background: rgba(255,255,255,0.2);
-            border-color: var(--safety-accent);
-            transform: translateY(-2px);
-        }
-
-        .language-toggle i {
-            font-size: 1.2rem;
-            color: var(--safety-accent);
-        }
-
-        .language-label {
-            font-weight: 600;
-            font-size: 0.95rem;
-            letter-spacing: 0.5px;
-        }
-
-        .language-label.active {
-            color: var(--safety-accent);
         }
 
         .report-id {
@@ -1147,6 +1106,450 @@
         .classification-card.selected .classification-checkmark {
             display: flex;
         }
+
+        /* Mode Switcher Styles */
+        .mode-switcher {
+            display: flex;
+            gap: 0.5rem;
+            background: rgba(255,255,255,0.1);
+            padding: 0.25rem;
+            border-radius: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .mode-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 20px;
+            background: transparent;
+            color: rgba(255,255,255,0.7);
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .mode-btn:hover {
+            color: white;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .mode-btn.active {
+            background: var(--safety-accent);
+            color: var(--corporate-navy);
+        }
+
+        /* Case Management Section Styles */
+        .case-management-container {
+            display: none;
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .case-management-container.active {
+            display: block;
+        }
+
+        .cases-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .cases-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--corporate-navy);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .cases-title i {
+            color: var(--safety-accent);
+        }
+
+        .case-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 1.5rem;
+            border-left: 5px solid var(--corporate-navy);
+            transition: all 0.3s ease;
+        }
+
+        .case-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(15,23,42,0.15);
+        }
+
+        .case-card.open {
+            border-left-color: var(--safety-green);
+        }
+
+        .case-card.closed {
+            border-left-color: var(--text-secondary);
+        }
+
+        .case-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .case-info h3 {
+            font-size: 1.4rem;
+            color: var(--corporate-navy);
+            margin-bottom: 0.5rem;
+        }
+
+        .case-meta {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .case-meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .case-status {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+
+        .case-status.open {
+            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+            color: #166534;
+        }
+
+        .case-status.closed {
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            color: #475569;
+        }
+
+        .case-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            padding: 1.5rem;
+            background: var(--light-gray);
+            border-radius: 15px;
+            margin-bottom: 1.5rem;
+        }
+
+        .case-detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .case-detail-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .case-detail-value {
+            font-size: 1rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        /* Expense Table Styles */
+        .expense-section {
+            margin-top: 1.5rem;
+        }
+
+        .expense-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .expense-header h4 {
+            font-size: 1.1rem;
+            color: var(--corporate-navy);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .expense-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+        }
+
+        .expense-table th,
+        .expense-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-gray);
+        }
+
+        .expense-table th {
+            background: var(--light-gray);
+            font-weight: 600;
+            color: var(--corporate-navy);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+
+        .expense-table tr:hover {
+            background: #f8fafc;
+        }
+
+        .expense-amount {
+            font-weight: 600;
+            color: var(--corporate-navy);
+        }
+
+        .expense-total-row {
+            background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+            font-weight: bold;
+        }
+
+        .expense-total-row td {
+            border-bottom: none;
+        }
+
+        .expense-category {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .expense-category.medical {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .expense-category.testing {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .expense-category.legal {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .expense-category.admin {
+            background: #f3e8ff;
+            color: #7c3aed;
+        }
+
+        .expense-category.other {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        /* Add Expense Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--card-shadow);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-gray);
+        }
+
+        .modal-header h3 {
+            color: var(--corporate-navy);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-close-modal {
+            background: var(--danger-gradient);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-close-modal:hover {
+            transform: scale(1.1);
+        }
+
+        /* Case Summary Stats */
+        .case-summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        .stat-card i {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card.total i { color: var(--corporate-navy); }
+        .stat-card.open i { color: var(--safety-green); }
+        .stat-card.expenses i { color: #f59e0b; }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--corporate-navy);
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        /* Add Case Button */
+        .btn-add-case {
+            background: var(--success-gradient);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(22, 163, 74, 0.3);
+        }
+
+        .btn-add-case:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(22, 163, 74, 0.5);
+        }
+
+        .btn-add-expense {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-add-expense:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(30, 58, 95, 0.3);
+        }
+
+        .btn-delete-expense {
+            background: var(--danger-gradient);
+            color: white;
+            border: none;
+            padding: 0.35rem 0.75rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-delete-expense:hover {
+            transform: scale(1.05);
+        }
+
+        /* Responsive adjustments for case management */
+        @media (max-width: 768px) {
+            .mode-switcher {
+                order: 1;
+                width: 100%;
+                justify-content: center;
+            }
+
+            .cases-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .expense-table {
+                font-size: 0.85rem;
+            }
+
+            .expense-table th,
+            .expense-table td {
+                padding: 0.75rem 0.5rem;
+            }
+
+            .case-header {
+                flex-direction: column;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1155,15 +1558,18 @@
     <!-- Header -->
     <header class="header">
         <div class="logo">
-            <img src="/images/cws-logo-white.png" alt="CWS Logo" id="cws-logo" onerror="this.style.display='none'">
-            <span id="headerTitle">Accident Report System</span>
+            <i class="fas fa-file-medical" id="headerIcon"></i>
+            <span id="headerTitle">Injury Report System</span>
         </div>
         <div class="header-info">
-            <div class="language-toggle" onclick="toggleLanguage()">
-                <i class="fas fa-globe"></i>
-                <span class="language-label" id="lang-en">EN</span>
-                <span style="color: rgba(255,255,255,0.5)">|</span>
-                <span class="language-label" id="lang-es">ES</span>
+            <!-- Mode Switcher -->
+            <div class="mode-switcher">
+                <button class="mode-btn active" id="reportModeBtn" onclick="switchMode('reports')">
+                    <i class="fas fa-file-medical"></i> Reports
+                </button>
+                <button class="mode-btn" id="caseModeBtn" onclick="switchMode('cases')">
+                    <i class="fas fa-briefcase-medical"></i> Cases
+                </button>
             </div>
             <span class="report-id" id="reportIdDisplay"></span>
         </div>
@@ -1899,6 +2305,161 @@
         </div>
     </div>
 
+    <!-- Case Management Section -->
+    <div id="caseManagementContainer" class="case-management-container">
+        <!-- Summary Stats -->
+        <div class="case-summary-stats">
+            <div class="stat-card total">
+                <i class="fas fa-briefcase-medical"></i>
+                <div class="stat-value" id="totalCases">0</div>
+                <div class="stat-label">Total Cases</div>
+            </div>
+            <div class="stat-card open">
+                <i class="fas fa-folder-open"></i>
+                <div class="stat-value" id="openCases">0</div>
+                <div class="stat-label">Open Cases</div>
+            </div>
+            <div class="stat-card expenses">
+                <i class="fas fa-dollar-sign"></i>
+                <div class="stat-value" id="totalExpenses">$0</div>
+                <div class="stat-label">Total Expenses</div>
+            </div>
+        </div>
+
+        <!-- Cases Header -->
+        <div class="cases-header">
+            <h2 class="cases-title">
+                <i class="fas fa-briefcase-medical"></i>
+                Workers' Compensation Cases
+            </h2>
+            <button class="btn-add-case" onclick="openAddCaseModal()">
+                <i class="fas fa-plus"></i> Add New Case
+            </button>
+        </div>
+
+        <!-- Cases List (will be populated by JavaScript) -->
+        <div id="casesList"></div>
+    </div>
+
+    <!-- Add Case Modal -->
+    <div id="addCaseModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-folder-plus"></i> Add New Case</h3>
+                <button class="btn-close-modal" onclick="closeAddCaseModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="addCaseForm" onsubmit="return false;">
+                <div class="form-group">
+                    <label class="form-label">Employee Name <span class="required">*</span></label>
+                    <input type="text" id="caseEmployeeName" class="form-input" required placeholder="Enter employee name">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Insurance Carrier <span class="required">*</span></label>
+                    <select id="caseInsuranceCarrier" class="form-input" required>
+                        <option value="">Select insurance carrier...</option>
+                        <option value="Texas Mutual">Texas Mutual</option>
+                        <option value="Liberty Mutual">Liberty Mutual</option>
+                        <option value="Travelers">Travelers</option>
+                        <option value="Hartford">Hartford</option>
+                        <option value="Zurich">Zurich</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Claim Number</label>
+                    <input type="text" id="caseClaimNumber" class="form-input" placeholder="Insurance claim number">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Injury Date <span class="required">*</span></label>
+                    <input type="date" id="caseInjuryDate" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Injury Type <span class="required">*</span></label>
+                    <select id="caseInjuryType" class="form-input" required>
+                        <option value="">Select injury type...</option>
+                        <option value="Slip/Fall">Slip/Fall</option>
+                        <option value="Cut/Laceration">Cut/Laceration</option>
+                        <option value="Burn">Burn</option>
+                        <option value="Strain/Sprain">Strain/Sprain</option>
+                        <option value="Crushing Injury">Crushing Injury</option>
+                        <option value="Foreign Object in Eye">Foreign Object in Eye</option>
+                        <option value="Equipment Accident">Equipment Accident</option>
+                        <option value="Chemical Exposure">Chemical Exposure</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea id="caseDescription" class="form-input" rows="3" placeholder="Brief description of the injury..."></textarea>
+                </div>
+                <div class="button-group">
+                    <button type="button" class="btn btn-secondary" onclick="closeAddCaseModal()">Cancel</button>
+                    <button type="button" class="btn btn-success" onclick="addNewCase()">
+                        <i class="fas fa-plus"></i> Create Case
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Expense Modal -->
+    <div id="addExpenseModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-receipt"></i> Add Expense</h3>
+                <button class="btn-close-modal" onclick="closeAddExpenseModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="addExpenseForm" onsubmit="return false;">
+                <input type="hidden" id="expenseCaseId">
+                <div class="form-group">
+                    <label class="form-label">Date <span class="required">*</span></label>
+                    <input type="date" id="expenseDate" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Category <span class="required">*</span></label>
+                    <select id="expenseCategory" class="form-input" required>
+                        <option value="">Select category...</option>
+                        <option value="testing">Drug & Alcohol Testing</option>
+                        <option value="medical">Medical Treatment</option>
+                        <option value="medical">Doctor Visit</option>
+                        <option value="medical">Hospital</option>
+                        <option value="medical">Physical Therapy</option>
+                        <option value="medical">Prescription</option>
+                        <option value="admin">Administrative</option>
+                        <option value="legal">Legal Fees</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description <span class="required">*</span></label>
+                    <input type="text" id="expenseDescription" class="form-input" required placeholder="e.g., Drug and Alcohol Test">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Amount (USD) <span class="required">*</span></label>
+                    <input type="number" id="expenseAmount" class="form-input" required step="0.01" min="0" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Vendor/Provider</label>
+                    <input type="text" id="expenseVendor" class="form-input" placeholder="e.g., LabCorp, Concentra">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Notes</label>
+                    <textarea id="expenseNotes" class="form-input" rows="2" placeholder="Additional notes..."></textarea>
+                </div>
+                <div class="button-group">
+                    <button type="button" class="btn btn-secondary" onclick="closeAddExpenseModal()">Cancel</button>
+                    <button type="button" class="btn btn-success" onclick="addNewExpense()">
+                        <i class="fas fa-plus"></i> Add Expense
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer class="footer">
         <p><strong>Custom Workforce Solutions LLC</strong> - Safety Management System</p>
@@ -1918,647 +2479,329 @@
         let currentView = 'front';
         let savedReportData = null;
         let cameraStream = null;
-        let currentLanguage = 'en'; // Default language
 
-        // Comprehensive Bilingual Translation System - Professional Technical Spanish
-        const translations = {
-            en: {
-                // Header & Navigation
-                headerTitle: "Accident Report System",
+        // ========== CASE MANAGEMENT SYSTEM ==========
+        let currentMode = 'reports'; // 'reports' or 'cases'
+        let workersCompCases = [];
 
-                // Progress Steps
-                step1: "Classification",
-                step2: "Employee Info",
-                step3: "Incident Details",
-                step4: "Injury Details",
-                step5: "Photo & Signature",
-
-                // Step 0: Classification
-                reportClassificationTitle: "Report Classification",
-                classificationInfo: "Please select the type of report you are filing. This helps us ensure the proper documentation and follow-up procedures.",
-                incidentTitle: "Incident",
-                incidentDesc: "An unexpected event or near miss that could have resulted in injury, but did not cause harm. Examples: slip without fall, near miss, unsafe condition discovered.",
-                accidentTitle: "Accident",
-                accidentDesc: "An unexpected event that resulted in actual injury, illness, or property damage. Examples: fall with injury, equipment malfunction causing harm, workplace injury.",
-                continueBtn: "Continue",
-
-                // Step 1: Employee Info
-                employeeInfoTitle: "Employee Information",
-                employeeName: "Employee Name",
-                employeeNamePH: "Enter full name",
-                employeeId: "Employee ID",
-                employeeIdPH: "Enter employee ID",
-                cellphone: "Cellphone Number",
-                cellphonePH: "321-123-4545",
-                cellphoneHint: "To be contacted regarding this incident",
-                required: "*",
-
-                // Step 2: Incident Details
-                incidentDetailsTitle: "Incident Details",
-                clientCompany: "Client Company",
-                clientCompanyPH: "Enter client company name",
-                completeAddress: "Complete Address",
-                completeAddressPH: "Enter full street address, city, state, zip code",
-                locationHint: "Where the incident/accident happened",
-                dateTime: "Date & Time",
-                incidentDate: "Incident Date",
-                incidentDateHint: "When did the incident occur?",
-                incidentTime: "Incident Time",
-                incidentTimeHint: "Time the incident occurred",
-                reportedDate: "Date Reported",
-                reportedDateHint: "When is this being reported?",
-                reportedTime: "Time Reported",
-                reportedTimeHint: "Time this report is being submitted",
-                injuryTypeLabel: "Type of Injury",
-                injuryTypeOption: "Select injury type...",
-                injuryTypeSlipFall: "Slip/Fall",
-                injuryTypeCut: "Cut/Laceration",
-                injuryTypeBurn: "Burn",
-                injuryTypeStrain: "Strain/Sprain",
-                injuryTypeCrushing: "Crushing Injury",
-                injuryTypeForeign: "Foreign Object in Eye",
-                injuryTypeEquipment: "Equipment Accident",
-                injuryTypeChemical: "Chemical Exposure",
-                injuryTypeOther: "Other",
-                description: "Incident Description",
-                descriptionPH: "Describe what happened in detail...",
-                descriptionHint: "Include: What was the employee doing? What happened? Any equipment involved?",
-                witnessName: "Witness Name (if any)",
-                witnessNamePH: "Optional",
-                witnessContact: "Witness Contact",
-                witnessContactPH: "Phone or email",
-
-                // Step 3: Injury Details
-                injuryDetailsTitle: "Select Injured Body Parts",
-                injuryDetailsInfo: "Click on the body diagram below to select injured areas. You can select multiple areas.",
-                viewFront: "Front View",
-                viewBack: "Back View",
-                selectedBodyParts: "Selected Body Parts:",
-                noSelection: "No body parts selected yet",
-
-                // Step 4: Photos & Signature
-                photoSignatureTitle: "Photo & Digital Signature",
-                photoLabel: "Injury Photos (2-3 photos recommended)",
-                takePhoto: "Take Photo",
-                uploadDevice: "Upload from Device",
-                dragDrop: "Drag and drop an image here",
-                dragDropHint: "or click the buttons above",
-                takePhotoTitle: "Take Photo",
-                capturePhoto: "Capture Photo",
-                cancelBtn: "Cancel",
-                employeeSignature: "Employee Signature",
-                clearSignature: "Clear Signature",
-                signatureHint: "Sign above using your finger or stylus",
-                reporterName: "Report Submitted By",
-                reporterNamePH: "Your name",
-                reporterPosition: "Position",
-                reporterPositionPH: "Your position/title",
-
-                // Buttons
-                nextStep: "Next",
-                previousStep: "Back",
-                submitReport: "Submit Report",
-
-                // Success Message
-                successTitle: "Report Submitted Successfully!",
-                reportId: "Report ID:",
-                savedMessage: "Your injury report has been saved locally for demonstration purposes.",
-                downloadPdf: "Download PDF",
-                submitAnother: "Submit Another Report",
-                viewReport: "View Report Data",
-
-                // Loading
-                submitting: "Submitting report...",
-
-                // Footer
-                footerCompany: "Custom Workforce Solutions LLC",
-                footerSystem: "Safety Management System",
-                footerCopyright: "© 2025 Custom Workforce Solutions LLC - Engineered by Jufipai"
-            },
-            es: {
-                // Encabezado y Navegación
-                headerTitle: "Sistema de Reporte de Accidentes",
-
-                // Pasos de Progreso
-                step1: "Clasificación",
-                step2: "Info del Empleado",
-                step3: "Detalles del Incidente",
-                step4: "Detalles de Lesión",
-                step5: "Foto y Firma",
-
-                // Paso 0: Clasificación
-                reportClassificationTitle: "Clasificación del Reporte",
-                classificationInfo: "Por favor seleccione el tipo de reporte que está presentando. Esto nos ayuda a garantizar la documentación y los procedimientos de seguimiento adecuados.",
-                incidentTitle: "Incidente",
-                incidentDesc: "Un evento inesperado o casi accidente que podría haber resultado en lesión, pero no causó daño. Ejemplos: resbalón sin caída, casi accidente, condición insegura descubierta.",
-                accidentTitle: "Accidente",
-                accidentDesc: "Un evento inesperado que resultó en lesión real, enfermedad o daño a la propiedad. Ejemplos: caída con lesión, mal funcionamiento de equipo causando daño, lesión laboral.",
-                continueBtn: "Continuar",
-
-                // Paso 1: Información del Empleado
-                employeeInfoTitle: "Información del Empleado",
-                employeeName: "Nombre del Empleado",
-                employeeNamePH: "Ingrese nombre completo",
-                employeeId: "ID del Empleado",
-                employeeIdPH: "Ingrese ID del empleado",
-                cellphone: "Número de Celular",
-                cellphonePH: "321-123-4545",
-                cellphoneHint: "Para ser contactado con respecto a este incidente",
-                required: "*",
-
-                // Paso 2: Detalles del Incidente
-                incidentDetailsTitle: "Detalles del Incidente",
-                clientCompany: "Compañía Cliente",
-                clientCompanyPH: "Ingrese nombre de la compañía cliente",
-                completeAddress: "Dirección Completa",
-                completeAddressPH: "Ingrese dirección completa, ciudad, estado, código postal",
-                locationHint: "Donde ocurrió el incidente/accidente",
-                dateTime: "Fecha y Hora",
-                incidentDate: "Fecha del Incidente",
-                incidentDateHint: "¿Cuándo ocurrió el incidente?",
-                incidentTime: "Hora del Incidente",
-                incidentTimeHint: "Hora en que ocurrió el incidente",
-                reportedDate: "Fecha de Reporte",
-                reportedDateHint: "¿Cuándo se está reportando esto?",
-                reportedTime: "Hora de Reporte",
-                reportedTimeHint: "Hora en que se está enviando este reporte",
-                injuryTypeLabel: "Tipo de Lesión",
-                injuryTypeOption: "Seleccione tipo de lesión...",
-                injuryTypeSlipFall: "Resbalón/Caída",
-                injuryTypeCut: "Corte/Laceración",
-                injuryTypeBurn: "Quemadura",
-                injuryTypeStrain: "Esguince/Distensión",
-                injuryTypeCrushing: "Lesión por Aplastamiento",
-                injuryTypeForeign: "Objeto Extraño en el Ojo",
-                injuryTypeEquipment: "Accidente de Equipo",
-                injuryTypeChemical: "Exposición Química",
-                injuryTypeOther: "Otro",
-                description: "Descripción del Incidente",
-                descriptionPH: "Describa lo que sucedió en detalle...",
-                descriptionHint: "Incluya: ¿Qué estaba haciendo el empleado? ¿Qué sucedió? ¿Algún equipo involucrado?",
-                witnessName: "Nombre del Testigo (si aplica)",
-                witnessNamePH: "Opcional",
-                witnessContact: "Contacto del Testigo",
-                witnessContactPH: "Teléfono o correo electrónico",
-
-                // Paso 3: Detalles de la Lesión
-                injuryDetailsTitle: "Seleccione Partes del Cuerpo Lesionadas",
-                injuryDetailsInfo: "Haga clic en el diagrama corporal a continuación para seleccionar áreas lesionadas. Puede seleccionar múltiples áreas.",
-                viewFront: "Vista Frontal",
-                viewBack: "Vista Trasera",
-                selectedBodyParts: "Partes del Cuerpo Seleccionadas:",
-                noSelection: "Ninguna parte del cuerpo seleccionada aún",
-
-                // Paso 4: Fotos y Firma
-                photoSignatureTitle: "Foto y Firma Digital",
-                photoLabel: "Fotos de Lesión (2-3 fotos recomendadas)",
-                takePhoto: "Tomar Foto",
-                uploadDevice: "Subir desde Dispositivo",
-                dragDrop: "Arrastre y suelte una imagen aquí",
-                dragDropHint: "o haga clic en los botones de arriba",
-                takePhotoTitle: "Tomar Foto",
-                capturePhoto: "Capturar Foto",
-                cancelBtn: "Cancelar",
-                employeeSignature: "Firma del Empleado",
-                clearSignature: "Borrar Firma",
-                signatureHint: "Firme arriba usando su dedo o lápiz óptico",
-                reporterName: "Reporte Enviado Por",
-                reporterNamePH: "Su nombre",
-                reporterPosition: "Posición",
-                reporterPositionPH: "Su posición/título",
-
-                // Botones
-                nextStep: "Siguiente",
-                previousStep: "Atrás",
-                submitReport: "Enviar Reporte",
-
-                // Mensaje de Éxito
-                successTitle: "¡Reporte Enviado Exitosamente!",
-                reportId: "ID del Reporte:",
-                savedMessage: "Su reporte de lesión ha sido guardado localmente para fines de demostración.",
-                downloadPdf: "Descargar PDF",
-                submitAnother: "Enviar Otro Reporte",
-                viewReport: "Ver Datos del Reporte",
-
-                // Cargando
-                submitting: "Enviando reporte...",
-
-                // Pie de Página
-                footerCompany: "Custom Workforce Solutions LLC",
-                footerSystem: "Sistema de Gestión de Seguridad",
-                footerCopyright: "© 2025 Custom Workforce Solutions LLC - Desarrollado por Jufipai"
-            }
-        };
-
-        // Language toggle function
-        function toggleLanguage() {
-            currentLanguage = currentLanguage === 'en' ? 'es' : 'en';
-            updateLanguageUI();
-            applyTranslations();
-        }
-
-        function updateLanguageUI() {
-            const enLabel = document.getElementById('lang-en');
-            const esLabel = document.getElementById('lang-es');
-
-            if (currentLanguage === 'en') {
-                enLabel.classList.add('active');
-                esLabel.classList.remove('active');
+        // Initialize case data with Geissa Romero's case and first expense
+        function initializeCaseData() {
+            const storedCases = localStorage.getItem('workersCompCases');
+            if (storedCases) {
+                workersCompCases = JSON.parse(storedCases);
             } else {
-                enLabel.classList.remove('active');
-                esLabel.classList.add('active');
+                // Initialize with Geissa Romero's case
+                workersCompCases = [{
+                    id: 'WC-2024-001',
+                    employeeName: 'Geissa Romero',
+                    insuranceCarrier: 'Texas Mutual',
+                    claimNumber: '',
+                    injuryDate: '2024-12-11',
+                    injuryType: 'Other',
+                    description: 'Workers compensation case',
+                    status: 'open',
+                    createdAt: new Date().toISOString(),
+                    expenses: [{
+                        id: 'EXP-001',
+                        date: '2024-12-11',
+                        category: 'testing',
+                        description: 'Drug and Alcohol Test',
+                        amount: 168.00,
+                        vendor: '',
+                        notes: 'Initial post-incident testing',
+                        createdAt: new Date().toISOString()
+                    }]
+                }];
+                saveCasesToStorage();
             }
         }
 
-        function applyTranslations() {
-            const t = translations[currentLanguage];
+        // Save cases to localStorage
+        function saveCasesToStorage() {
+            localStorage.setItem('workersCompCases', JSON.stringify(workersCompCases));
+        }
 
-            // ===== HEADER =====
+        // Switch between Reports and Cases mode
+        function switchMode(mode) {
+            currentMode = mode;
+
+            // Update button states
+            document.getElementById('reportModeBtn').classList.toggle('active', mode === 'reports');
+            document.getElementById('caseModeBtn').classList.toggle('active', mode === 'cases');
+
+            // Update header
+            const headerIcon = document.getElementById('headerIcon');
             const headerTitle = document.getElementById('headerTitle');
-            if (headerTitle) headerTitle.textContent = t.headerTitle;
 
-            // ===== PROGRESS STEPS =====
-            const progressSteps = document.querySelectorAll('.step-label');
-            if (progressSteps.length >= 5) {
-                progressSteps[0].textContent = t.step1;
-                progressSteps[1].textContent = t.step2;
-                progressSteps[2].textContent = t.step3;
-                progressSteps[3].textContent = t.step4;
-                progressSteps[4].textContent = t.step5;
-            }
-
-            // ===== STEP 0: CLASSIFICATION =====
-            const step0Title = document.querySelector('#step0 .section-title');
-            if (step0Title) {
-                const icon = step0Title.querySelector('i');
-                if (icon) {
-                    step0Title.innerHTML = icon.outerHTML + ' ' + t.reportClassificationTitle;
-                }
-            }
-
-            const step0Info = document.querySelector('#step0 .info-box p');
-            if (step0Info) step0Info.textContent = t.classificationInfo;
-
-            // Classification cards
-            const incidentCard = document.querySelector('#incidentCard .classification-title');
-            if (incidentCard) incidentCard.textContent = t.incidentTitle;
-
-            const incidentDesc = document.querySelector('#incidentCard .classification-description');
-            if (incidentDesc) incidentDesc.textContent = t.incidentDesc;
-
-            const accidentCard = document.querySelector('#accidentCard .classification-title');
-            if (accidentCard) accidentCard.textContent = t.accidentTitle;
-
-            const accidentDesc = document.querySelector('#accidentCard .classification-description');
-            if (accidentDesc) accidentDesc.textContent = t.accidentDesc;
-
-            const continueBtn = document.getElementById('classificationNextBtn');
-            if (continueBtn) {
-                const icon = continueBtn.querySelector('i');
-                continueBtn.innerHTML = t.continueBtn + (icon ? ' ' + icon.outerHTML : '');
-            }
-
-            // ===== STEP 1: EMPLOYEE INFO =====
-            const step1Title = document.querySelector('#step1 .section-title');
-            if (step1Title) {
-                const icon = step1Title.querySelector('i');
-                if (icon) {
-                    step1Title.innerHTML = icon.outerHTML + ' ' + t.employeeInfoTitle;
-                }
-            }
-
-            // Employee Name
-            const empNameLabel = document.querySelector('label[for="employeeName"]');
-            if (empNameLabel) {
-                const required = empNameLabel.querySelector('.required');
-                empNameLabel.innerHTML = t.employeeName + (required ? ' ' + required.outerHTML : '');
-            }
-            const empNameInput = document.getElementById('employeeName');
-            if (empNameInput) empNameInput.placeholder = t.employeeNamePH;
-
-            // Employee ID
-            const empIdLabel = document.querySelector('label[for="employeeId"]');
-            if (empIdLabel) empIdLabel.childNodes[0].textContent = t.employeeId + ' ';
-
-            const empIdInput = document.getElementById('employeeId');
-            if (empIdInput) empIdInput.placeholder = t.employeeIdPH;
-
-            // Cellphone
-            const phoneLabel = document.querySelector('label[for="employeePhone"]');
-            if (phoneLabel) {
-                const required = phoneLabel.querySelector('.required');
-                phoneLabel.innerHTML = t.cellphone + (required ? ' ' + required.outerHTML : '');
-            }
-            const phoneInput = document.getElementById('employeePhone');
-            if (phoneInput) phoneInput.placeholder = t.cellphonePH;
-
-            const phoneHint = document.querySelector('label[for="employeePhone"]').parentElement.querySelector('.form-hint');
-            if (phoneHint) phoneHint.textContent = t.cellphoneHint;
-
-            // ===== STEP 2: INCIDENT DETAILS =====
-            const step2Title = document.getElementById('step2Title');
-            if (step2Title) step2Title.textContent = t.incidentDetailsTitle;
-
-            // Client Company
-            const clientLabel = document.querySelector('label[for="client"]');
-            if (clientLabel) {
-                const required = clientLabel.querySelector('.required');
-                clientLabel.innerHTML = t.clientCompany + (required ? ' ' + required.outerHTML : '');
-            }
-            const clientInput = document.getElementById('client');
-            if (clientInput) clientInput.placeholder = t.clientCompanyPH;
-
-            // Complete Address
-            const locationLabel = document.querySelector('label[for="location"]');
-            if (locationLabel) {
-                const required = locationLabel.querySelector('.required');
-                locationLabel.innerHTML = t.completeAddress + (required ? ' ' + required.outerHTML : '');
-            }
-            const locationInput = document.getElementById('location');
-            if (locationInput) locationInput.placeholder = t.completeAddressPH;
-
-            const locationHint = document.getElementById('locationHint');
-            if (locationHint) locationHint.textContent = t.locationHint;
-
-            // Incident Date
-            const incidentDateLabel = document.querySelector('label[for="incidentDate"]');
-            if (incidentDateLabel) {
-                const required = incidentDateLabel.querySelector('.required');
-                incidentDateLabel.innerHTML = t.incidentDate + (required ? ' ' + required.outerHTML : '');
-            }
-            const incidentDateHint = document.querySelector('label[for="incidentDate"]').parentElement.querySelector('.form-hint');
-            if (incidentDateHint) incidentDateHint.textContent = t.incidentDateHint;
-
-            // Incident Time
-            const incidentTimeLabel = document.querySelector('label[for="incidentTime"]');
-            if (incidentTimeLabel) {
-                const required = incidentTimeLabel.querySelector('.required');
-                incidentTimeLabel.innerHTML = t.incidentTime + (required ? ' ' + required.outerHTML : '');
-            }
-            const incidentTimeHint = document.querySelector('label[for="incidentTime"]').parentElement.querySelector('.form-hint');
-            if (incidentTimeHint) incidentTimeHint.textContent = t.incidentTimeHint;
-
-            // Reported Date
-            const reportedDateLabel = document.querySelector('label[for="reportedDate"]');
-            if (reportedDateLabel) {
-                const required = reportedDateLabel.querySelector('.required');
-                reportedDateLabel.innerHTML = t.reportedDate + (required ? ' ' + required.outerHTML : '');
-            }
-            const reportedDateHint = document.querySelector('label[for="reportedDate"]').parentElement.querySelector('.form-hint');
-            if (reportedDateHint) reportedDateHint.textContent = t.reportedDateHint;
-
-            // Reported Time
-            const reportedTimeLabel = document.querySelector('label[for="reportedTime"]');
-            if (reportedTimeLabel) {
-                const required = reportedTimeLabel.querySelector('.required');
-                reportedTimeLabel.innerHTML = t.reportedTime + (required ? ' ' + required.outerHTML : '');
-            }
-            const reportedTimeHint = document.querySelector('label[for="reportedTime"]').parentElement.querySelector('.form-hint');
-            if (reportedTimeHint) reportedTimeHint.textContent = t.reportedTimeHint;
-
-            // Injury Type
-            const injuryTypeLabel = document.querySelector('label[for="injuryType"]');
-            if (injuryTypeLabel) {
-                const required = injuryTypeLabel.querySelector('.required');
-                injuryTypeLabel.innerHTML = t.injuryTypeLabel + (required ? ' ' + required.outerHTML : '');
-            }
-            const injuryTypeSelect = document.getElementById('injuryType');
-            if (injuryTypeSelect && injuryTypeSelect.options) {
-                injuryTypeSelect.options[0].textContent = t.injuryTypeOption;
-                injuryTypeSelect.options[1].textContent = t.injuryTypeSlipFall;
-                injuryTypeSelect.options[2].textContent = t.injuryTypeCut;
-                injuryTypeSelect.options[3].textContent = t.injuryTypeBurn;
-                injuryTypeSelect.options[4].textContent = t.injuryTypeStrain;
-                injuryTypeSelect.options[5].textContent = t.injuryTypeCrushing;
-                injuryTypeSelect.options[6].textContent = t.injuryTypeForeign;
-                injuryTypeSelect.options[7].textContent = t.injuryTypeEquipment;
-                injuryTypeSelect.options[8].textContent = t.injuryTypeChemical;
-                injuryTypeSelect.options[9].textContent = t.injuryTypeOther;
-            }
-
-            // Description
-            const descriptionLabel = document.querySelector('label[for="description"]');
-            if (descriptionLabel) {
-                const required = descriptionLabel.querySelector('.required');
-                descriptionLabel.innerHTML = t.description + (required ? ' ' + required.outerHTML : '');
-            }
-            const descriptionTextarea = document.getElementById('description');
-            if (descriptionTextarea) descriptionTextarea.placeholder = t.descriptionPH;
-
-            const descriptionHint = document.querySelector('label[for="description"]').parentElement.querySelector('.form-hint');
-            if (descriptionHint) descriptionHint.textContent = t.descriptionHint;
-
-            // Witness Name
-            const witnessNameLabel = document.querySelector('label[for="witnessName"]');
-            if (witnessNameLabel) witnessNameLabel.textContent = t.witnessName;
-
-            const witnessNameInput = document.getElementById('witnessName');
-            if (witnessNameInput) witnessNameInput.placeholder = t.witnessNamePH;
-
-            // Witness Contact
-            const witnessContactLabel = document.querySelector('label[for="witnessContact"]');
-            if (witnessContactLabel) witnessContactLabel.textContent = t.witnessContact;
-
-            const witnessContactInput = document.getElementById('witnessContact');
-            if (witnessContactInput) witnessContactInput.placeholder = t.witnessContactPH;
-
-            // ===== STEP 3: INJURY DETAILS (BODY DIAGRAM) =====
-            const step3Title = document.getElementById('step3Title');
-            if (step3Title) step3Title.textContent = t.injuryDetailsTitle;
-
-            const step3Info = document.getElementById('step3Info');
-            if (step3Info) step3Info.textContent = t.injuryDetailsInfo;
-
-            // Front/Back buttons
-            const frontBtn = document.getElementById('frontBtn');
-            if (frontBtn) {
-                const icon = frontBtn.querySelector('i');
-                frontBtn.innerHTML = (icon ? icon.outerHTML + ' ' : '') + t.viewFront;
-            }
-
-            const backBtn = document.getElementById('backBtn');
-            if (backBtn) {
-                const icon = backBtn.querySelector('i');
-                backBtn.innerHTML = (icon ? icon.outerHTML + ' ' : '') + t.viewBack;
-            }
-
-            // Selected body parts
-            const selectedPartsTitle = document.querySelector('.selected-parts-container h3');
-            if (selectedPartsTitle) selectedPartsTitle.textContent = t.selectedBodyParts;
-
-            const noSelection = document.querySelector('.selected-parts-list .no-selection');
-            if (noSelection) noSelection.textContent = t.noSelection;
-
-            // ===== STEP 4: PHOTO & SIGNATURE =====
-            const step4Title = document.querySelector('#step4 .section-title');
-            if (step4Title) {
-                const icon = step4Title.querySelector('i');
-                if (icon) {
-                    step4Title.innerHTML = icon.outerHTML + ' ' + t.photoSignatureTitle;
-                }
-            }
-
-            // Photo Label
-            const photoLabel = document.querySelector('#step4 .form-label');
-            if (photoLabel && photoLabel.textContent.includes('Injury Photos') || photoLabel.textContent.includes('Fotos de Lesión')) {
-                const required = photoLabel.querySelector('.required');
-                photoLabel.innerHTML = t.photoLabel + (required ? ' ' + required.outerHTML : '');
-            }
-
-            // Photo buttons
-            const takePhotoBtn = document.querySelector('button[onclick="openCamera()"]');
-            if (takePhotoBtn) {
-                const icon = takePhotoBtn.querySelector('i');
-                takePhotoBtn.innerHTML = (icon ? icon.outerHTML + ' ' : '') + t.takePhoto;
-            }
-
-            const uploadBtn = document.querySelector('button[onclick="requestFileAccess()"]');
-            if (uploadBtn) {
-                const icon = uploadBtn.querySelector('i');
-                uploadBtn.innerHTML = (icon ? icon.outerHTML + ' ' : '') + t.uploadDevice;
-            }
-
-            // Drop zone
-            const dropZoneText = document.querySelector('#dropZone p:first-of-type');
-            if (dropZoneText) dropZoneText.textContent = t.dragDrop;
-
-            const dropZoneHint = document.querySelector('.drop-zone-hint');
-            if (dropZoneHint) dropZoneHint.textContent = t.dragDropHint;
-
-            // Camera modal
-            const cameraModalTitle = document.querySelector('.camera-header h3');
-            if (cameraModalTitle) {
-                const icon = cameraModalTitle.querySelector('i');
-                cameraModalTitle.innerHTML = (icon ? icon.outerHTML + ' ' : '') + t.takePhotoTitle;
-            }
-
-            const captureBtn = document.querySelector('button[onclick="capturePhoto()"]');
-            if (captureBtn) {
-                const icon = captureBtn.querySelector('i');
-                captureBtn.innerHTML = (icon ? icon.outerHTML + ' ' : '') + t.capturePhoto;
-            }
-
-            const cameraCancelBtn = document.querySelector('.camera-controls button[onclick="closeCamera()"]');
-            if (cameraCancelBtn) {
-                const icon = cameraCancelBtn.querySelector('i');
-                cameraCancelBtn.innerHTML = (icon ? icon.outerHTML + ' ' : '') + t.cancelBtn;
-            }
-
-            // Signature
-            const signatureLabel = document.querySelector('label[for="signaturePad"]');
-            if (!signatureLabel) {
-                // The signature label is the parent of the canvas
-                const signatureContainer = document.querySelector('.signature-container');
-                if (signatureContainer) {
-                    const labelElement = signatureContainer.previousElementSibling;
-                    if (labelElement && labelElement.tagName === 'LABEL') {
-                        const required = labelElement.querySelector('.required');
-                        labelElement.innerHTML = t.employeeSignature + (required ? ' ' + required.outerHTML : '');
-                    }
-                }
-            }
-
-            const clearSigBtn = document.querySelector('button[onclick="clearSignature()"]');
-            if (clearSigBtn) {
-                const icon = clearSigBtn.querySelector('i');
-                clearSigBtn.innerHTML = (icon ? icon.outerHTML + ' ' : '') + t.clearSignature;
-            }
-
-            const signatureHint = document.querySelector('.signature-container').parentElement.querySelector('.form-hint');
-            if (signatureHint) signatureHint.textContent = t.signatureHint;
-
-            // Reporter Name
-            const reporterNameLabel = document.querySelector('label[for="reporterName"]');
-            if (reporterNameLabel) {
-                const required = reporterNameLabel.querySelector('.required');
-                reporterNameLabel.innerHTML = t.reporterName + (required ? ' ' + required.outerHTML : '');
-            }
-            const reporterNameInput = document.getElementById('reporterName');
-            if (reporterNameInput) reporterNameInput.placeholder = t.reporterNamePH;
-
-            // Reporter Position
-            const reporterPositionLabel = document.querySelector('label[for="reporterPosition"]');
-            if (reporterPositionLabel) {
-                const required = reporterPositionLabel.querySelector('.required');
-                reporterPositionLabel.innerHTML = t.reporterPosition + (required ? ' ' + required.outerHTML : '');
-            }
-            const reporterPositionInput = document.getElementById('reporterPosition');
-            if (reporterPositionInput) reporterPositionInput.placeholder = t.reporterPositionPH;
-
-            // ===== NAVIGATION BUTTONS =====
-            // Next buttons
-            document.querySelectorAll('button.btn-next').forEach(btn => {
-                if (btn.id !== 'classificationNextBtn') {
-                    const icon = btn.querySelector('i');
-                    btn.innerHTML = t.nextStep + (icon ? ' ' + icon.outerHTML : '');
-                }
-            });
-
-            // Previous buttons (Back)
-            document.querySelectorAll('button[onclick*="previousStep"]').forEach(btn => {
-                const icon = btn.querySelector('i');
-                btn.innerHTML = (icon ? icon.outerHTML + ' ' : '') + t.previousStep;
-            });
-
-            // Submit Report button
-            const submitBtn = document.querySelector('button[onclick="submitReport()"]');
-            if (submitBtn) {
-                const icon = submitBtn.querySelector('i');
-                submitBtn.innerHTML = (icon ? icon.outerHTML + ' ' : '') + t.submitReport;
-            }
-
-            // ===== SUCCESS MESSAGE =====
-            const successTitle = document.querySelector('#successMessage h2');
-            if (successTitle) successTitle.textContent = t.successTitle;
-
-            const reportIdLabel = document.querySelector('.report-id-success');
-            if (reportIdLabel) {
-                const reportIdValue = document.getElementById('successReportId');
-                if (reportIdValue) {
-                    const idText = reportIdValue.textContent;
-                    reportIdLabel.innerHTML = t.reportId + ' <strong id="successReportId">' + idText + '</strong>';
-                }
-            }
-
-            const savedMessage = document.querySelector('#successMessage > p:nth-of-type(2)');
-            if (savedMessage) savedMessage.textContent = t.savedMessage;
-
-            const downloadPdfBtn = document.querySelector('button[onclick="downloadPdfImproved()"]');
-            if (downloadPdfBtn) {
-                const icon = downloadPdfBtn.querySelector('i');
-                downloadPdfBtn.innerHTML = (icon ? icon.outerHTML + ' ' : '') + t.downloadPdf;
-            }
-
-            const submitAnotherBtn = document.querySelector('button[onclick="submitAnother()"]');
-            if (submitAnotherBtn) {
-                const icon = submitAnotherBtn.querySelector('i');
-                submitAnotherBtn.innerHTML = (icon ? icon.outerHTML + ' ' : '') + t.submitAnother;
-            }
-
-            const viewReportBtn = document.querySelector('button[onclick="viewReportData()"]');
-            if (viewReportBtn) {
-                const icon = viewReportBtn.querySelector('i');
-                viewReportBtn.innerHTML = (icon ? icon.outerHTML + ' ' : '') + t.viewReport;
-            }
-
-            // ===== LOADING SPINNER =====
-            const loadingText = document.querySelector('#loadingSpinner p');
-            if (loadingText) loadingText.textContent = t.submitting;
-
-            // ===== FOOTER =====
-            const footerParagraphs = document.querySelectorAll('.footer p');
-            if (footerParagraphs.length >= 2) {
-                footerParagraphs[0].innerHTML = '<strong>' + t.footerCompany + '</strong> - ' + t.footerSystem;
-                footerParagraphs[1].textContent = t.footerCopyright;
+            if (mode === 'reports') {
+                headerIcon.className = 'fas fa-file-medical';
+                headerTitle.textContent = 'Injury Report System';
+                document.querySelector('.form-container').style.display = 'block';
+                document.getElementById('caseManagementContainer').classList.remove('active');
+            } else {
+                headerIcon.className = 'fas fa-briefcase-medical';
+                headerTitle.textContent = 'Case Management';
+                document.querySelector('.form-container').style.display = 'none';
+                document.getElementById('caseManagementContainer').classList.add('active');
+                renderCases();
+                updateCaseStats();
             }
         }
+
+        // Update case statistics
+        function updateCaseStats() {
+            const totalCases = workersCompCases.length;
+            const openCases = workersCompCases.filter(c => c.status === 'open').length;
+            const totalExpenses = workersCompCases.reduce((sum, c) => {
+                return sum + c.expenses.reduce((expSum, exp) => expSum + parseFloat(exp.amount), 0);
+            }, 0);
+
+            document.getElementById('totalCases').textContent = totalCases;
+            document.getElementById('openCases').textContent = openCases;
+            document.getElementById('totalExpenses').textContent = '$' + totalExpenses.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        }
+
+        // Render all cases
+        function renderCases() {
+            const casesList = document.getElementById('casesList');
+
+            if (workersCompCases.length === 0) {
+                casesList.innerHTML = `
+                    <div class="case-card">
+                        <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                            <i class="fas fa-folder-open" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                            <p>No cases found. Click "Add New Case" to create one.</p>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            casesList.innerHTML = workersCompCases.map(caseData => renderCaseCard(caseData)).join('');
+        }
+
+        // Render a single case card
+        function renderCaseCard(caseData) {
+            const totalExpenses = caseData.expenses.reduce((sum, exp) => sum + parseFloat(exp.amount), 0);
+            const formattedDate = new Date(caseData.injuryDate).toLocaleDateString('en-US', {
+                year: 'numeric', month: 'long', day: 'numeric'
+            });
+
+            return `
+                <div class="case-card ${caseData.status}">
+                    <div class="case-header">
+                        <div class="case-info">
+                            <h3><i class="fas fa-user-injured"></i> ${caseData.employeeName}</h3>
+                            <div class="case-meta">
+                                <span><i class="fas fa-hashtag"></i> ${caseData.id}</span>
+                                <span><i class="fas fa-shield-alt"></i> ${caseData.insuranceCarrier}</span>
+                                <span><i class="fas fa-calendar"></i> ${formattedDate}</span>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="case-status ${caseData.status}">${caseData.status}</span>
+                        </div>
+                    </div>
+
+                    <div class="case-details">
+                        <div class="case-detail-item">
+                            <span class="case-detail-label">Injury Type</span>
+                            <span class="case-detail-value">${caseData.injuryType}</span>
+                        </div>
+                        <div class="case-detail-item">
+                            <span class="case-detail-label">Claim Number</span>
+                            <span class="case-detail-value">${caseData.claimNumber || 'Pending'}</span>
+                        </div>
+                        <div class="case-detail-item">
+                            <span class="case-detail-label">Total Expenses</span>
+                            <span class="case-detail-value" style="color: var(--corporate-navy); font-weight: bold;">
+                                $${totalExpenses.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                            </span>
+                        </div>
+                        <div class="case-detail-item">
+                            <span class="case-detail-label">Description</span>
+                            <span class="case-detail-value">${caseData.description || 'N/A'}</span>
+                        </div>
+                    </div>
+
+                    <div class="expense-section">
+                        <div class="expense-header">
+                            <h4><i class="fas fa-receipt"></i> Expenses (${caseData.expenses.length})</h4>
+                            <button class="btn-add-expense" onclick="openAddExpenseModal('${caseData.id}')">
+                                <i class="fas fa-plus"></i> Add Expense
+                            </button>
+                        </div>
+
+                        ${caseData.expenses.length > 0 ? `
+                            <table class="expense-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Category</th>
+                                        <th>Description</th>
+                                        <th>Amount</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${caseData.expenses.map(exp => `
+                                        <tr>
+                                            <td>${new Date(exp.date).toLocaleDateString('en-US')}</td>
+                                            <td><span class="expense-category ${exp.category}">${exp.category}</span></td>
+                                            <td>${exp.description}${exp.vendor ? ` <small style="color: var(--text-secondary);">(${exp.vendor})</small>` : ''}</td>
+                                            <td class="expense-amount">$${parseFloat(exp.amount).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                                            <td>
+                                                <button class="btn-delete-expense" onclick="deleteExpense('${caseData.id}', '${exp.id}')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                    <tr class="expense-total-row">
+                                        <td colspan="3" style="text-align: right;"><strong>Total:</strong></td>
+                                        <td class="expense-amount"><strong>$${totalExpenses.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong></td>
+                                        <td></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        ` : `
+                            <p style="text-align: center; color: var(--text-secondary); padding: 1rem;">
+                                No expenses recorded yet.
+                            </p>
+                        `}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Modal functions
+        function openAddCaseModal() {
+            document.getElementById('addCaseModal').classList.add('active');
+            document.getElementById('caseInjuryDate').valueAsDate = new Date();
+        }
+
+        function closeAddCaseModal() {
+            document.getElementById('addCaseModal').classList.remove('active');
+            document.getElementById('addCaseForm').reset();
+        }
+
+        function openAddExpenseModal(caseId) {
+            document.getElementById('expenseCaseId').value = caseId;
+            document.getElementById('addExpenseModal').classList.add('active');
+            document.getElementById('expenseDate').valueAsDate = new Date();
+        }
+
+        function closeAddExpenseModal() {
+            document.getElementById('addExpenseModal').classList.remove('active');
+            document.getElementById('addExpenseForm').reset();
+        }
+
+        // Add new case
+        function addNewCase() {
+            const employeeName = document.getElementById('caseEmployeeName').value.trim();
+            const insuranceCarrier = document.getElementById('caseInsuranceCarrier').value;
+            const claimNumber = document.getElementById('caseClaimNumber').value.trim();
+            const injuryDate = document.getElementById('caseInjuryDate').value;
+            const injuryType = document.getElementById('caseInjuryType').value;
+            const description = document.getElementById('caseDescription').value.trim();
+
+            if (!employeeName || !insuranceCarrier || !injuryDate || !injuryType) {
+                showNotification('Please fill in all required fields', 'error');
+                return;
+            }
+
+            // Generate case ID
+            const caseNumber = workersCompCases.length + 1;
+            const year = new Date().getFullYear();
+            const caseId = `WC-${year}-${String(caseNumber).padStart(3, '0')}`;
+
+            const newCase = {
+                id: caseId,
+                employeeName,
+                insuranceCarrier,
+                claimNumber,
+                injuryDate,
+                injuryType,
+                description,
+                status: 'open',
+                createdAt: new Date().toISOString(),
+                expenses: []
+            };
+
+            workersCompCases.unshift(newCase);
+            saveCasesToStorage();
+            renderCases();
+            updateCaseStats();
+            closeAddCaseModal();
+            showNotification(`Case ${caseId} created for ${employeeName}`, 'success');
+        }
+
+        // Add new expense
+        function addNewExpense() {
+            const caseId = document.getElementById('expenseCaseId').value;
+            const date = document.getElementById('expenseDate').value;
+            const category = document.getElementById('expenseCategory').value;
+            const description = document.getElementById('expenseDescription').value.trim();
+            const amount = parseFloat(document.getElementById('expenseAmount').value);
+            const vendor = document.getElementById('expenseVendor').value.trim();
+            const notes = document.getElementById('expenseNotes').value.trim();
+
+            if (!date || !category || !description || isNaN(amount) || amount <= 0) {
+                showNotification('Please fill in all required fields with valid values', 'error');
+                return;
+            }
+
+            const caseIndex = workersCompCases.findIndex(c => c.id === caseId);
+            if (caseIndex === -1) {
+                showNotification('Case not found', 'error');
+                return;
+            }
+
+            // Generate expense ID
+            const expenseNumber = workersCompCases[caseIndex].expenses.length + 1;
+            const expenseId = `EXP-${String(expenseNumber).padStart(3, '0')}`;
+
+            const newExpense = {
+                id: expenseId,
+                date,
+                category,
+                description,
+                amount,
+                vendor,
+                notes,
+                createdAt: new Date().toISOString()
+            };
+
+            workersCompCases[caseIndex].expenses.push(newExpense);
+            saveCasesToStorage();
+            renderCases();
+            updateCaseStats();
+            closeAddExpenseModal();
+            showNotification(`Expense of $${amount.toFixed(2)} added to case ${caseId}`, 'success');
+        }
+
+        // Delete expense
+        function deleteExpense(caseId, expenseId) {
+            if (!confirm('Are you sure you want to delete this expense?')) return;
+
+            const caseIndex = workersCompCases.findIndex(c => c.id === caseId);
+            if (caseIndex === -1) return;
+
+            workersCompCases[caseIndex].expenses = workersCompCases[caseIndex].expenses.filter(e => e.id !== expenseId);
+            saveCasesToStorage();
+            renderCases();
+            updateCaseStats();
+            showNotification('Expense deleted', 'success');
+        }
+
+        // ========== END CASE MANAGEMENT SYSTEM ==========
 
         // Initialize on load
         document.addEventListener('DOMContentLoaded', function() {
             setDefaultDateTime();
             captureGeolocation();
             initializeDragAndDrop();
-            updateLanguageUI(); // Initialize language UI
+            initializeCaseData(); // Initialize case management data
         });
 
         // Initialize signature pad
