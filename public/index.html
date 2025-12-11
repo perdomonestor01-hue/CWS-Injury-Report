@@ -2323,8 +2323,8 @@
 
                 <!-- Photo Upload -->
                 <div class="form-group">
-                    <label class="form-label">
-                        Injury Photos (2-3 photos recommended) <span class="required">*</span>
+                    <label class="form-label" id="photoLabel">
+                        Injury Photos <span style="color: #6b7280; font-weight: 400;">(Optional - photos recommended if available)</span>
                     </label>
                     <div class="photo-upload-container">
                         <input type="file" id="injuryPhoto" accept="image/*" capture="environment"
@@ -3840,6 +3840,9 @@
                 document.getElementById('step3Info').textContent = 'Click on the body diagram to indicate areas that were affected or could have been injured. You can select multiple areas.';
                 document.getElementById('step3Icon').className = 'fas fa-triangle-exclamation';
 
+                // Update photo label to optional for incidents
+                document.getElementById('photoLabel').innerHTML = 'Injury Photos <span style="color: #6b7280; font-weight: 400;">(Optional - photos recommended if available)</span>';
+
             } else if (type === 'accident') {
                 // Update header title and icon
                 document.getElementById('headerTitle').textContent = 'Accident Report System';
@@ -3855,6 +3858,19 @@
                 document.getElementById('step3Title').textContent = 'Select Injured Body Parts';
                 document.getElementById('step3Info').textContent = 'Click on the body diagram below to select injured areas. You can select multiple areas.';
                 document.getElementById('step3Icon').className = 'fas fa-user-injured';
+
+                // Update photo label to required for accidents
+                document.getElementById('photoLabel').innerHTML = 'Injury Photos <span class="required">*</span> <span style="color: #6b7280; font-weight: 400;">(2-3 photos recommended)</span>';
+            }
+        }
+
+        // Update photo label based on classification
+        function updatePhotoLabelForClassification() {
+            const photoLabel = document.getElementById('photoLabel');
+            if (reportClassification === 'accident') {
+                photoLabel.innerHTML = 'Injury Photos <span class="required">*</span> <span style="color: #6b7280; font-weight: 400;">(2-3 photos recommended)</span>';
+            } else {
+                photoLabel.innerHTML = 'Injury Photos <span style="color: #6b7280; font-weight: 400;">(Optional - photos recommended if available)</span>';
             }
         }
 
@@ -3923,8 +3939,9 @@
 
             // Additional validation for step 4
             if (step === 4) {
-                if (photoData.length === 0) {
-                    showNotification('Please take or upload at least one injury photo', 'error');
+                // Photo required for accidents, optional for incidents
+                if (reportClassification === 'accident' && photoData.length === 0) {
+                    showNotification('Please take or upload at least one injury photo for accident reports', 'error');
                     return false;
                 }
                 // Validate medical decline acknowledgment (Texas Mutual 2025 compliant)
