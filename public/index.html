@@ -2434,7 +2434,7 @@
                     </div>
                 </div>
 
-                <!-- Drug & Alcohol Testing Policy - CWS Policy (shown only for accidents) -->
+                <!-- Drug & Alcohol Testing Policy - CWS Policy (applies to ALL incidents and accidents) -->
                 <div class="form-group" id="drugTestSection" style="display: none; background: #fef2f2; border: 2px solid #dc2626; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
                     <label class="form-label" style="color: #991b1b; font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
                         <i class="fas fa-flask" style="color: #dc2626;"></i>
@@ -2444,7 +2444,7 @@
                     <div style="margin: 1rem 0; padding: 1rem; background: white; border-radius: 8px; border: 1px solid #fca5a5;">
                         <p style="font-size: 0.95rem; color: #1f2937; font-weight: 600; margin-bottom: 0.75rem;">
                             <i class="fas fa-exclamation-circle" style="color: #dc2626;"></i>
-                            Per Custom Workforce Solutions policy, you are required to undergo drug and alcohol testing following this accident.
+                            Per Custom Workforce Solutions policy, you are required to undergo drug and alcohol testing following this incident/accident.
                         </p>
 
                         <p style="font-size: 0.85rem; color: #374151; margin-bottom: 0.75rem;">
@@ -2452,7 +2452,7 @@
                         </p>
 
                         <div style="background: #f9fafb; padding: 0.75rem; border-radius: 6px; margin-bottom: 1rem;">
-                            <p style="font-size: 0.85rem; color: #374151; font-weight: 600; margin-bottom: 0.5rem;">Post-Accident Testing applies when:</p>
+                            <p style="font-size: 0.85rem; color: #374151; font-weight: 600; margin-bottom: 0.5rem;">Post-Incident/Accident Testing applies when:</p>
                             <ul style="font-size: 0.8rem; color: #4b5563; margin-left: 1.25rem; line-height: 1.6;">
                                 <li>Workplace accident resulting in personal injury</li>
                                 <li>Accident causing or contributing to severe property damage</li>
@@ -3992,9 +3992,11 @@
         }
 
         // Show/hide drug test section based on classification
+        // Drug testing applies to BOTH incidents and accidents per CWS policy
         function updateDrugTestSection() {
             const drugTestSection = document.getElementById('drugTestSection');
-            if (reportClassification === 'accident') {
+            // Show for both incidents and accidents
+            if (reportClassification === 'accident' || reportClassification === 'incident') {
                 drugTestSection.style.display = 'block';
                 // Reset the selection when showing
                 document.getElementById('consentDrugTest').checked = false;
@@ -4038,10 +4040,11 @@
             }
         }
 
-        // Validate drug test response for accidents
+        // Validate drug test response for both incidents and accidents
         function validateDrugTestResponse() {
-            if (reportClassification !== 'accident') {
-                return true; // Not required for incidents
+            // Drug testing required for BOTH incidents and accidents per CWS policy
+            if (reportClassification !== 'accident' && reportClassification !== 'incident') {
+                return true; // Only skip if no classification selected
             }
 
             const consentRadio = document.getElementById('consentDrugTest');
@@ -4062,8 +4065,9 @@
         }
 
         // Get drug test data for form submission
+        // Drug testing required for BOTH incidents and accidents per CWS policy
         function getDrugTestData() {
-            if (reportClassification !== 'accident') {
+            if (reportClassification !== 'accident' && reportClassification !== 'incident') {
                 return {
                     required: false,
                     response: 'not_applicable',
