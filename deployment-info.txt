@@ -1,0 +1,35 @@
+CWS Injury Report - Railway Deployment
+========================================
+
+Deployment Date: 2025-12-11
+Platform: Railway
+Environment: Production
+
+Live URL: https://cws-injury-report-production-6dfd.up.railway.app
+
+Project Details:
+- Project: cws-injury-report
+- Service: cws-injury-report-email-service
+- Environment: production
+- Status: ✅ Healthy
+
+Recent Changes:
+- Updated injury report with Texas Mutual 2025 compliant medical attention decline clause
+- Added compliant waiver of medical attention language
+- Meets Texas Mutual Workers' Compensation requirements
+- Updated form validation and signature handling
+
+Deployment Verification:
+✅ Live endpoint responds (HTTP 200)
+✅ Server running on port 8080
+✅ Email service ready
+✅ No errors in logs
+
+Build Logs: https://railway.com/project/cb046959-e201-4943-b180-f10810779c4a/service/2f31304d-1658-499e-9272-2cef89888003
+
+Commands:
+- View logs: railway logs
+- Check status: railway status
+- Redeploy: railway up
+
+Email Contact: safety@customworkforcesolutionsllc.com
