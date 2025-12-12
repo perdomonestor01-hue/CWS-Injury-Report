@@ -1468,6 +1468,280 @@
             font-weight: 600;
         }
 
+        /* KPI Dashboard Styles */
+        .kpi-dashboard {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .kpi-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .kpi-header h3 {
+            font-size: 1.2rem;
+            color: var(--corporate-navy);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .kpi-toggle {
+            background: #f0f0f0;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+        }
+
+        .kpi-toggle:hover {
+            background: var(--corporate-navy);
+            color: white;
+        }
+
+        .kpi-charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .kpi-chart-card {
+            background: #f8fafc;
+            border-radius: 15px;
+            padding: 1.25rem;
+        }
+
+        .kpi-chart-card h4 {
+            font-size: 0.95rem;
+            color: var(--corporate-navy);
+            margin: 0 0 1rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .kpi-chart-card h4 i {
+            color: var(--safety-green);
+        }
+
+        /* Bar Chart Styles */
+        .bar-chart {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .bar-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .bar-label {
+            width: 100px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .bar-container {
+            flex: 1;
+            height: 24px;
+            background: #e2e8f0;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 12px;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 8px;
+        }
+
+        .bar-value {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        /* Chart Colors */
+        .bar-fill.laceration { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .bar-fill.sprain { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .bar-fill.fracture { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+        .bar-fill.contusion { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .bar-fill.burn { background: linear-gradient(135deg, #ec4899, #db2777); }
+        .bar-fill.other { background: linear-gradient(135deg, #6b7280, #4b5563); }
+        .bar-fill.default { background: linear-gradient(135deg, #16a34a, #15803d); }
+
+        /* Donut Chart */
+        .donut-chart-container {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .donut-chart {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .donut-center {
+            position: absolute;
+            width: 70px;
+            height: 70px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .donut-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--corporate-navy);
+        }
+
+        .donut-label {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        .donut-legend {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .legend-dot.open { background: var(--safety-green); }
+        .legend-dot.closed { background: #6b7280; }
+
+        /* Monthly Trend */
+        .trend-chart {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            height: 100px;
+            gap: 0.5rem;
+            padding-top: 1rem;
+        }
+
+        .trend-bar {
+            flex: 1;
+            background: linear-gradient(180deg, var(--safety-green), #15803d);
+            border-radius: 6px 6px 0 0;
+            min-height: 10px;
+            position: relative;
+            transition: height 0.5s ease;
+        }
+
+        .trend-bar:hover {
+            opacity: 0.8;
+        }
+
+        .trend-bar::after {
+            content: attr(data-value);
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--corporate-navy);
+        }
+
+        .trend-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.5rem;
+        }
+
+        .trend-label {
+            flex: 1;
+            text-align: center;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        /* KPI Stats Row */
+        .kpi-stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .kpi-stat {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .kpi-stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--corporate-navy);
+        }
+
+        .kpi-stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-top: 0.25rem;
+        }
+
+        .kpi-stat.highlight .kpi-stat-value {
+            color: var(--safety-green);
+        }
+
+        .kpi-stat.warning .kpi-stat-value {
+            color: #f59e0b;
+        }
+
+        .kpi-stat.danger .kpi-stat-value {
+            color: #ef4444;
+        }
+
         /* Add Case Button */
         .btn-add-case {
             background: var(--success-gradient);
@@ -2645,6 +2919,86 @@
             </div>
         </div>
 
+        <!-- KPI Dashboard -->
+        <div class="kpi-dashboard" id="kpiDashboard">
+            <div class="kpi-header">
+                <h3><i class="fas fa-chart-line"></i> KPI Dashboard</h3>
+                <button class="kpi-toggle" onclick="toggleKpiDashboard()">
+                    <i class="fas fa-chevron-up" id="kpiToggleIcon"></i> Hide
+                </button>
+            </div>
+
+            <!-- Additional KPI Stats -->
+            <div class="kpi-stats-row" id="kpiStatsRow">
+                <div class="kpi-stat highlight">
+                    <div class="kpi-stat-value" id="kpiClosedCases">0</div>
+                    <div class="kpi-stat-label">Closed Cases</div>
+                </div>
+                <div class="kpi-stat">
+                    <div class="kpi-stat-value" id="kpiThisMonth">0</div>
+                    <div class="kpi-stat-label">This Month</div>
+                </div>
+                <div class="kpi-stat warning">
+                    <div class="kpi-stat-value" id="kpiAvgDaysOpen">0</div>
+                    <div class="kpi-stat-label">Avg Days Open</div>
+                </div>
+                <div class="kpi-stat">
+                    <div class="kpi-stat-value" id="kpiCloseRate">0%</div>
+                    <div class="kpi-stat-label">Close Rate</div>
+                </div>
+            </div>
+
+            <!-- Charts Grid -->
+            <div class="kpi-charts-grid" id="kpiChartsContent">
+                <!-- Case Status Donut -->
+                <div class="kpi-chart-card">
+                    <h4><i class="fas fa-circle-notch"></i> Case Status</h4>
+                    <div class="donut-chart-container">
+                        <div class="donut-chart" id="statusDonut">
+                            <!-- Donut chart rendered by JS -->
+                        </div>
+                        <div class="donut-legend">
+                            <div class="legend-item">
+                                <span class="legend-dot open"></span>
+                                <span id="legendOpen">Open: 0</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-dot closed"></span>
+                                <span id="legendClosed">Closed: 0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Injury Types Bar Chart -->
+                <div class="kpi-chart-card">
+                    <h4><i class="fas fa-band-aid"></i> Cases by Injury Type</h4>
+                    <div class="bar-chart" id="injuryTypeChart">
+                        <!-- Bar chart rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- Monthly Trend -->
+                <div class="kpi-chart-card">
+                    <h4><i class="fas fa-calendar-alt"></i> Monthly Trend (Last 6 Months)</h4>
+                    <div class="trend-chart" id="monthlyTrendChart">
+                        <!-- Trend chart rendered by JS -->
+                    </div>
+                    <div class="trend-labels" id="monthlyTrendLabels">
+                        <!-- Month labels rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- Top Clients -->
+                <div class="kpi-chart-card">
+                    <h4><i class="fas fa-building"></i> Cases by Client</h4>
+                    <div class="bar-chart" id="clientChart">
+                        <!-- Bar chart rendered by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Cases Header -->
         <div class="cases-header">
             <h2 class="cases-title">
@@ -2836,34 +3190,61 @@
         const MAX_PIN_ATTEMPTS = 5; // Server controls actual limit
         const API_BASE_URL = window.location.origin; // Use same origin for API calls
 
-        // Initialize case data with Geissa Romero's case and first expense
+        // Initialize case data with existing cases
         function initializeCaseData() {
             const storedCases = localStorage.getItem('workersCompCases');
             if (storedCases) {
                 workersCompCases = JSON.parse(storedCases);
+                // Ensure Kevin Simion's case exists (migration)
+                migrateKevinSimionCase();
             } else {
-                // Initialize with Geissa Romero's case
-                workersCompCases = [{
-                    id: 'WC-2024-001',
-                    employeeName: 'Geissa Romero',
-                    insuranceCarrier: 'Texas Mutual',
-                    claimNumber: '',
-                    injuryDate: '2024-12-11',
-                    injuryType: 'Other',
-                    description: 'Workers compensation case',
-                    status: 'open',
-                    createdAt: new Date().toISOString(),
-                    expenses: [{
-                        id: 'EXP-001',
-                        date: '2024-12-11',
-                        category: 'testing',
-                        description: 'Drug and Alcohol Test',
-                        amount: 168.00,
-                        vendor: '',
-                        notes: 'Initial post-incident testing',
-                        createdAt: new Date().toISOString()
-                    }]
-                }];
+                // Initialize with existing cases
+                workersCompCases = [
+                    {
+                        id: 'WC-2024-002',
+                        employeeName: 'Kevin Simion',
+                        insuranceCarrier: 'Texas Mutual',
+                        claimNumber: '',
+                        injuryDate: '2024-12-10',
+                        injuryType: 'Other',
+                        description: 'Incident report - Medical check completed',
+                        status: 'closed',
+                        closedAt: '2024-12-11',
+                        createdAt: '2024-12-10T10:00:00.000Z',
+                        client: '',
+                        expenses: [{
+                            id: 'EXP-001',
+                            date: '2024-12-11',
+                            category: 'medical',
+                            description: 'Medical Check',
+                            amount: 0.00,
+                            vendor: '',
+                            notes: 'Post-incident medical evaluation - cleared',
+                            createdAt: '2024-12-11T09:00:00.000Z'
+                        }]
+                    },
+                    {
+                        id: 'WC-2024-001',
+                        employeeName: 'Geissa Romero',
+                        insuranceCarrier: 'Texas Mutual',
+                        claimNumber: '',
+                        injuryDate: '2024-12-11',
+                        injuryType: 'Other',
+                        description: 'Workers compensation case',
+                        status: 'open',
+                        createdAt: new Date().toISOString(),
+                        expenses: [{
+                            id: 'EXP-001',
+                            date: '2024-12-11',
+                            category: 'testing',
+                            description: 'Drug and Alcohol Test',
+                            amount: 168.00,
+                            vendor: '',
+                            notes: 'Initial post-incident testing',
+                            createdAt: new Date().toISOString()
+                        }]
+                    }
+                ];
                 saveCasesToStorage();
             }
         }
@@ -2871,6 +3252,42 @@
         // Save cases to localStorage
         function saveCasesToStorage() {
             localStorage.setItem('workersCompCases', JSON.stringify(workersCompCases));
+        }
+
+        // Migration: Ensure Kevin Simion's case exists
+        function migrateKevinSimionCase() {
+            const kevinCase = workersCompCases.find(c =>
+                c.employeeName && c.employeeName.toLowerCase().includes('kevin simion')
+            );
+
+            if (!kevinCase) {
+                // Add Kevin Simion's closed case
+                workersCompCases.unshift({
+                    id: 'WC-2024-002',
+                    employeeName: 'Kevin Simion',
+                    insuranceCarrier: 'Texas Mutual',
+                    claimNumber: '',
+                    injuryDate: '2024-12-10',
+                    injuryType: 'Other',
+                    description: 'Incident report - Medical check completed',
+                    status: 'closed',
+                    closedAt: '2024-12-11',
+                    createdAt: '2024-12-10T10:00:00.000Z',
+                    client: '',
+                    expenses: [{
+                        id: 'EXP-001',
+                        date: '2024-12-11',
+                        category: 'medical',
+                        description: 'Medical Check',
+                        amount: 0.00,
+                        vendor: '',
+                        notes: 'Post-incident medical evaluation - cleared',
+                        createdAt: '2024-12-11T09:00:00.000Z'
+                    }]
+                });
+                saveCasesToStorage();
+                console.log('Migration: Kevin Simion case added');
+            }
         }
 
         // Switch between Reports and Cases mode
@@ -3208,7 +3625,200 @@
             document.getElementById('totalCases').textContent = totalCases;
             document.getElementById('openCases').textContent = openCases;
             document.getElementById('totalExpenses').textContent = '$' + totalExpenses.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+            // Update KPI Dashboard
+            updateKpiDashboard();
         }
+
+        // ========== KPI DASHBOARD FUNCTIONS ==========
+
+        let kpiDashboardVisible = true;
+
+        function toggleKpiDashboard() {
+            kpiDashboardVisible = !kpiDashboardVisible;
+            const content = document.getElementById('kpiChartsContent');
+            const statsRow = document.getElementById('kpiStatsRow');
+            const icon = document.getElementById('kpiToggleIcon');
+            const button = icon.parentElement;
+
+            if (kpiDashboardVisible) {
+                content.style.display = 'grid';
+                statsRow.style.display = 'grid';
+                icon.className = 'fas fa-chevron-up';
+                button.innerHTML = '<i class="fas fa-chevron-up" id="kpiToggleIcon"></i> Hide';
+            } else {
+                content.style.display = 'none';
+                statsRow.style.display = 'none';
+                icon.className = 'fas fa-chevron-down';
+                button.innerHTML = '<i class="fas fa-chevron-down" id="kpiToggleIcon"></i> Show';
+            }
+        }
+
+        function updateKpiDashboard() {
+            const totalCases = workersCompCases.length;
+            const openCases = workersCompCases.filter(c => c.status === 'open').length;
+            const closedCases = workersCompCases.filter(c => c.status === 'closed').length;
+
+            // Calculate cases this month
+            const now = new Date();
+            const thisMonth = workersCompCases.filter(c => {
+                const caseDate = new Date(c.createdAt || c.injuryDate);
+                return caseDate.getMonth() === now.getMonth() && caseDate.getFullYear() === now.getFullYear();
+            }).length;
+
+            // Calculate average days open for open cases
+            let avgDaysOpen = 0;
+            if (openCases > 0) {
+                const totalDays = workersCompCases
+                    .filter(c => c.status === 'open')
+                    .reduce((sum, c) => {
+                        const startDate = new Date(c.injuryDate || c.createdAt);
+                        const daysDiff = Math.floor((now - startDate) / (1000 * 60 * 60 * 24));
+                        return sum + daysDiff;
+                    }, 0);
+                avgDaysOpen = Math.round(totalDays / openCases);
+            }
+
+            // Calculate close rate
+            const closeRate = totalCases > 0 ? Math.round((closedCases / totalCases) * 100) : 0;
+
+            // Update KPI stats
+            document.getElementById('kpiClosedCases').textContent = closedCases;
+            document.getElementById('kpiThisMonth').textContent = thisMonth;
+            document.getElementById('kpiAvgDaysOpen').textContent = avgDaysOpen;
+            document.getElementById('kpiCloseRate').textContent = closeRate + '%';
+
+            // Update charts
+            renderStatusDonut(openCases, closedCases);
+            renderInjuryTypeChart();
+            renderMonthlyTrendChart();
+            renderClientChart();
+        }
+
+        function renderStatusDonut(openCases, closedCases) {
+            const total = openCases + closedCases;
+            const donut = document.getElementById('statusDonut');
+
+            if (total === 0) {
+                donut.innerHTML = '<div class="donut-center"><div class="donut-value">0</div><div class="donut-label">cases</div></div>';
+                donut.style.background = '#e2e8f0';
+            } else {
+                const openPercent = (openCases / total) * 100;
+                const closedPercent = (closedCases / total) * 100;
+
+                donut.style.background = `conic-gradient(
+                    var(--safety-green) 0% ${openPercent}%,
+                    #6b7280 ${openPercent}% 100%
+                )`;
+                donut.innerHTML = `<div class="donut-center"><div class="donut-value">${total}</div><div class="donut-label">cases</div></div>`;
+            }
+
+            document.getElementById('legendOpen').textContent = `Open: ${openCases}`;
+            document.getElementById('legendClosed').textContent = `Closed: ${closedCases}`;
+        }
+
+        function renderInjuryTypeChart() {
+            const injuryTypes = {};
+            workersCompCases.forEach(c => {
+                const type = c.injuryType || 'Other';
+                injuryTypes[type] = (injuryTypes[type] || 0) + 1;
+            });
+
+            const chartContainer = document.getElementById('injuryTypeChart');
+            const sorted = Object.entries(injuryTypes).sort((a, b) => b[1] - a[1]).slice(0, 5);
+            const maxValue = sorted.length > 0 ? sorted[0][1] : 1;
+
+            if (sorted.length === 0) {
+                chartContainer.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 1rem;">No data yet</div>';
+                return;
+            }
+
+            chartContainer.innerHTML = sorted.map(([type, count]) => {
+                const percentage = (count / maxValue) * 100;
+                const colorClass = type.toLowerCase().replace(/[^a-z]/g, '') || 'default';
+                return `
+                    <div class="bar-item">
+                        <span class="bar-label" title="${type}">${type}</span>
+                        <div class="bar-container">
+                            <div class="bar-fill ${colorClass}" style="width: ${percentage}%">
+                                <span class="bar-value">${count}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderMonthlyTrendChart() {
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const now = new Date();
+            const monthlyData = [];
+
+            // Get last 6 months
+            for (let i = 5; i >= 0; i--) {
+                const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                const month = date.getMonth();
+                const year = date.getFullYear();
+
+                const count = workersCompCases.filter(c => {
+                    const caseDate = new Date(c.createdAt || c.injuryDate);
+                    return caseDate.getMonth() === month && caseDate.getFullYear() === year;
+                }).length;
+
+                monthlyData.push({
+                    label: monthNames[month],
+                    value: count
+                });
+            }
+
+            const maxValue = Math.max(...monthlyData.map(d => d.value), 1);
+            const chartContainer = document.getElementById('monthlyTrendChart');
+            const labelsContainer = document.getElementById('monthlyTrendLabels');
+
+            chartContainer.innerHTML = monthlyData.map(d => {
+                const height = (d.value / maxValue) * 80 + 10; // Min 10px height
+                return `<div class="trend-bar" style="height: ${height}px" data-value="${d.value}"></div>`;
+            }).join('');
+
+            labelsContainer.innerHTML = monthlyData.map(d =>
+                `<span class="trend-label">${d.label}</span>`
+            ).join('');
+        }
+
+        function renderClientChart() {
+            const clients = {};
+            workersCompCases.forEach(c => {
+                const client = c.client || 'Unknown';
+                clients[client] = (clients[client] || 0) + 1;
+            });
+
+            const chartContainer = document.getElementById('clientChart');
+            const sorted = Object.entries(clients).sort((a, b) => b[1] - a[1]).slice(0, 5);
+            const maxValue = sorted.length > 0 ? sorted[0][1] : 1;
+
+            if (sorted.length === 0) {
+                chartContainer.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 1rem;">No data yet</div>';
+                return;
+            }
+
+            chartContainer.innerHTML = sorted.map(([client, count], index) => {
+                const percentage = (count / maxValue) * 100;
+                const colors = ['default', 'laceration', 'sprain', 'fracture', 'contusion'];
+                const colorClass = colors[index % colors.length];
+                return `
+                    <div class="bar-item">
+                        <span class="bar-label" title="${client}">${client}</span>
+                        <div class="bar-container">
+                            <div class="bar-fill ${colorClass}" style="width: ${percentage}%">
+                                <span class="bar-value">${count}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ========== END KPI DASHBOARD FUNCTIONS ==========
 
         // Render all cases
         function renderCases() {
@@ -4443,6 +5053,41 @@
             }, 1500);
         }
 
+        // Automatically create a Workers' Comp case from submitted report
+        function createCaseFromReport(reportData) {
+            if (!reportData || !reportData.employeeName) {
+                console.error('Cannot create case: Missing report data');
+                return null;
+            }
+
+            // Generate case ID
+            const caseNumber = workersCompCases.length + 1;
+            const year = new Date().getFullYear();
+            const caseId = `WC-${year}-${String(caseNumber).padStart(3, '0')}`;
+
+            const newCase = {
+                id: caseId,
+                employeeName: reportData.employeeName,
+                insuranceCarrier: 'Texas Mutual', // Default carrier
+                claimNumber: '', // To be filled later
+                injuryDate: reportData.incidentDate,
+                injuryType: reportData.injuryType || 'Other',
+                description: reportData.description || `${reportData.reportClassification === 'incident' ? 'Incident' : 'Accident'} report - ${reportData.reportId}`,
+                status: 'open',
+                createdAt: new Date().toISOString(),
+                reportId: reportData.reportId, // Link to original report
+                client: reportData.client, // Client company
+                bodyParts: reportData.bodyParts || [],
+                expenses: []
+            };
+
+            workersCompCases.unshift(newCase);
+            saveCasesToStorage();
+
+            console.log(`Case ${caseId} created automatically from report ${reportData.reportId}`);
+            return caseId;
+        }
+
         async function handleSubmitSuccess(reportId) {
             document.getElementById('loadingSpinner').style.display = 'none';
             submittedReportId = reportId;
@@ -4453,6 +5098,19 @@
             document.getElementById('successReportId').textContent = submittedReportId;
 
             showNotification('Report submitted successfully!', 'success');
+
+            // Automatically create a case from the submitted report
+            if (savedReportData) {
+                const caseId = createCaseFromReport(savedReportData);
+                if (caseId) {
+                    showNotification(`Case ${caseId} created automatically`, 'success');
+                    // Update case stats if in cases view
+                    if (currentMode === 'cases') {
+                        renderCases();
+                        updateCaseStats();
+                    }
+                }
+            }
 
             // Send email notification automatically
             await sendReportEmail();
