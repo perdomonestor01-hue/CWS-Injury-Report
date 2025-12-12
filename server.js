@@ -111,14 +111,14 @@ if (!kevinCase) {
     console.log('✅ Kevin Simion INCIDENT seeded');
 }
 
-// Seed Geissa Romero case if not exists
+// Seed Geissa Romero workers comp case if not exists
 const geissaCase = db.prepare('SELECT id FROM cases WHERE employee_name LIKE ?').get('%Geissa Romero%');
 if (!geissaCase) {
     const insertCase = db.prepare(`
-        INSERT INTO cases (id, employee_name, insurance_carrier, claim_number, injury_date, injury_type, description, status, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO cases (id, employee_name, insurance_carrier, claim_number, injury_date, injury_type, description, status, report_classification, is_incident, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
-    insertCase.run('WC-2024-001', 'Geissa Romero', 'Texas Mutual', '', '2024-12-11', 'Other', 'Workers compensation case', 'open', new Date().toISOString());
+    insertCase.run('WC-2024-001', 'Geissa Romero', 'Texas Mutual', '1425001472540', '2024-12-11', 'Other', 'Workers compensation case', 'open', 'accident', 0, new Date().toISOString());
 
     const insertExpense = db.prepare(`
         INSERT INTO expenses (id, case_id, date, category, description, amount, vendor, notes, created_at)
