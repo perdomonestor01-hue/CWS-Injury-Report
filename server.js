@@ -5,128 +5,122 @@ const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const crypto = require('crypto');
 const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 
-// ========== DATABASE SETUP ==========
-const Database = require('better-sqlite3');
-const DB_PATH = process.env.DATABASE_PATH || path.join(__dirname, 'data', 'cws_safety.db');
+// ========== JSON FILE DATABASE SETUP ==========
+const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
+const DB_FILE = path.join(DATA_DIR, 'cws_safety.json');
 
 // Ensure data directory exists
-const fs = require('fs');
-const dataDir = path.dirname(DB_PATH);
-if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
+if (!fs.existsSync(DATA_DIR)) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
-const db = new Database(DB_PATH);
-db.pragma('journal_mode = WAL');
+// Database structure
+let db = {
+    reports: [],
+    cases: [],
+    expenses: []
+};
 
-// Initialize database tables
-db.exec(`
-    CREATE TABLE IF NOT EXISTS reports (
-        id TEXT PRIMARY KEY,
-        serial_number TEXT,
-        employee_name TEXT NOT NULL,
-        employee_id TEXT,
-        employee_phone TEXT,
-        client TEXT,
-        location TEXT,
-        incident_date TEXT,
-        incident_time TEXT,
-        reported_date TEXT,
-        reported_time TEXT,
-        injury_type TEXT,
-        description TEXT,
-        witness_name TEXT,
-        witness_contact TEXT,
-        body_parts TEXT,
-        report_classification TEXT,
-        reporter_name TEXT,
-        reporter_position TEXT,
-        medical_decline TEXT,
-        drug_test TEXT,
-        latitude REAL,
-        longitude REAL,
-        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
-    );
-
-    CREATE TABLE IF NOT EXISTS cases (
-        id TEXT PRIMARY KEY,
-        report_id TEXT,
-        employee_name TEXT NOT NULL,
-        insurance_carrier TEXT,
-        claim_number TEXT,
-        injury_date TEXT,
-        injury_type TEXT,
-        description TEXT,
-        status TEXT DEFAULT 'open',
-        client TEXT,
-        body_parts TEXT,
-        closed_at TEXT,
-        report_classification TEXT DEFAULT 'accident',
-        is_incident INTEGER DEFAULT 0,
-        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (report_id) REFERENCES reports(id)
-    );
-
-    CREATE TABLE IF NOT EXISTS expenses (
-        id TEXT PRIMARY KEY,
-        case_id TEXT NOT NULL,
-        date TEXT,
-        category TEXT,
-        description TEXT,
-        amount REAL,
-        vendor TEXT,
-        notes TEXT,
-        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (case_id) REFERENCES cases(id)
-    );
-
-    CREATE INDEX IF NOT EXISTS idx_reports_employee ON reports(employee_name);
-    CREATE INDEX IF NOT EXISTS idx_reports_date ON reports(incident_date);
-    CREATE INDEX IF NOT EXISTS idx_cases_status ON cases(status);
-    CREATE INDEX IF NOT EXISTS idx_cases_employee ON cases(employee_name);
-    CREATE INDEX IF NOT EXISTS idx_expenses_case ON expenses(case_id);
-`);
-
-console.log('✅ Database initialized at:', DB_PATH);
-
-// Seed Kevin Simion INCIDENT (not workers comp) if not exists
-const kevinCase = db.prepare('SELECT id FROM cases WHERE employee_name LIKE ?').get('%Kevin Simion%');
-if (!kevinCase) {
-    const insertCase = db.prepare(`
-        INSERT INTO cases (id, employee_name, insurance_carrier, claim_number, injury_date, injury_type, description, status, closed_at, report_classification, is_incident, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `);
-    // Kevin Simion is an INCIDENT - no workers comp, just medical check
-    insertCase.run('INC-2024-001', 'Kevin Simion', '', '', '2024-12-10', 'Other', 'Incident Report - Medical check completed. No injury, cleared to work.', 'closed', '2024-12-11', 'incident', 1, '2024-12-10T10:00:00.000Z');
-
-    const insertExpense = db.prepare(`
-        INSERT INTO expenses (id, case_id, date, category, description, amount, vendor, notes, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `);
-    insertExpense.run('EXP-KS-001', 'INC-2024-001', '2024-12-11', 'medical', 'Medical Check', 0.00, '', 'Post-incident medical evaluation - cleared to work', '2024-12-11T09:00:00.000Z');
-    console.log('✅ Kevin Simion INCIDENT seeded');
+// Load database from file
+function loadDatabase() {
+    try {
+        if (fs.existsSync(DB_FILE)) {
+            const data = fs.readFileSync(DB_FILE, 'utf8');
+            db = JSON.parse(data);
+            console.log('✅ Database loaded from:', DB_FILE);
+        } else {
+            // Initialize with seed data
+            seedDatabase();
+            saveDatabase();
+            console.log('✅ Database initialized at:', DB_FILE);
+        }
+    } catch (error) {
+        console.error('Error loading database:', error);
+        seedDatabase();
+        saveDatabase();
+    }
 }
 
-// Seed Geissa Romero workers comp case if not exists
-const geissaCase = db.prepare('SELECT id FROM cases WHERE employee_name LIKE ?').get('%Geissa Romero%');
-if (!geissaCase) {
-    const insertCase = db.prepare(`
-        INSERT INTO cases (id, employee_name, insurance_carrier, claim_number, injury_date, injury_type, description, status, report_classification, is_incident, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `);
-    insertCase.run('WC-2024-001', 'Geissa Romero', 'Texas Mutual', '1425001472540', '2024-12-11', 'Other', 'Workers compensation case', 'open', 'accident', 0, new Date().toISOString());
-
-    const insertExpense = db.prepare(`
-        INSERT INTO expenses (id, case_id, date, category, description, amount, vendor, notes, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `);
-    insertExpense.run('EXP-GR-001', 'WC-2024-001', '2024-12-11', 'testing', 'Drug and Alcohol Test', 168.00, '', 'Initial post-incident testing', new Date().toISOString());
-    console.log('✅ Geissa Romero case seeded');
+// Save database to file
+function saveDatabase() {
+    try {
+        fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
+    } catch (error) {
+        console.error('Error saving database:', error);
+    }
 }
+
+// Seed initial data
+function seedDatabase() {
+    // Kevin Simion INCIDENT (not workers comp)
+    const kevinExists = db.cases.find(c => c.employeeName && c.employeeName.toLowerCase().includes('kevin simion'));
+    if (!kevinExists) {
+        db.cases.push({
+            id: 'INC-2024-001',
+            employeeName: 'Kevin Simion',
+            reportClassification: 'incident',
+            insuranceCarrier: '',
+            claimNumber: '',
+            injuryDate: '2024-12-10',
+            injuryType: 'Other',
+            description: 'Incident Report - Medical check completed. No injury, cleared to work.',
+            status: 'closed',
+            closedAt: '2024-12-11',
+            client: '',
+            isIncident: true,
+            createdAt: '2024-12-10T10:00:00.000Z'
+        });
+        db.expenses.push({
+            id: 'EXP-KS-001',
+            caseId: 'INC-2024-001',
+            date: '2024-12-11',
+            category: 'medical',
+            description: 'Medical Check',
+            amount: 0.00,
+            vendor: '',
+            notes: 'Post-incident medical evaluation - cleared to work',
+            createdAt: '2024-12-11T09:00:00.000Z'
+        });
+        console.log('✅ Kevin Simion INCIDENT seeded');
+    }
+
+    // Geissa Romero Workers Comp
+    const geissaExists = db.cases.find(c => c.employeeName && c.employeeName.toLowerCase().includes('geissa romero'));
+    if (!geissaExists) {
+        db.cases.push({
+            id: 'WC-2024-001',
+            employeeName: 'Geissa Romero',
+            reportClassification: 'accident',
+            insuranceCarrier: 'Texas Mutual',
+            claimNumber: '1425001472540',
+            injuryDate: '2024-12-11',
+            injuryType: 'Other',
+            description: 'Workers compensation case',
+            status: 'open',
+            client: '',
+            isIncident: false,
+            createdAt: new Date().toISOString()
+        });
+        db.expenses.push({
+            id: 'EXP-GR-001',
+            caseId: 'WC-2024-001',
+            date: '2024-12-11',
+            category: 'testing',
+            description: 'Drug and Alcohol Test',
+            amount: 168.00,
+            vendor: '',
+            notes: 'Initial post-incident testing',
+            createdAt: new Date().toISOString()
+        });
+        console.log('✅ Geissa Romero case seeded');
+    }
+}
+
+// Initialize database
+loadDatabase();
 // ========== END DATABASE SETUP ==========
 
 const app = express();
@@ -425,7 +419,7 @@ app.get('/api/cases', requireAuth, (req, res) => {
 // Get all reports
 app.get('/api/reports', (req, res) => {
     try {
-        const reports = db.prepare('SELECT * FROM reports ORDER BY created_at DESC').all();
+        const reports = [...db.reports].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         res.json({ success: true, reports });
     } catch (error) {
         console.error('Error fetching reports:', error);
@@ -436,7 +430,7 @@ app.get('/api/reports', (req, res) => {
 // Get single report
 app.get('/api/reports/:id', (req, res) => {
     try {
-        const report = db.prepare('SELECT * FROM reports WHERE id = ?').get(req.params.id);
+        const report = db.reports.find(r => r.id === req.params.id);
         if (!report) {
             return res.status(404).json({ success: false, error: 'Report not found' });
         }
@@ -451,43 +445,38 @@ app.get('/api/reports/:id', (req, res) => {
 app.post('/api/reports', (req, res) => {
     try {
         const data = req.body;
-        const stmt = db.prepare(`
-            INSERT INTO reports (id, serial_number, employee_name, employee_id, employee_phone, client, location,
-                incident_date, incident_time, reported_date, reported_time, injury_type, description,
-                witness_name, witness_contact, body_parts, report_classification, reporter_name,
-                reporter_position, medical_decline, drug_test, latitude, longitude, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `);
+        const report = {
+            id: data.reportId || data.id,
+            serialNumber: data.serialNumber,
+            employeeName: data.employeeName,
+            employeeId: data.employeeId,
+            employeePhone: data.employeePhone,
+            client: data.client,
+            location: data.location,
+            incidentDate: data.incidentDate,
+            incidentTime: data.incidentTime,
+            reportedDate: data.reportedDate,
+            reportedTime: data.reportedTime,
+            injuryType: data.injuryType,
+            description: data.description,
+            witnessName: data.witnessName,
+            witnessContact: data.witnessContact,
+            bodyParts: data.bodyParts || [],
+            reportClassification: data.reportClassification,
+            reporterName: data.reporterName,
+            reporterPosition: data.reporterPosition,
+            medicalDecline: data.medicalDecline || {},
+            drugTest: data.drugTest || {},
+            latitude: data.latitude,
+            longitude: data.longitude,
+            createdAt: data.timestamp || new Date().toISOString()
+        };
 
-        stmt.run(
-            data.reportId || data.id,
-            data.serialNumber,
-            data.employeeName,
-            data.employeeId,
-            data.employeePhone,
-            data.client,
-            data.location,
-            data.incidentDate,
-            data.incidentTime,
-            data.reportedDate,
-            data.reportedTime,
-            data.injuryType,
-            data.description,
-            data.witnessName,
-            data.witnessContact,
-            JSON.stringify(data.bodyParts || []),
-            data.reportClassification,
-            data.reporterName,
-            data.reporterPosition,
-            JSON.stringify(data.medicalDecline || {}),
-            JSON.stringify(data.drugTest || {}),
-            data.latitude,
-            data.longitude,
-            data.timestamp || new Date().toISOString()
-        );
+        db.reports.push(report);
+        saveDatabase();
 
-        console.log(`✅ Report saved: ${data.reportId || data.id}`);
-        res.json({ success: true, reportId: data.reportId || data.id });
+        console.log(`✅ Report saved: ${report.id}`);
+        res.json({ success: true, reportId: report.id });
     } catch (error) {
         console.error('Error saving report:', error);
         res.status(500).json({ success: false, error: 'Failed to save report' });
@@ -499,15 +488,10 @@ app.post('/api/reports', (req, res) => {
 // Get all cases with expenses
 app.get('/api/cases', (req, res) => {
     try {
-        const cases = db.prepare('SELECT * FROM cases ORDER BY created_at DESC').all();
-
-        // Get expenses for each case
-        const getExpenses = db.prepare('SELECT * FROM expenses WHERE case_id = ? ORDER BY date DESC');
-        const casesWithExpenses = cases.map(c => ({
+        const casesWithExpenses = db.cases.map(c => ({
             ...c,
-            bodyParts: c.body_parts ? JSON.parse(c.body_parts) : [],
-            expenses: getExpenses.all(c.id)
-        }));
+            expenses: db.expenses.filter(e => e.caseId === c.id)
+        })).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
         res.json({ success: true, cases: casesWithExpenses });
     } catch (error) {
@@ -519,16 +503,17 @@ app.get('/api/cases', (req, res) => {
 // Get single case with expenses
 app.get('/api/cases/:id', (req, res) => {
     try {
-        const caseData = db.prepare('SELECT * FROM cases WHERE id = ?').get(req.params.id);
+        const caseData = db.cases.find(c => c.id === req.params.id);
         if (!caseData) {
             return res.status(404).json({ success: false, error: 'Case not found' });
         }
 
-        const expenses = db.prepare('SELECT * FROM expenses WHERE case_id = ? ORDER BY date DESC').all(req.params.id);
-        caseData.expenses = expenses;
-        caseData.bodyParts = caseData.body_parts ? JSON.parse(caseData.body_parts) : [];
+        const result = {
+            ...caseData,
+            expenses: db.expenses.filter(e => e.caseId === req.params.id)
+        };
 
-        res.json({ success: true, case: caseData });
+        res.json({ success: true, case: result });
     } catch (error) {
         console.error('Error fetching case:', error);
         res.status(500).json({ success: false, error: 'Failed to fetch case' });
@@ -539,26 +524,25 @@ app.get('/api/cases/:id', (req, res) => {
 app.post('/api/cases', (req, res) => {
     try {
         const data = req.body;
-        const stmt = db.prepare(`
-            INSERT INTO cases (id, report_id, employee_name, insurance_carrier, claim_number, injury_date,
-                injury_type, description, status, client, body_parts, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `);
+        const newCase = {
+            id: data.id,
+            reportId: data.reportId || null,
+            employeeName: data.employeeName,
+            reportClassification: data.reportClassification || 'accident',
+            insuranceCarrier: data.insuranceCarrier || 'Texas Mutual',
+            claimNumber: data.claimNumber || '',
+            injuryDate: data.injuryDate,
+            injuryType: data.injuryType || 'Other',
+            description: data.description,
+            status: data.status || 'open',
+            client: data.client || '',
+            bodyParts: data.bodyParts || [],
+            isIncident: data.isIncident || false,
+            createdAt: data.createdAt || new Date().toISOString()
+        };
 
-        stmt.run(
-            data.id,
-            data.reportId || null,
-            data.employeeName,
-            data.insuranceCarrier || 'Texas Mutual',
-            data.claimNumber || '',
-            data.injuryDate,
-            data.injuryType || 'Other',
-            data.description,
-            data.status || 'open',
-            data.client || '',
-            JSON.stringify(data.bodyParts || []),
-            data.createdAt || new Date().toISOString()
-        );
+        db.cases.push(newCase);
+        saveDatabase();
 
         console.log(`✅ Case saved: ${data.id}`);
         res.json({ success: true, caseId: data.id });
@@ -572,34 +556,19 @@ app.post('/api/cases', (req, res) => {
 app.put('/api/cases/:id', (req, res) => {
     try {
         const data = req.body;
-        const stmt = db.prepare(`
-            UPDATE cases SET
-                employee_name = COALESCE(?, employee_name),
-                insurance_carrier = COALESCE(?, insurance_carrier),
-                claim_number = COALESCE(?, claim_number),
-                injury_date = COALESCE(?, injury_date),
-                injury_type = COALESCE(?, injury_type),
-                description = COALESCE(?, description),
-                status = COALESCE(?, status),
-                client = COALESCE(?, client),
-                closed_at = ?,
-                updated_at = ?
-            WHERE id = ?
-        `);
+        const index = db.cases.findIndex(c => c.id === req.params.id);
 
-        stmt.run(
-            data.employeeName,
-            data.insuranceCarrier,
-            data.claimNumber,
-            data.injuryDate,
-            data.injuryType,
-            data.description,
-            data.status,
-            data.client,
-            data.status === 'closed' ? (data.closedAt || new Date().toISOString()) : null,
-            new Date().toISOString(),
-            req.params.id
-        );
+        if (index === -1) {
+            return res.status(404).json({ success: false, error: 'Case not found' });
+        }
+
+        db.cases[index] = {
+            ...db.cases[index],
+            ...data,
+            closedAt: data.status === 'closed' ? (data.closedAt || new Date().toISOString()) : db.cases[index].closedAt,
+            updatedAt: new Date().toISOString()
+        };
+        saveDatabase();
 
         console.log(`✅ Case updated: ${req.params.id}`);
         res.json({ success: true, caseId: req.params.id });
@@ -615,22 +584,20 @@ app.put('/api/cases/:id', (req, res) => {
 app.post('/api/cases/:caseId/expenses', (req, res) => {
     try {
         const data = req.body;
-        const stmt = db.prepare(`
-            INSERT INTO expenses (id, case_id, date, category, description, amount, vendor, notes, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `);
+        const expense = {
+            id: data.id,
+            caseId: req.params.caseId,
+            date: data.date,
+            category: data.category,
+            description: data.description,
+            amount: data.amount,
+            vendor: data.vendor || '',
+            notes: data.notes || '',
+            createdAt: data.createdAt || new Date().toISOString()
+        };
 
-        stmt.run(
-            data.id,
-            req.params.caseId,
-            data.date,
-            data.category,
-            data.description,
-            data.amount,
-            data.vendor || '',
-            data.notes || '',
-            data.createdAt || new Date().toISOString()
-        );
+        db.expenses.push(expense);
+        saveDatabase();
 
         console.log(`✅ Expense added to case ${req.params.caseId}: ${data.id}`);
         res.json({ success: true, expenseId: data.id });
@@ -643,7 +610,11 @@ app.post('/api/cases/:caseId/expenses', (req, res) => {
 // Delete expense
 app.delete('/api/expenses/:id', (req, res) => {
     try {
-        db.prepare('DELETE FROM expenses WHERE id = ?').run(req.params.id);
+        const index = db.expenses.findIndex(e => e.id === req.params.id);
+        if (index !== -1) {
+            db.expenses.splice(index, 1);
+            saveDatabase();
+        }
         console.log(`✅ Expense deleted: ${req.params.id}`);
         res.json({ success: true });
     } catch (error) {
@@ -660,87 +631,66 @@ app.post('/api/sync', (req, res) => {
         let synced = 0;
 
         if (clientCases && Array.isArray(clientCases)) {
-            const upsertCase = db.prepare(`
-                INSERT OR REPLACE INTO cases (id, report_id, employee_name, insurance_carrier, claim_number,
-                    injury_date, injury_type, description, status, client, body_parts, closed_at, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            `);
+            for (const c of clientCases) {
+                // Upsert case
+                const existingIndex = db.cases.findIndex(ec => ec.id === c.id);
+                const caseData = {
+                    id: c.id,
+                    reportId: c.reportId || null,
+                    employeeName: c.employeeName,
+                    reportClassification: c.reportClassification || 'accident',
+                    insuranceCarrier: c.insuranceCarrier || 'Texas Mutual',
+                    claimNumber: c.claimNumber || '',
+                    injuryDate: c.injuryDate,
+                    injuryType: c.injuryType || 'Other',
+                    description: c.description || '',
+                    status: c.status || 'open',
+                    client: c.client || '',
+                    bodyParts: c.bodyParts || [],
+                    isIncident: c.isIncident || false,
+                    closedAt: c.closedAt || null,
+                    createdAt: c.createdAt || new Date().toISOString()
+                };
 
-            const upsertExpense = db.prepare(`
-                INSERT OR REPLACE INTO expenses (id, case_id, date, category, description, amount, vendor, notes, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            `);
+                if (existingIndex !== -1) {
+                    db.cases[existingIndex] = caseData;
+                } else {
+                    db.cases.push(caseData);
+                }
 
-            const syncTransaction = db.transaction((cases) => {
-                for (const c of cases) {
-                    upsertCase.run(
-                        c.id,
-                        c.reportId || null,
-                        c.employeeName,
-                        c.insuranceCarrier || 'Texas Mutual',
-                        c.claimNumber || '',
-                        c.injuryDate,
-                        c.injuryType || 'Other',
-                        c.description || '',
-                        c.status || 'open',
-                        c.client || '',
-                        JSON.stringify(c.bodyParts || []),
-                        c.closedAt || null,
-                        c.createdAt || new Date().toISOString(),
-                        new Date().toISOString()
-                    );
+                // Sync expenses
+                if (c.expenses && Array.isArray(c.expenses)) {
+                    for (const exp of c.expenses) {
+                        const expIndex = db.expenses.findIndex(e => e.id === exp.id);
+                        const expenseData = {
+                            id: exp.id,
+                            caseId: c.id,
+                            date: exp.date,
+                            category: exp.category,
+                            description: exp.description,
+                            amount: exp.amount,
+                            vendor: exp.vendor || '',
+                            notes: exp.notes || '',
+                            createdAt: exp.createdAt || new Date().toISOString()
+                        };
 
-                    // Sync expenses
-                    if (c.expenses && Array.isArray(c.expenses)) {
-                        for (const exp of c.expenses) {
-                            upsertExpense.run(
-                                exp.id,
-                                c.id,
-                                exp.date,
-                                exp.category,
-                                exp.description,
-                                exp.amount,
-                                exp.vendor || '',
-                                exp.notes || '',
-                                exp.createdAt || new Date().toISOString()
-                            );
+                        if (expIndex !== -1) {
+                            db.expenses[expIndex] = expenseData;
+                        } else {
+                            db.expenses.push(expenseData);
                         }
                     }
-                    synced++;
                 }
-            });
-
-            syncTransaction(clientCases);
+                synced++;
+            }
+            saveDatabase();
         }
 
-        // Return all server cases
-        const serverCases = db.prepare('SELECT * FROM cases ORDER BY created_at DESC').all();
-        const getExpenses = db.prepare('SELECT * FROM expenses WHERE case_id = ?');
-        const casesWithExpenses = serverCases.map(c => ({
-            id: c.id,
-            reportId: c.report_id,
-            employeeName: c.employee_name,
-            insuranceCarrier: c.insurance_carrier,
-            claimNumber: c.claim_number,
-            injuryDate: c.injury_date,
-            injuryType: c.injury_type,
-            description: c.description,
-            status: c.status,
-            client: c.client,
-            bodyParts: c.body_parts ? JSON.parse(c.body_parts) : [],
-            closedAt: c.closed_at,
-            createdAt: c.created_at,
-            expenses: getExpenses.all(c.id).map(e => ({
-                id: e.id,
-                date: e.date,
-                category: e.category,
-                description: e.description,
-                amount: e.amount,
-                vendor: e.vendor,
-                notes: e.notes,
-                createdAt: e.created_at
-            }))
-        }));
+        // Return all server cases with expenses
+        const casesWithExpenses = db.cases.map(c => ({
+            ...c,
+            expenses: db.expenses.filter(e => e.caseId === c.id)
+        })).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
         console.log(`✅ Synced ${synced} cases from client`);
         res.json({ success: true, synced, cases: casesWithExpenses });
@@ -753,33 +703,37 @@ app.post('/api/sync', (req, res) => {
 // ========== KPI STATS ENDPOINT ==========
 app.get('/api/stats', (req, res) => {
     try {
-        const totalCases = db.prepare('SELECT COUNT(*) as count FROM cases').get().count;
-        const openCases = db.prepare('SELECT COUNT(*) as count FROM cases WHERE status = ?').get('open').count;
-        const closedCases = db.prepare('SELECT COUNT(*) as count FROM cases WHERE status = ?').get('closed').count;
-        const totalExpenses = db.prepare('SELECT COALESCE(SUM(amount), 0) as total FROM expenses').get().total;
+        const totalCases = db.cases.length;
+        const openCases = db.cases.filter(c => c.status === 'open').length;
+        const closedCases = db.cases.filter(c => c.status === 'closed').length;
+        const totalExpenses = db.expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
 
         // Cases this month
         const now = new Date();
-        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-        const thisMonth = db.prepare('SELECT COUNT(*) as count FROM cases WHERE created_at >= ?').get(monthStart).count;
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        const thisMonth = db.cases.filter(c => new Date(c.createdAt) >= monthStart).length;
 
         // Cases by injury type
-        const byInjuryType = db.prepare(`
-            SELECT injury_type as type, COUNT(*) as count
-            FROM cases
-            GROUP BY injury_type
-            ORDER BY count DESC
-        `).all();
+        const injuryTypeCounts = {};
+        db.cases.forEach(c => {
+            const type = c.injuryType || 'Other';
+            injuryTypeCounts[type] = (injuryTypeCounts[type] || 0) + 1;
+        });
+        const byInjuryType = Object.entries(injuryTypeCounts)
+            .map(([type, count]) => ({ type, count }))
+            .sort((a, b) => b.count - a.count);
 
         // Cases by client
-        const byClient = db.prepare(`
-            SELECT client, COUNT(*) as count
-            FROM cases
-            WHERE client IS NOT NULL AND client != ''
-            GROUP BY client
-            ORDER BY count DESC
-            LIMIT 5
-        `).all();
+        const clientCounts = {};
+        db.cases.forEach(c => {
+            if (c.client) {
+                clientCounts[c.client] = (clientCounts[c.client] || 0) + 1;
+            }
+        });
+        const byClient = Object.entries(clientCounts)
+            .map(([client, count]) => ({ client, count }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 5);
 
         res.json({
             success: true,
