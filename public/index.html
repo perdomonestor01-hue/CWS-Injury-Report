@@ -3201,25 +3201,27 @@
                 // Initialize with existing cases
                 workersCompCases = [
                     {
-                        id: 'WC-2024-002',
+                        id: 'INC-2024-001',
                         employeeName: 'Kevin Simion',
-                        insuranceCarrier: 'Texas Mutual',
+                        reportClassification: 'incident', // INCIDENT - not workers comp
+                        insuranceCarrier: '', // No insurance - incident only
                         claimNumber: '',
                         injuryDate: '2024-12-10',
                         injuryType: 'Other',
-                        description: 'Incident report - Medical check completed',
+                        description: 'Incident Report - Medical check completed. No injury, cleared to work.',
                         status: 'closed',
                         closedAt: '2024-12-11',
                         createdAt: '2024-12-10T10:00:00.000Z',
                         client: '',
+                        isIncident: true,
                         expenses: [{
-                            id: 'EXP-001',
+                            id: 'EXP-KS-001',
                             date: '2024-12-11',
                             category: 'medical',
                             description: 'Medical Check',
                             amount: 0.00,
                             vendor: '',
-                            notes: 'Post-incident medical evaluation - cleared',
+                            notes: 'Post-incident medical evaluation - cleared to work',
                             createdAt: '2024-12-11T09:00:00.000Z'
                         }]
                     },
@@ -3254,39 +3256,50 @@
             localStorage.setItem('workersCompCases', JSON.stringify(workersCompCases));
         }
 
-        // Migration: Ensure Kevin Simion's case exists
+        // Migration: Ensure Kevin Simion's incident exists
         function migrateKevinSimionCase() {
             const kevinCase = workersCompCases.find(c =>
                 c.employeeName && c.employeeName.toLowerCase().includes('kevin simion')
             );
 
             if (!kevinCase) {
-                // Add Kevin Simion's closed case
+                // Add Kevin Simion's closed INCIDENT (not workers comp)
                 workersCompCases.unshift({
-                    id: 'WC-2024-002',
+                    id: 'INC-2024-001',
                     employeeName: 'Kevin Simion',
-                    insuranceCarrier: 'Texas Mutual',
+                    reportClassification: 'incident', // INCIDENT - not accident/workers comp
+                    insuranceCarrier: '', // No insurance - incident only
                     claimNumber: '',
                     injuryDate: '2024-12-10',
                     injuryType: 'Other',
-                    description: 'Incident report - Medical check completed',
+                    description: 'Incident Report - Medical check completed. No injury, cleared to work.',
                     status: 'closed',
                     closedAt: '2024-12-11',
                     createdAt: '2024-12-10T10:00:00.000Z',
                     client: '',
+                    isIncident: true, // Flag for incident vs workers comp
                     expenses: [{
-                        id: 'EXP-001',
+                        id: 'EXP-KS-001',
                         date: '2024-12-11',
                         category: 'medical',
                         description: 'Medical Check',
                         amount: 0.00,
                         vendor: '',
-                        notes: 'Post-incident medical evaluation - cleared',
+                        notes: 'Post-incident medical evaluation - cleared to work',
                         createdAt: '2024-12-11T09:00:00.000Z'
                     }]
                 });
                 saveCasesToStorage();
-                console.log('Migration: Kevin Simion case added');
+                console.log('Migration: Kevin Simion INCIDENT added');
+            } else if (!kevinCase.isIncident) {
+                // Update existing case to be an incident
+                kevinCase.reportClassification = 'incident';
+                kevinCase.isIncident = true;
+                kevinCase.id = kevinCase.id.startsWith('WC-') ? kevinCase.id.replace('WC-', 'INC-') : kevinCase.id;
+                kevinCase.insuranceCarrier = '';
+                kevinCase.description = 'Incident Report - Medical check completed. No injury, cleared to work.';
+                saveCasesToStorage();
+                console.log('Migration: Kevin Simion updated to INCIDENT');
             }
         }
 

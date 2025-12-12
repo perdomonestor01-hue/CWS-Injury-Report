@@ -1,7 +1,7 @@
 {
   "name": "cws-injury-report-email-service",
-  "version": "1.0.0",
-  "description": "Email service for CWS Injury Report System",
+  "version": "1.1.0",
+  "description": "Email service for CWS Injury Report System with database persistence",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -11,7 +11,8 @@
   "keywords": [
     "injury-report",
     "email",
-    "safety"
+    "safety",
+    "workers-comp"
   ],
   "author": "Jufipai",
   "license": "MIT",
@@ -21,7 +22,8 @@
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express-rate-limit": "^7.1.5",
-    "helmet": "^7.1.0"
+    "helmet": "^7.1.0",
+    "better-sqlite3": "^9.4.3"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"
